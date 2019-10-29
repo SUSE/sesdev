@@ -18,12 +18,12 @@
 
 Name:           sesdev
 Version:        0.2.0
-Release:        0
+Release:        1%{?dist}
 Summary:        CLI tool to deploy and manage SES clusters
 License:        MIT
 Group:          Development/Languages/Python
 Url:            https://github.com/rjfd/sesdev
-Source:         https://github.com/rjfd/sesdev/archive/v%{version}.tar.gz
+Source0:        https://github.com/rjfd/sesdev/archive/v%{version}.tar.gz
 BuildArch:      noarch
 BuildRequires:  python-rpm-macros
 BuildRequires:  python3-setuptools
