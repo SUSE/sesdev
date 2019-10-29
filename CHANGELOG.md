@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2019-10-29
 ### Added
 - `--version` option to print the installed version.
 
@@ -18,14 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - unreleased link from CHANGELOG.md was pointing to keepchangelog repo.
 
 ## [0.1.0] - 2019-10-29
-
 ### Changed
 - sesdev.spec: fixed sesdev dependencies
 - sesdev.spec: fixed source URL
 - sesdev.spec: set version number to 0.1.0
 
 ## [0.0.1] - 2019-10-29
-
 ### Added
 - `sesdev` CLI tool with the following features:
   - create/destroy nautilus cluster based on openSUSE Leap 15.1.
@@ -35,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/rjfd/sesdev/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/rjfd/sesdev/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/rjfd/sesdev/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rjfd/sesdev/releases/tag/v0.1.0
 [0.0.1]: https://github.com/rjfd/sesdev/releases/tag/v0.0.1
