@@ -31,18 +31,16 @@ BuildRequires:  python-rpm-macros
 %endif
 BuildRequires:  python3-setuptools
 
-Requires:       python3-astroid >= 1.6.1
 Requires:       python3-click >= 6.7
-Requires:       python3-isort >= 4.2.15
+%if 0%{?suse_version}
 Requires:       python3-Jinja2 >= 2.10.1
-Requires:       python3-lazy-object-proxy >= 1.2.2
-Requires:       python3-MarkupSafe >= 1.0
-Requires:       python3-mccabe >= 0.6.1
 Requires:       python3-pycryptodome >= 3.4.7
 Requires:       python3-PyYAML >= 3.13
-Requires:       python3-six >= 1.11.0
-Requires:       python3-typed-ast >= 1.3.1
-Requires:       python3-wrapt >= 1.10.10
+%else
+Requires:       python3-jinja2 >= 2.10.1
+Requires:       python3-pycryptodomex >= 3.4.7
+Requires:       python3-pyyaml >= 3.13
+%endif
 Requires:       vagrant
 Requires:       vagrant-libvirt
 
@@ -60,15 +58,15 @@ based OS.
 %if 0%{?suse_version}
 %python3_build
 %else
-%{py3_build}
+%py3_build
 %endif
 
 %install
 %if 0%{?suse_version}
 %python3_install
-%python_expand %fdupes %{buildroot}%{$python_sitelib}
+%fdupes %{buildroot}%{python3_sitelib}
 %else
-%{py3_install}
+%py3_install
 %endif
 
 %files
