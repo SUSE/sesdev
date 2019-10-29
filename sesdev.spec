@@ -21,10 +21,27 @@ Version:        0.1.0
 Release:        0
 Summary:        CLI tool to deploy and manage SES clusters
 License:        MIT
+Group:          Development/Languages/Python
 Url:            https://github.com/rjfd/sesdev
-Source:         TODO
+Source:         https://github.com/rjfd/sesdev/archive/v%{version}.tar.gz
+BuildArch:      noarch
 BuildRequires:  python-rpm-macros
 BuildRequires:  python3-setuptools
+
+Requires:       python3-astroid >= 1.6.1
+Requires:       python3-click >= 6.7
+Requires:       python3-isort >= 4.2.15
+Requires:       python3-Jinja2 >= 2.10.1
+Requires:       python3-lazy-object-proxy >= 1.2.2
+Requires:       python3-MarkupSafe >= 1.0
+Requires:       python3-mccabe >= 0.6.1
+Requires:       python3-pycryptodome >= 3.4.7
+Requires:       python3-PyYAML >= 3.13
+Requires:       python3-six >= 1.11.0
+Requires:       python3-typed-ast >= 1.3.1
+Requires:       python3-wrapt >= 1.10.10
+Requires:       vagrant
+Requires:       vagrant-libvirt
 
 %description
 sesdev is a CLI tool for developers to help with deploying SES clusters.
@@ -44,7 +61,7 @@ based OS.
 
 %files
 %license LICENSE
-%doc ChangeLog README
+%doc CHANGELOG.md README.md
 %{python3_sitelib}/*
 %{_bindir}/sesdev
 

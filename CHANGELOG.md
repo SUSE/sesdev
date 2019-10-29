@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2019-10-29
+
+### Changed
+- sesdev.spec: fixed sesdev dependencies
+- sesdev.spec: fixed source URL
+- sesdev.spec: set version number to 0.1.0
+
 ## [0.0.1] - 2019-10-29
 
 ### Added
@@ -19,5 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.0.1...HEAD
+[unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/rjfd/sesdev/releases/tag/v0.1.0
 [0.0.1]: https://github.com/rjfd/sesdev/releases/tag/v0.0.1
