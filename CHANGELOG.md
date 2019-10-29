@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.2.1] - 2019-10-29
 ### Fixed
 - fixed `Source` and `Release` attributes in spec file
 
@@ -36,7 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/rjfd/sesdev/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/rjfd/sesdev/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/rjfd/sesdev/releases/tag/v0.2.1
 [0.2.0]: https://github.com/rjfd/sesdev/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rjfd/sesdev/releases/tag/v0.1.0
 [0.0.1]: https://github.com/rjfd/sesdev/releases/tag/v0.0.1
