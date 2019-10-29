@@ -1,0 +1,227 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false
+  config.vm.box = "{{ vagrant_box }}"
+
+  config.vm.provider "libvirt" do |lv|
+{% if libvirt_host %}
+    lv.host = "{{ libvirt_host }}"
+{% endif %}
+{% if libvirt_user %}
+    lv.username = "{{ libvirt_user }}"
+{% endif %}
+{% if libvirt_use_ssl %}
+    lv.connect_via_ssh = {{ libvirt_use_ssl }}
+{% endif %}
+
+    lv.memory = {{ ram }}
+    lv.cpus = {{ cpus }}
+{% if libvirt_storage_pool %}
+    lv.storage_pool_name = "{{ libvirt_storage_pool }}"
+{% endif %}
+
+    lv.nic_model_type = "e1000"
+    lv.cpu_mode = 'host-passthrough'
+  end
+
+{% for node in nodes %}
+  config.vm.define :"{{ node.name }}" do |node|
+    node.vm.network :private_network, ip: "{{ node.public_address }}"
+{% if node.cluster_address %}
+    node.vm.network :private_network, ip: "{{ node.cluster_address }}"
+{% endif %}
+
+    node.vm.provision "file", source: "keys/id_rsa",
+                              destination:".ssh/id_rsa"
+    node.vm.provision "file", source: "keys/id_rsa.pub",
+                              destination:".ssh/id_rsa.pub"
+
+{% if node == admin %}
+    node.vm.provision "file", source: "bin/", destination:"/home/vagrant/"
+{% endif %}
+
+    node.vm.synced_folder ".", "/vagrant", disabled: true
+
+    node.vm.provider "libvirt" do |lv|
+{% for disk in node.storage_disks %}
+      lv.storage :file, size: "{{ disk.size }}G", type: 'qcow2'
+{% endfor %}
+    end
+
+    node.vm.provision "shell", inline: <<-SHELL
+{% for _node in nodes %}
+      echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
+{% endfor %}
+
+      zypper -n install vim git iputils hostname jq make iptables patch
+
+{% include version + "_repos.sh.j2" ignore missing %}
+
+{% for repo in node.repos %}
+      zypper ar {{ repo.url }} {{ repo.name }}
+{% if repo.priority %}
+      zypper mr -p {{ repo.priority }} {{ repo.name }}
+{% endif %}
+{% endfor %}
+      zypper --gpg-auto-import-keys ref
+
+      cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
+      [ ! -e "/root/.ssh" ] && mkdir /root/.ssh
+      chmod 600 /home/vagrant/.ssh/id_rsa
+      cp /home/vagrant/.ssh/id_rsa* /root/.ssh/
+      cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+      hostnamectl set-hostname {{ node.name }}
+
+      zypper -n install salt-minion
+      sed -i 's/^#master:.*/master: {{ admin.name }}/g' /etc/salt/minion
+      systemctl enable salt-minion
+      systemctl start salt-minion
+      touch /tmp/ready
+
+{% if node == admin %}
+      zypper -n install salt-master
+      systemctl enable salt-master
+      systemctl start salt-master
+      sleep 5
+
+      while : ; do
+        PROVISIONED_NODES=`ls -l /tmp/ready-* 2>/dev/null | wc -l`
+        echo "waiting for nodes (${PROVISIONED_NODES}/{{ nodes|length }})";
+        [[ "${PROVISIONED_NODES}" != "{{ nodes|length }}" ]] || break
+        sleep 2;
+{% for node in nodes %}
+        scp -o StrictHostKeyChecking=no {{ node.name }}:/tmp/ready /tmp/ready-{{ node.name }};
+{% endfor %}
+      done
+
+      sleep 10
+      salt-key -Ay
+
+{% if deepsea_git_repo %}
+      cd /root
+      git clone {{ deepsea_git_repo }}
+      cd DeepSea
+      git checkout {{ deepsea_git_branch }}
+      make install
+{% else %}
+      zypper -n install deepsea deepsea-cli
+{% endif %}
+      deepsea --version
+
+      sleep 10
+      salt '*' test.ping > /dev/null 2>&1
+      sleep 2
+      salt '*' grains.set deepsea True
+      sleep 5
+
+      # generate policy.cfg
+      mkdir -p /srv/pillar/ceph/proposals
+      cat > /srv/pillar/ceph/proposals/policy.cfg <<EOF
+{% include version + "_policy.cfg.j2" ignore missing %}
+EOF
+
+{% include version + "_pre_stage_0.sh.j2" ignore missing %}
+
+      chown -R salt:salt /srv
+
+{% if pre_stage_0_script %}
+      {{ pre_stage_0_script }}
+{% endif %}
+
+{% if stop_before_stage == 0 %}
+      exit 0
+{% endif %}
+
+      echo ""
+      echo "***** RUNNING stage.0 *******"
+{% if use_deepsea_cli %}
+      deepsea stage run --simple-output ceph.stage.0
+{% else %}
+      salt-run state.orch ceph.stage.0
+{% endif %}
+      sleep 5
+
+{% include version + "_pre_stage_1.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 1 %}
+      exit 0
+{% endif %}
+
+      echo ""
+      echo "***** RUNNING stage.1 *******"
+{% if use_deepsea_cli %}
+      deepsea stage run --simple-output ceph.stage.1
+{% else %}
+      salt-run state.orch ceph.stage.1
+{% endif %}
+      sleep 5
+
+{% include version + "_pre_stage_2.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 2 %}
+      exit 0
+{% endif %}
+
+      echo ""
+      echo "***** RUNNING stage.2 *******"
+{% if use_deepsea_cli %}
+      deepsea stage run --simple-output ceph.stage.2
+{% else %}
+      salt-run state.orch ceph.stage.2
+{% endif %}
+      sleep 5
+
+{% include version + "_pre_stage_3.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 3 %}
+      exit 0
+{% endif %}
+
+      echo ""
+      echo "***** RUNNING stage.3 *******"
+{% if use_deepsea_cli %}
+      DEV_ENV=true deepsea stage run --simple-output ceph.stage.3
+{% else %}
+      DEV_ENV=true salt-run state.orch ceph.stage.3
+{% endif %}
+      sleep 5
+
+{% if nodes|length < 3 %}
+      # the failure domains needs to be 'osd' in order for pgs to be replicated in less
+      # than 3 nodes
+      ceph osd crush rule rm replicated_rule
+      ceph osd crush rule create-replicated replicated_rule default osd
+{% endif %}
+
+{% if num_osds < 6 %}
+      # we need to increase the number of max pg per osd for deepsea to work
+      # correctly with this number of OSDs
+      ceph config set global mon_max_pg_per_osd 500
+{% endif %}
+
+{% include version + "_pre_stage_4.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 4 %}
+      exit 0
+{% endif %}
+
+      echo ""
+      echo "***** RUNNING stage.4 *******"
+{% if use_deepsea_cli %}
+      deepsea stage run --simple-output ceph.stage.4
+{% else %}
+      salt-run state.orch ceph.stage.4
+{% endif %}
+      sleep 5
+
+      echo "deployment complete!"
+
+{% endif %}
+    SHELL
+
+  end
+
+{% endfor %}
+end
