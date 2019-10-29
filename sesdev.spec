@@ -25,7 +25,10 @@ Group:          Development/Languages/Python
 Url:            https://github.com/rjfd/sesdev
 Source0:        https://github.com/rjfd/sesdev/archive/v%{version}.tar.gz
 BuildArch:      noarch
+
+%if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
+%endif
 BuildRequires:  python3-setuptools
 
 Requires:       python3-astroid >= 1.6.1
@@ -54,10 +57,19 @@ based OS.
 %autosetup -n sesdev-%{version} -p1
 
 %build
+%if 0%{?suse_version}
 %python3_build
+%else
+%{py3_build}
+%endif
 
 %install
+%if 0%{?suse_version}
 %python3_install
+%python_expand %fdupes %{buildroot}%{$python_sitelib}
+%else
+%{py3_install}
+%endif
 
 %files
 %license LICENSE
