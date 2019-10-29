@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `--version` option to print the installed version.
+
+### Changed
+- version in `setup.py` is now parsed from `sesdev.spec`.
+
+### Fixed
+- `yaml.FullLoader` does not exist in older versions of PyYAML.
+
 ## [0.1.0] - 2019-10-29
 
 ### Changed
@@ -17,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.1] - 2019-10-29
 
 ### Added
-
 - `sesdev` CLI tool with the following features:
   - create/destroy nautilus cluster based on openSUSE Leap 15.1.
   - ssh access to the nodes of the cluster.

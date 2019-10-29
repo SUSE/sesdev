@@ -2,6 +2,7 @@ import logging
 import sys
 
 import click
+import pkg_resources
 import seslib
 
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
               help='Configuration file location')
 @click.option('--debug/--no-debug', default=False)
 @click.option('--log-file', type=str, default='ses-dev.log')
+@click.version_option(pkg_resources.get_distribution('sesdev'), message="%(version)s")
 def cli(work_path=None, config_file=None, debug=False, log_file=None):
     logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
                         filename=log_file, filemode='w',

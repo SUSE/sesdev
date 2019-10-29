@@ -167,7 +167,10 @@ class Settings(object):
             return {}
 
         with open(GlobalSettings.CONFIG_FILE, 'r') as file:
-            return yaml.load(file, Loader=yaml.FullLoader)
+            try:
+                return yaml.load(file, Loader=yaml.FullLoader)
+            except AttributeError:  # older versions of pyyaml does not have FullLoader
+                return yaml.load(file)
 
 
 class SettingsEncoder(JSONEncoder):
