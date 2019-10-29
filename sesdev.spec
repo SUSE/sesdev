@@ -28,6 +28,7 @@ BuildArch:      noarch
 
 %if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
+BuildRequires:  fdupes
 %endif
 BuildRequires:  python3-setuptools
 

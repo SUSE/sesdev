@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - fix Fedora python rpm build macros in the specfile
 - fix Fedora dependencies naming
+- added buildrequires fdupes to spec file
 
 ## [0.2.1] - 2019-10-29
 ### Fixed
