@@ -8,10 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - added `--libvirt-(user|storage-pool)` options to CLI
+- added `--stop-before-deepsea-stage` option to CLI
 
 ### Fixed
 - remove `qemu_use_session` vagrant-libvirt setting when packaging for Fedora 29
 - Use `RSA#exportKey` method to work with version 3.4.6 of pycrytodomex
+- Fixed type of `stop-before-stage` setting
+- Fix ssh command when libvirt is located in the localhost
+- Fix accepting salt-keys step in deployment by polling salt-key -L
 
 ## [0.2.2] - 2019-10-30
 ### Changed

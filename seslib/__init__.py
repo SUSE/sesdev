@@ -132,7 +132,7 @@ SETTINGS = {
         'default': True
     },
     'stop_before_stage': {
-        'type': bool,
+        'type': int,
         'help': 'Stop deployment before running the specified DeepSea stage',
         'default': None
     }
@@ -431,10 +431,12 @@ class Deployment(object):
                             .format(name))
 
         dep_private_key = os.path.join(self.dep_dir, "keys/id_rsa")
-        return ["ssh", "root@{}".format(address), "-i", dep_private_key,
+        _cmd = ["ssh", "root@{}".format(address), "-i", dep_private_key,
                 "-o", "IdentitiesOnly yes", "-o", "StrictHostKeyChecking no",
-                "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no",
-                "-o", "ProxyCommand={}".format(proxycmd)]
+                "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no"]
+        if proxycmd is not None:
+            _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
+        return _cmd
 
     def ssh(self, name):
         tools.run_interactive(self._ssh_cmd(name))

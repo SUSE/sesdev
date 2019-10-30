@@ -97,7 +97,12 @@ Vagrant.configure("2") do |config|
 {% endfor %}
       done
 
-      sleep 10
+      while true; do
+        sleep 1
+        salt-key -L
+        N=`salt-key --out=json -L | jq '.minions_pre | length'`
+        [ "$N" == "{{ nodes|length }}" ] && break
+      done
       salt-key -Ay
 
 {% if deepsea_git_repo %}
