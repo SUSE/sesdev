@@ -8,7 +8,7 @@ import random
 import shutil
 import yaml
 
-from Crypto.PublicKey import RSA
+from Cryptodome.PublicKey import RSA
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 

@@ -38,11 +38,11 @@ BuildRequires:  python3-setuptools
 Requires:       python3-click >= 6.7
 %if 0%{?suse_version}
 Requires:       python3-Jinja2 >= 2.10.1
-Requires:       python3-pycryptodome >= 3.4.7
+Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-PyYAML >= 3.13
 %else
 Requires:       python3-jinja2 >= 2.10.1
-Requires:       python3-pycryptodomex >= 3.4.7
+Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-pyyaml >= 3.13
 %endif
 Requires:       vagrant
