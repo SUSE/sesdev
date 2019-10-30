@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add buildrequires python3-rpm-macros for fedora in spec file
 - add buildrequires python-rpm-macros for fedora in spec file
 - fixed library dependencies
+- explicitly set `qemu_use_session = false` in Vagrantfile to always use a system connection
+- openSUSE requires python3-setuptools to run sesdev
 
 ## [0.2.1] - 2019-10-29
 ### Fixed
