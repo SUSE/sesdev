@@ -63,7 +63,12 @@ def _print_log(output):
               help="Use deepsea-cli or salt-run to execute DeepSea stages")
 @click.option('--libvirt-host', type=str, default=None,
               help='Hostname of the libvirt machine')
-def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli, libvirt_host):
+@click.option('--libvirt-user', type=str, default=None,
+              help='Username for connecting to the libvirt machine')
+@click.option('--libvirt-storage-pool', type=str, default=None,
+              help='Libvirt storage pool')
+def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli, libvirt_host,
+           libvirt_user, libvirt_storage_pool):
     settings_dict = {}
     if not single_node and roles:
         roles = [r.strip() for r in roles.split(",")]
@@ -101,6 +106,12 @@ def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli
 
     if libvirt_host:
         settings_dict['libvirt_host'] = libvirt_host
+
+    if libvirt_user:
+        settings_dict['libvirt_user'] = libvirt_user
+
+    if libvirt_storage_pool:
+        settings_dict['libvirt_storage_pool'] = libvirt_storage_pool
 
     if deepsea_cli is not None:
         settings_dict['use_deepsea_cli'] = deepsea_cli
