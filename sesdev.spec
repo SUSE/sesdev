@@ -58,6 +58,9 @@ based OS.
 
 %prep
 %autosetup -n sesdev-%{version} -p1
+%if 0%{?fedora} < 30
+sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j2
+%endif
 
 %build
 %if 0%{?suse_version}

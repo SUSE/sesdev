@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - added `--libvirt-(user|storage-pool)` options to CLI
 
+### Fixed
+- remove `qemu_use_session` vagrant-libvirt setting when packaging for Fedora 29
+
 ## [0.2.2] - 2019-10-30
 ### Changed
 - replaced `pycryptodome` library by `pycryptodomex`
