@@ -307,8 +307,8 @@ class Deployment(object):
         keys_dir = os.path.join(self.dep_dir, 'keys')
         os.makedirs(keys_dir)
         key = RSA.generate(2048)
-        private_key = key.export_key('PEM')
-        public_key = key.publickey().export_key('OpenSSH')
+        private_key = key.exportKey('PEM')
+        public_key = key.publickey().exportKey('OpenSSH')
 
         with open(os.path.join(keys_dir, 'id_rsa'), 'w') as file:
             file.write(private_key.decode('utf-8'))
