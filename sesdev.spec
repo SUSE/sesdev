@@ -40,6 +40,7 @@ Requires:       python3-click >= 6.7
 Requires:       python3-Jinja2 >= 2.10.1
 Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-PyYAML >= 3.13
+Requires:       python3-setuptools
 %else
 Requires:       python3-jinja2 >= 2.10.1
 Requires:       python3-pycryptodomex >= 3.4.6
