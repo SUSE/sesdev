@@ -1,5 +1,33 @@
 # sesdev - CLI tool to deploy and manage SES/Ceph clusters
 
+`sesdev` is a CLI tool to deploy Ceph clusters (both the upstream and SUSE downstream versions).
+This tool uses Vagrant behind the scenes to create the VMs and run the deployment scripts.
+
+## Instalation
+
+First, you should have both QEMU and Libvirt installed in some machine to host the VMs created by
+sesdev (using Vagrant behind the scenes).
+
+### Install KVM/QEMU + Libvirt in openSUSE Leap 15
+
+```
+$ sudo zypper -n install patterns-openSUSE-kvm_server patterns-server-kvm_tools bridge-utils
+$ sudo systemctl enable libvirtd
+$ sudo systemctl restart libvirtd
+```
+
+### Install sesdev from package (openSUSE)
+
+```
+$ sudo zypper ar https://download.opensuse.org/repositories/home:/rjdias/<repo> sesdev_repo
+$ sudo zypper ar https://build.opensuse.org/package/binaries/Virtualization:vagrant/vagrant/<repo> vagrant_repo
+$ sudo zypper ref
+$ sudo zypper install sesdev
+```
+
+Where `<repo>` can be either `openSUSE_Leap_15.1` or `openSUSE_Tumbleweed`.
+
+
 ## Usage
 
 ### Create/Deploy cluster
