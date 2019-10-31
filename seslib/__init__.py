@@ -426,9 +426,6 @@ class Deployment(object):
         if address is None:
             raise Exception("Could not get HostName info from 'vagrant ssh-config {}' command"
                             .format(name))
-        if proxycmd is None:
-            raise Exception("Could not get ProxyCommand info from 'vagrant ssh-config {}' command"
-                            .format(name))
 
         dep_private_key = os.path.join(self.dep_dir, "keys/id_rsa")
         _cmd = ["ssh", "root@{}".format(address), "-i", dep_private_key,
