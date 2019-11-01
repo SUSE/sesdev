@@ -62,9 +62,9 @@ SETTINGS = {
         'help': 'Username to use to login into the libvirt host',
         'default': None
     },
-    'libvirt_use_ssl': {
+    'libvirt_use_ssh': {
         'type': bool,
-        'help': 'Flag to control the use of SSL when connecting to the libvirt host',
+        'help': 'Flag to control the use of SSH when connecting to the libvirt host',
         'default': None
     },
     'libvirt_storage_pool': {
@@ -275,7 +275,7 @@ class Deployment(object):
         return template.render(**{
             'libvirt_host': self.settings.libvirt_host,
             'libvirt_user': self.settings.libvirt_user,
-            'libvirt_use_ssl': 'true' if self.settings.libvirt_use_ssl else 'false',
+            'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'ram': self.settings.ram * 2**10,
             'cpus': self.settings.cpus,
