@@ -12,8 +12,8 @@ Vagrant.configure("2") do |config|
 {% if libvirt_user %}
     lv.username = "{{ libvirt_user }}"
 {% endif %}
-{% if libvirt_use_ssl %}
-    lv.connect_via_ssh = {{ libvirt_use_ssl }}
+{% if libvirt_use_ssh %}
+    lv.connect_via_ssh = {{ libvirt_use_ssh }}
 {% endif %}
     lv.qemu_use_session = false
 

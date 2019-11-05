@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added `--stop-before-deepsea-stage` option to CLI
 - Installation instructions to the README.md
 
+### Changed
+- Use `libvirt_use_ssh` instead of `libvirt_use_ssl` to configure SSH access
+
 ### Fixed
 - remove `qemu_use_session` vagrant-libvirt setting when packaging for Fedora 29
 - Use `RSA#exportKey` method to work with version 3.4.6 of pycrytodomex
