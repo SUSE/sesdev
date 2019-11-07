@@ -389,6 +389,11 @@ class Deployment(object):
         return self.dep_id
 
     def _load_status(self):
+        if not os.path.exists(os.path.join(self.dep_dir, '.vagrant')):
+            for node in self.nodes.values():
+                node.status = "not deployed"
+            return
+
         out = tools.run_sync(["vagrant", "status"], cwd=self.dep_dir)
         for line in [line.strip() for line in out.split('\n')]:
             if line:
