@@ -116,6 +116,11 @@ SETTINGS = {
         'help': 'The domain name for nodes',
         'default': '{}.com'
     },
+    'deployment_tool': {
+        'type': str,
+        'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',
+        'default': 'deepsea'
+    },
     'deepsea_git_repo': {
         'type': str,
         'help': 'If set, it will install DeepSea from this git repo',
@@ -287,7 +292,8 @@ class Deployment(object):
             'version': self.settings.version,
             'use_deepsea_cli': self.settings.use_deepsea_cli,
             'stop_before_stage': self.settings.stop_before_stage,
-            'num_osds': num_osds
+            'num_osds': num_osds,
+            'deployment_tool': self.settings.deployment_tool
         })
 
     def _save(self):

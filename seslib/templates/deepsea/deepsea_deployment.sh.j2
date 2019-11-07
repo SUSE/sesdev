@@ -1,0 +1,118 @@
+{% if deepsea_git_repo %}
+cd /root
+git clone {{ deepsea_git_repo }}
+cd DeepSea
+git checkout {{ deepsea_git_branch }}
+make install
+{% else %}
+zypper -n install deepsea deepsea-cli
+{% endif %}
+deepsea --version
+
+sleep 10
+salt '*' test.ping > /dev/null 2>&1
+sleep 2
+salt '*' grains.set deepsea True
+sleep 5
+
+# generate policy.cfg
+mkdir -p /srv/pillar/ceph/proposals
+cat > /srv/pillar/ceph/proposals/policy.cfg <<EOF
+{% include version + "_policy.cfg.j2" ignore missing %}
+EOF
+
+{% include version + "_pre_stage_0.sh.j2" ignore missing %}
+
+chown -R salt:salt /srv
+
+{% if pre_stage_0_script %}
+{{ pre_stage_0_script }}
+{% endif %}
+
+{% if stop_before_stage == 0 %}
+exit 0
+{% endif %}
+
+echo ""
+echo "***** RUNNING stage.0 *******"
+{% if use_deepsea_cli %}
+deepsea stage run --simple-output ceph.stage.0
+{% else %}
+salt-run state.orch ceph.stage.0
+{% endif %}
+sleep 5
+
+{% include version + "_pre_stage_1.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 1 %}
+exit 0
+{% endif %}
+
+echo ""
+echo "***** RUNNING stage.1 *******"
+{% if use_deepsea_cli %}
+deepsea stage run --simple-output ceph.stage.1
+{% else %}
+salt-run state.orch ceph.stage.1
+{% endif %}
+sleep 5
+
+{% include version + "_pre_stage_2.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 2 %}
+exit 0
+{% endif %}
+
+echo ""
+echo "***** RUNNING stage.2 *******"
+{% if use_deepsea_cli %}
+deepsea stage run --simple-output ceph.stage.2
+{% else %}
+salt-run state.orch ceph.stage.2
+{% endif %}
+sleep 5
+
+{% include version + "_pre_stage_3.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 3 %}
+exit 0
+{% endif %}
+
+echo ""
+echo "***** RUNNING stage.3 *******"
+{% if use_deepsea_cli %}
+DEV_ENV=true deepsea stage run --simple-output ceph.stage.3
+{% else %}
+DEV_ENV=true salt-run state.orch ceph.stage.3
+{% endif %}
+sleep 5
+
+{% if nodes|length < 3 %}
+# the failure domains needs to be 'osd' in order for pgs to be replicated in less
+# than 3 nodes
+ceph osd crush rule rm replicated_rule
+ceph osd crush rule create-replicated replicated_rule default osd
+{% endif %}
+
+{% if num_osds < 6 %}
+# we need to increase the number of max pg per osd for deepsea to work
+# correctly with this number of OSDs
+ceph config set global mon_max_pg_per_osd 500
+{% endif %}
+
+{% include version + "_pre_stage_4.sh.j2" ignore missing %}
+
+{% if stop_before_stage == 4 %}
+exit 0
+{% endif %}
+
+echo ""
+echo "***** RUNNING stage.4 *******"
+{% if use_deepsea_cli %}
+deepsea stage run --simple-output ceph.stage.4
+{% else %}
+salt-run state.orch ceph.stage.4
+{% endif %}
+sleep 5
+
+echo "deployment complete!"
