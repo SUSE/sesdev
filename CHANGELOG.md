@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Use `libvirt_use_ssh` instead of `libvirt_use_ssl` to configure SSH access
+- Vagrantfile template refactoring to support different deployment tools.
+  Currently only DeepSea is implemented.
 
 ### Fixed
 - remove `qemu_use_session` vagrant-libvirt setting when packaging for Fedora 29
@@ -20,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed type of `stop-before-stage` setting
 - Fix ssh command when libvirt is located in the localhost
 - Fix accepting salt-keys step in deployment by polling salt-key -L
+- Fix deployment status when `vagrant up` was never run.
 
 ## [0.2.2] - 2019-10-30
 ### Changed
