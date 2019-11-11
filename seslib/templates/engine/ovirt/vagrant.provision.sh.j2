@@ -1,0 +1,32 @@
+# remove the hostname added by ovirt provider
+sed -i '1d' /etc/hosts
+
+# turn off firewall
+systemctl stop firewalld
+
+# configure public and cluster networks
+cat > /etc/sysconfig/network/ifcfg-eth1 <<EOF
+BOOTPROTO='static'
+IPADDR='{{ node.public_address }}'
+MTU='1500'
+NAME=''
+NETMASK='255.255.0.0'
+STARTMODE='auto'
+USERCONTROL='no'
+EOF
+
+ifup eth1
+
+{% if node.cluster_address %}
+cat > /etc/sysconfig/network/ifcfg-eth2 <<EOF
+BOOTPROTO='static'
+IPADDR='{{ node.cluster_address }}'
+MTU='1500'
+NAME=''
+NETMASK='255.255.0.0'
+STARTMODE='auto'
+USERCONTROL='no'
+EOF
+
+ifup eth2
+{% endif %}

@@ -1,0 +1,12 @@
+  config.vm.provider :ovirt4 do |ov|
+    ov.url = "{{ ovirt_api_url }}"
+    ov.insecure = {{ ovirt_api_insecure }}
+    ov.username = "{{ ovirt_user }}@{{ ovirt_user_domain }}"
+    ov.password = "{{ ovirt_password }}"
+    ov.debug = true
+    ov.cluster = "{{ ovirt_cluster }}"
+    ov.template = "{{ ovirt_template }}"
+    ov.console = "vnc"
+    ov.memory_size = "{{ ram }} MiB"
+    ov.cpu_cores = {{ cpus }}
+  end

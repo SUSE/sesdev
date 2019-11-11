@@ -40,6 +40,10 @@ OS_BOX_MAPPING = {
     'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/vagrant/sle12sp3.x86_64.box',
 }
 
+OVIRT_OS_TEMPLATE_MAPPING = {
+    'leap-15.1': 'vagrant_Leap_15.1',
+}
+
 
 SETTINGS = {
     'version': {
@@ -59,7 +63,7 @@ SETTINGS = {
     },
     'vm_engine': {
         'type': str,
-        'help': 'VM engine to use for VM deployment. Current options [libvirt]',
+        'help': 'VM engine to use for VM deployment. Current options [libvirt, ovirt]',
         'default': 'libvirt'
     },
     'libvirt_host': {
@@ -80,6 +84,51 @@ SETTINGS = {
     'libvirt_storage_pool': {
         'type': str,
         'help': 'The libvirt storage pool to use for creating VMs',
+        'default': None
+    },
+    'ovirt_api_url': {
+        'type': str,
+        'help': 'ovirt4 API URL',
+        'default': None
+    },
+    'ovirt_api_insecure': {
+        'type': bool,
+        'help': 'Skip SSL verification for the ovirt API connection',
+        'default': True,
+    },
+    'ovirt_user': {
+        'type': str,
+        'help': 'Username to authenticate against ovirt4 API',
+        'default': None
+    },
+    'ovirt_user_domain': {
+        'type': str,
+        'help': 'ovirt users domain',
+        'default': 'internal'
+    },
+    'ovirt_password': {
+        'type': str,
+        'help': 'Password to authenticate against ovirt4 API',
+        'default': None
+    },
+    'ovirt_cluster': {
+        'type': str,
+        'help': 'The name of the ovirt cluster to create the VMs',
+        'default': 'Default'
+    },
+    'ovirt_template': {
+        'type': str,
+        'help': 'ovirt template to use in deployment',
+        'default': None
+    },
+    'ovirt_public_network': {
+        'type': str,
+        'help': 'ovirt network that has public access',
+        'default': None
+    },
+    'ovirt_storage_domain': {
+        'type': str,
+        'help': 'ovirt storage domain where storage disks are created',
         'default': None
     },
     'ram': {
@@ -153,6 +202,12 @@ SETTINGS = {
     }
 }
 
+
+class RequiredSettingException(Exception):
+    def __init__(self, setting):
+        super(RequiredSettingException, self).__init__("Setting '{}' is required".format(setting))
+
+
 class Settings(object):
     # pylint: disable=no-member
     def __init__(self, **kwargs):
@@ -164,6 +219,8 @@ class Settings(object):
         for k, v in SETTINGS.items():
             if k not in kwargs and k not in config:
                 setattr(self, k, v['default'])
+
+        self._validate()
 
     def _apply_settings(self, settings_dict):
         for k, v in settings_dict.items():
@@ -186,6 +243,20 @@ class Settings(object):
                 return yaml.load(file, Loader=yaml.FullLoader)
             except AttributeError:  # older versions of pyyaml does not have FullLoader
                 return yaml.load(file)
+
+    def _validate(self):
+        if self.vm_engine == 'ovirt':
+            # verify required ovirt settings
+            if not self.ovirt_api_url:
+                raise RequiredSettingException('ovirt_api_url')
+            if not self.ovirt_user:
+                raise RequiredSettingException('ovirt_user')
+            if not self.ovirt_password:
+                raise RequiredSettingException('ovirt_password')
+            if not self.ovirt_public_network:
+                raise RequiredSettingException('ovirt_public_network')
+            if not self.ovirt_storage_domain:
+                raise RequiredSettingException('ovirt_storage_domain')
 
 
 class SettingsEncoder(JSONEncoder):
@@ -286,6 +357,11 @@ class Deployment(object):
                    * self.settings.num_disks
 
         vagrant_box = self.settings.os
+        ovirt_template = None
+        if self.settings.vm_engine == "ovirt":
+            vagrant_box = 'https://github.com/myoung34/vagrant-ovirt4/blob/master/example_box/' \
+                          'dummy.box?raw=true'
+            ovirt_template = OVIRT_OS_TEMPLATE_MAPPING[self.settings.os]
 
         template = jinja_env.get_template('Vagrantfile.j2')
         return template.render(**{
@@ -295,6 +371,15 @@ class Deployment(object):
             'libvirt_user': self.settings.libvirt_user,
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
+            'ovirt_api_url': self.settings.ovirt_api_url,
+            'ovirt_api_insecure': 'true' if self.settings.ovirt_api_insecure else 'false',
+            'ovirt_user': self.settings.ovirt_user,
+            'ovirt_user_domain': self.settings.ovirt_user_domain,
+            'ovirt_password': self.settings.ovirt_password,
+            'ovirt_cluster': self.settings.ovirt_cluster,
+            'ovirt_template': ovirt_template,
+            'ovirt_public_network': self.settings.ovirt_public_network,
+            'ovirt_storage_domain': self.settings.ovirt_storage_domain,
             'ram': self.settings.ram * 2**10,
             'cpus': self.settings.cpus,
             'vagrant_box': vagrant_box,

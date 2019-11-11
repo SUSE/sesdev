@@ -1,0 +1,13 @@
+    node.vm.hostname = "{{ dep_id }}-{{ node.name }}"
+
+    node.vm.network :private_network, :ovirt__network_name => "{{ ovirt_public_network }}"
+    node.vm.network :private_network, :ovirt__network_name => 'sesdev-public', ip: "{{ node.public_address }}", netmask: "255.255.0.0"
+{% if node.cluster_address %}
+    node.vm.network :private_network, :ovirt__network_name => 'sesdev-cluster', ip: "{{ node.cluster_address }}", netmask: "255.255.0.0"
+{% endif %}
+
+    node.vm.provider :ovirt4 do |ov|
+{% for disk in node.storage_disks %}
+      ov.storage :file, size: "{{ disk.size }} GiB", type: 'qcow2', storage_domain: "{{ ovirt_storage_domain }}"
+{% endfor %}
+    end
