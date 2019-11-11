@@ -1,0 +1,10 @@
+    node.vm.network :private_network, ip: "{{ node.public_address }}"
+{% if node.cluster_address %}
+    node.vm.network :private_network, ip: "{{ node.cluster_address }}"
+{% endif %}
+
+    node.vm.provider "libvirt" do |lv|
+{% for disk in node.storage_disks %}
+      lv.storage :file, size: "{{ disk.size }}G", type: 'qcow2'
+{% endfor %}
+    end

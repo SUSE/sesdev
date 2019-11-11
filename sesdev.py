@@ -69,8 +69,10 @@ def _print_log(output):
               help='Libvirt storage pool')
 @click.option('--stop-before-deepsea-stage', type=int, default=None,
               help='Allows to stop deployment before running the specified DeepSea stage')
+@click.option('--vm-engine', type=click.Choice(['libvirt', 'ovirt']), default='libvirt',
+              help='VM engine to use for deployment')
 def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli, libvirt_host,
-           libvirt_user, libvirt_storage_pool, stop_before_deepsea_stage):
+           libvirt_user, libvirt_storage_pool, stop_before_deepsea_stage, vm_engine):
     settings_dict = {}
     if not single_node and roles:
         roles = [r.strip() for r in roles.split(",")]
@@ -120,6 +122,8 @@ def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli
 
     if stop_before_deepsea_stage is not None:
         settings_dict['stop_before_stage'] = stop_before_deepsea_stage
+
+    settings_dict['vm_engine'] = vm_engine
 
     settings = seslib.Settings(**settings_dict)
 

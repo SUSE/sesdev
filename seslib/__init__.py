@@ -52,6 +52,16 @@ SETTINGS = {
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
         'default': 'leap-15.1'
     },
+    'vagrant_box': {
+        'type': str,
+        'help': 'Vagrant box to use in deployment',
+        'default': None
+    },
+    'vm_engine': {
+        'type': str,
+        'help': 'VM engine to use for VM deployment. Current options [libvirt]',
+        'default': 'libvirt'
+    },
     'libvirt_host': {
         'type': str,
         'help': 'Hostname/IP address of the libvirt host',
@@ -275,16 +285,19 @@ class Deployment(object):
         num_osds = len([n for n in self.nodes.values() if 'storage' in n.roles]) \
                    * self.settings.num_disks
 
+        vagrant_box = self.settings.os
 
         template = jinja_env.get_template('Vagrantfile.j2')
         return template.render(**{
+            'dep_id': self.dep_id,
+            'vm_engine': self.settings.vm_engine,
             'libvirt_host': self.settings.libvirt_host,
             'libvirt_user': self.settings.libvirt_user,
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'ram': self.settings.ram * 2**10,
             'cpus': self.settings.cpus,
-            'vagrant_box': self.settings.os,
+            'vagrant_box': vagrant_box,
             'nodes': [n for _, n in self.nodes.items()],
             'admin': self.admin,
             'deepsea_git_repo': self.settings.deepsea_git_repo,
@@ -329,19 +342,31 @@ class Deployment(object):
         os.makedirs(bin_dir)
 
     def get_vagrant_box(self, log_handler):
-        logger.info("Checking if vagrant box is already here: %s", self.settings.os)
+        if self.settings.vagrant_box:
+            using_custom_box = True
+            vagrant_box = self.settings.vagrant_box
+        else:
+            using_custom_box = False
+            vagrant_box = self.settings.os
+
+        logger.info("Checking if vagrant box is already here: %s", vagrant_box)
         found_box = False
         output = tools.run_sync(["vagrant", "box", "list"])
         lines = output.split('\n')
         for line in lines:
             if line:
                 box_name = line.split()[0]
-                if box_name == self.settings.os:
+                if box_name == vagrant_box:
                     logger.info("Found vagrant box")
                     found_box = True
                     break
 
         if not found_box:
+            if using_custom_box:
+                logger.error("Vagrant box '%s' is not installed", vagrant_box)
+                raise Exception("Vagrant box '{}' does not exist, you need to add it with"
+                                " 'vagrant box add' command".format(vagrant_box))
+
             logger.info("Vagrant box for '%s' is not installed, we need to add it",
                         self.settings.os)
 
@@ -388,7 +413,8 @@ class Deployment(object):
         if node and node not in self.nodes:
             raise Exception("Node '{}' does not exist in this deployment".format(node))
 
-        self.get_vagrant_box(log_handler)
+        if self.settings.vm_engine == 'libvirt':
+            self.get_vagrant_box(log_handler)
         self.vagrant_up(node, log_handler)
 
     def __str__(self):
