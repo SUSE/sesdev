@@ -311,6 +311,11 @@ class Deployment(object):
         })
 
     def _save(self):
+        vagrant_file = self.generate_vagrantfile()
+        key = RSA.generate(2048)
+        private_key = key.exportKey('PEM')
+        public_key = key.publickey().exportKey('OpenSSH')
+
         os.makedirs(self.dep_dir, exist_ok=False)
         metadata_file = os.path.join(self.dep_dir, METADATA_FILENAME)
         with open(metadata_file, 'w') as file:
@@ -321,14 +326,11 @@ class Deployment(object):
 
         vagrantfile = os.path.join(self.dep_dir, 'Vagrantfile')
         with open(vagrantfile, 'w') as file:
-            file.write(self.generate_vagrantfile())
+            file.write(vagrant_file)
 
         # generate ssh key pair
         keys_dir = os.path.join(self.dep_dir, 'keys')
         os.makedirs(keys_dir)
-        key = RSA.generate(2048)
-        private_key = key.exportKey('PEM')
-        public_key = key.publickey().exportKey('OpenSSH')
 
         with open(os.path.join(keys_dir, 'id_rsa'), 'w') as file:
             file.write(private_key.decode('utf-8'))
