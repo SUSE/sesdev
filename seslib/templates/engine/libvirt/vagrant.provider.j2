@@ -1,0 +1,21 @@
+  config.vm.provider "libvirt" do |lv|
+{% if libvirt_host %}
+    lv.host = "{{ libvirt_host }}"
+{% endif %}
+{% if libvirt_user %}
+    lv.username = "{{ libvirt_user }}"
+{% endif %}
+{% if libvirt_use_ssh %}
+    lv.connect_via_ssh = {{ libvirt_use_ssh }}
+{% endif %}
+    lv.qemu_use_session = false
+
+    lv.memory = {{ ram }}
+    lv.cpus = {{ cpus }}
+{% if libvirt_storage_pool %}
+    lv.storage_pool_name = "{{ libvirt_storage_pool }}"
+{% endif %}
+
+    lv.nic_model_type = "e1000"
+    lv.cpu_mode = 'host-passthrough'
+  end

@@ -73,8 +73,11 @@ def _print_log(output):
               help='Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported')
 @click.option('--version', type=click.Choice(['ses5', 'ses6', 'ses7', 'luminous', 'nautilus', 'octopus']), default=None,
               help='SES version to install (ses5, ses6, luminous, nautilus, octopus)')
+@click.option('--vm-engine', type=click.Choice(['libvirt', 'ovirt']), default='libvirt',
+              help='VM engine to use for deployment')
 def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli, libvirt_host,
-           libvirt_user, libvirt_storage_pool, stop_before_deepsea_stage, deployment_tool, version):
+           libvirt_user, libvirt_storage_pool, stop_before_deepsea_stage, deployment_tool, version,
+           vm_engine):
     settings_dict = {}
     if not single_node and roles:
         roles = [r.strip() for r in roles.split(",")]
@@ -130,6 +133,8 @@ def create(deployment_id, roles, os, deploy, num_disks, single_node, deepsea_cli
 
     if version is not None:
         settings_dict['version'] = version
+
+    settings_dict['vm_engine'] = vm_engine
 
     settings = seslib.Settings(**settings_dict)
 
