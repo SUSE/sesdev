@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - added `--libvirt-(user|storage-pool)` options to CLI
 - added `--stop-before-deepsea-stage` option to CLI
+- added `--deployment-tool` option to CLI
+- added `--version` option to CLI
 - Installation instructions to the README.md
 
 ### Changed
