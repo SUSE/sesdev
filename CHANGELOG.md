@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added `--stop-before-deepsea-stage` option to CLI
 - added `--deployment-tool` option to CLI
 - added `--version` option to CLI
+- added openSUSE Leap 15.2 distro
 - Installation instructions to the README.md
 
 ### Changed
