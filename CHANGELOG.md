@@ -7,25 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- added `--libvirt-(user|storage-pool)` options to CLI
-- added `--stop-before-deepsea-stage` option to CLI
-- added `--deployment-tool` option to CLI
-- added `--version` option to CLI
-- added openSUSE Leap 15.2 distro
-- Installation instructions to the README.md
+- added `--libvirt-(user|storage-pool)` options to CLI.
+- added `--stop-before-deepsea-stage` option to CLI.
+- added `--deployment-tool` option to CLI.
+- added `--version` option to CLI.
+- added `--vm-engine` option to CLI.
+- added openSUSE Leap 15.2 distro.
+- Installation instructions to the README.md.
 
 ### Changed
-- Use `libvirt_use_ssh` instead of `libvirt_use_ssl` to configure SSH access
+- Use `libvirt_use_ssh` instead of `libvirt_use_ssl` to configure SSH access.
 - Vagrantfile template refactoring to support different deployment tools.
   Currently only DeepSea is implemented.
+- Code refactoring to support other VM engines besides libvirt.
 
 ### Fixed
-- remove `qemu_use_session` vagrant-libvirt setting when packaging for Fedora 29
-- Use `RSA#exportKey` method to work with version 3.4.6 of pycrytodomex
-- Fixed type of `stop-before-stage` setting
-- Fix ssh command when libvirt is located in the localhost
-- Fix accepting salt-keys step in deployment by polling salt-key -L
+- remove `qemu_use_session` vagrant-libvirt setting when packaging for Fedora 29.
+- Use `RSA#exportKey` method to work with version 3.4.6 of pycrytodomex.
+- Fixed type of `stop-before-stage` setting.
+- Fix ssh command when libvirt is located in the localhost.
+- Fix accepting salt-keys step in deployment by polling `salt-key -L`.
 - Fix deployment status when `vagrant up` was never run.
+- Only create deployment directory and files after rendering Vagranfile without errors.
 
 ## [0.2.2] - 2019-10-30
 ### Changed
