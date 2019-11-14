@@ -6,8 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.0.1] - 2019-11-14
 ### Changed
 - The OBS repo URL of sesdev package in README.md
+
+### Fixed
+- setup.py: missing template directories (PR #2)
 
 ## [1.0.0] - 2019-11-14
 ### Added
@@ -91,7 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/rjfd/sesdev/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/rjfd/sesdev/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/rjfd/sesdev/releases/tag/v1.0.1
 [1.0.0]: https://github.com/rjfd/sesdev/releases/tag/v1.0.0
 [0.2.2]: https://github.com/rjfd/sesdev/releases/tag/v0.2.2
 [0.2.1]: https://github.com/rjfd/sesdev/releases/tag/v0.2.1
