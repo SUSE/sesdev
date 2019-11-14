@@ -23,7 +23,11 @@ setup(
     py_modules=['sesdev'],
     packages=['seslib'],
     package_data={
-        'seslib': ['templates/*.j2']
+        'seslib': [
+            'templates/*.j2',
+            'templates/deepsea/*.j2',
+            'templates/engine/*.j2'
+        ]
     },
     install_requires=[
         "Click >= 6.7",
