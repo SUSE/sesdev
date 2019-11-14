@@ -102,7 +102,7 @@ To create a multi-node Ceph cluster, we can specify the roles of each node as
 follows:
 
 ```
-$ sesdev create --roles="[admin, mon], [storage, mon, mgr, mds], [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
+$ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 
 ```
 

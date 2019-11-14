@@ -1,4 +1,5 @@
 venv*
+virtualenv*
 .vscode
 **/__pycache__
 *.log
