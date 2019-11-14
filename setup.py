@@ -16,6 +16,7 @@ def get_version_from_spec():
             if m:
                 return m[1]
 
+
 setup(
     name='sesdev',
     version=get_version_from_spec(),
@@ -32,7 +33,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'sesdev = sesdev:cli'
+            'sesdev = sesdev:sesdev_main'
         ]
     }
 )

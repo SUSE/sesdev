@@ -5,15 +5,13 @@ cd DeepSea
 git checkout {{ deepsea_git_branch }}
 make install
 {% else %}
+{% if version == 'ses5' %}
+zypper -n install deepsea
+{% else %}
 zypper -n install deepsea deepsea-cli
 {% endif %}
+{% endif %}
 deepsea --version
-
-sleep 10
-salt '*' test.ping > /dev/null 2>&1
-sleep 2
-salt '*' grains.set deepsea True
-sleep 5
 
 # generate policy.cfg
 mkdir -p /srv/pillar/ceph/proposals
@@ -24,6 +22,12 @@ EOF
 {% include "deepsea/" + version + "_pre_stage_0.sh.j2" ignore missing %}
 
 chown -R salt:salt /srv
+
+sleep 10
+salt '*' test.ping > /dev/null 2>&1
+sleep 2
+salt '*' grains.set deepsea True
+sleep 5
 
 {% if pre_stage_0_script %}
 {{ pre_stage_0_script }}
@@ -95,9 +99,11 @@ ceph osd crush rule create-replicated replicated_rule default osd
 {% endif %}
 
 {% if num_osds < 6 %}
+{% if version != 'ses5' %}
 # we need to increase the number of max pg per osd for deepsea to work
 # correctly with this number of OSDs
 ceph config set global mon_max_pg_per_osd 500
+{% endif %}
 {% endif %}
 
 {% include "deepsea/" + version + "_pre_stage_4.sh.j2" ignore missing %}

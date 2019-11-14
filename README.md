@@ -30,7 +30,7 @@ $ sudo systemctl restart libvirtd
 
 ```
 $ sudo zypper ar https://download.opensuse.org/repositories/home:/rjdias/<repo> sesdev_repo
-$ sudo zypper ar https://build.opensuse.org/package/binaries/Virtualization:vagrant/vagrant/<repo> vagrant_repo
+$ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
 $ sudo zypper ref
 $ sudo zypper install sesdev
 ```
@@ -58,7 +58,20 @@ dnf install sesdev
 
 Where `<distro>` can be either `Fedora_29` or `Fedora_30`.
 
+### Install sesdev from source
+
+```
+$ git clone https://github.com/rjfd/sesdev.git
+$ cd sesdev
+$ virtualenv --python=<path_to_python3> venv
+$ source venv/bin/activate
+$ pip install .
+```
+
 ## Usage
+
+Run `sesdev --help` or `sesdev <command> --help` to get check the available options and
+description of the commands.
 
 ### Create/Deploy cluster
 
@@ -66,7 +79,7 @@ To create a single node Ceph cluster based on nautilus/leap-15.1 on your local
 system, run the following command:
 
 ```
-$ sesdev create --single-node mini
+$ sesdev create nautilus --single-node mini
 ```
 
 The `mini` argument is the ID of the deployment. We can create many deployments

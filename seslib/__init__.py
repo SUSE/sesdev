@@ -13,6 +13,10 @@ from Cryptodome.PublicKey import RSA
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from . import tools
+from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
+                        VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
+                        ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
+                        ServiceNotFound
 
 
 METADATA_FILENAME = ".metadata"
@@ -34,24 +38,116 @@ class GlobalSettings(object):
 
 
 OS_BOX_MAPPING = {
-    'leap-15.1': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/openSUSE-Leap-15.1/images/Leap-15.1.x86_64-libvirt.box',
-    'tumbleweed': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/openSUSE-Tumbleweed/openSUSE_Tumbleweed/Tumbleweed.x86_64-libvirt.box',
-    'sles-15-sp1': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP1/images/boxes/SLES15-SP1-Vagrant.x86_64.json',
+    'leap-15.1': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
+                 'openSUSE-Leap-15.1/images/Leap-15.1.x86_64-libvirt.box',
+    'tumbleweed': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
+                  'openSUSE-Tumbleweed/openSUSE_Tumbleweed/Tumbleweed.x86_64-libvirt.box',
+    'sles-15-sp1': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP1/images/'
+                   'SLES15-SP1-Vagrant.x86_64-libvirt.box',
     'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/vagrant/sle12sp3.x86_64.box',
-    'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/openSUSE-Leap-15.2/images/Leap-15.2.x86_64-libvirt.box'
+    'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
+                 'openSUSE-Leap-15.2/images/Leap-15.2.x86_64-libvirt.box',
+    'sles-15-sp2': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP2/images/'
+                   'SLES15-SP2-Vagrant.x86_64-libvirt.box',
+}
+
+OS_REPOS = {
+    'sles-12-sp3': {
+        'base': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/',
+        'update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/',
+        'storage': 'http://dist.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/',
+        'storage-update': 'http://dist.suse.de/ibs/SUSE/Updates/Storage/5/x86_64/update/'
+    },
+    'sles-15-sp1': {
+        'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/'
+                'product/',
+        'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/'
+                  'update/',
+        'server-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/'
+                       '15-SP1/x86_64/product/',
+        'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                              'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
+        'dev-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
+                    '15-SP1/x86_64/product/',
+        'dev-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/'
+                           '15-SP1/x86_64/update/',
+        'storage': 'http://download.suse.de/ibs/SUSE/Products/Storage/6/x86_64/product/',
+        'storage-update': 'http://download.suse.de/ibs/SUSE/Updates/Storage/6/x86_64/update/'
+    },
+    'sles-15-sp2': {
+        'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP2/x86_64/'
+                'product/',
+        'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP2/x86_64/'
+                  'update/',
+        'server-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/'
+                       '15-SP2/x86_64/product/',
+        'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                              'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
+        'dev-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
+                    '15-SP2/x86_64/product/',
+        'dev-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/'
+                           '15-SP2/x86_64/update/',
+        'container-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
+                          'x86_64/product/',
+        'container-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
+                                 '15-SP2/x86_64/update/'
+    },
+}
+
+VERSION_PREFERRED_OS = {
+    'ses5': 'sles-12-sp3',
+    'ses6': 'sles-15-sp1',
+    'ses7': 'sles-15-sp2',
+    'nautilus': 'leap-15.1',
+    'octopus': 'leap-15.2',
+}
+
+VERSION_PREFERRED_DEPLOYMENT_TOOL = {
+    'ses5': 'deepsea',
+    'ses6': 'deepsea',
+    'ses7': 'orchestrator',
+    'nautilus': 'deepsea',
+    'octopus': 'orchestrator'
+}
+
+VERSION_OS_REPO_MAPPING = {
+    'ses5': {
+        'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/SLE12_SP3/',
+    },
+    'nautilus': {
+        'leap-15.1':  'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
+                      'openSUSE_Leap_15.1/',
+        'tumbleweed': 'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
+                      'openSUSE_Tumbleweed',
+    },
+    'ses6': {
+        'sles-15-sp1': 'http://download.suse.de/ibs/Devel:/Storage:/6.0/SLE_15_SP1/',
+    },
+    'octopus': {
+        'leap-15.1': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
+                     'openSUSE_Leap_15.1',
+        'leap-15.2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
+                     'openSUSE_Leap_15.2',
+        'tumbleweed': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
+                      'openSUSE_Tumbleweed',
+    },
+    'ses7': {
+        'sles-15-sp2': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
+                       'standard/',
+    }
 }
 
 
 SETTINGS = {
     'version': {
         'type': str,
-        'help': 'SES version to install (ses5, ses6, luminous, nautilus, octopus)',
+        'help': 'SES version to install (nautilus, octopus, ses5, ses6, ses7)',
         'default': 'nautilus'
     },
     'os': {
         'type': str,
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
-        'default': 'leap-15.1'
+        'default': None
     },
     'vagrant_box': {
         'type': str,
@@ -107,7 +203,7 @@ SETTINGS = {
         'type': list,
         'help': 'List of roles for each node. Example for two nodes: '
                 '[["admin", "client", "prometheus"], ["storage", "mon", "mgr"]]',
-        'default': [["admin", "client", "prometheus", "grafana"],
+        'default': [["admin", "client", "prometheus", "grafana", "openattic"],
                     ["storage", "mon", "mgr", "rgw", "igw"],
                     ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
                     ["storage", "mon", "mds", "rgw", "ganesha"]]
@@ -130,7 +226,7 @@ SETTINGS = {
     'deployment_tool': {
         'type': str,
         'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',
-        'default': 'deepsea'
+        'default': None
     },
     'deepsea_git_repo': {
         'type': str,
@@ -151,8 +247,14 @@ SETTINGS = {
         'type': int,
         'help': 'Stop deployment before running the specified DeepSea stage',
         'default': None
-    }
+    },
+    'repos': {
+        'type': list,
+        'help': 'Custom repos dictionary to apply to all nodes',
+        'default': []
+    },
 }
+
 
 class Settings(object):
     # pylint: disable=no-member
@@ -169,12 +271,12 @@ class Settings(object):
     def _apply_settings(self, settings_dict):
         for k, v in settings_dict.items():
             if k not in SETTINGS:
-                logger.error("Setting '%s' is not known", k)
-                raise Exception("Unknown setting: {}".format(k))
+                logger.warning("Setting '%s' is not known", k)
+                continue
             if v is not None and not isinstance(v, SETTINGS[k]['type']):
                 logger.error("Setting '%s' value has wrong type: expected %s but got %s", k,
                              SETTINGS[k]['type'], type(v))
-                raise Exception("Wrong value type for setting: {}".format(k))
+                raise SettingTypeError(k, SETTINGS[k]['type'], v)
             setattr(self, k, v)
 
     def _load_config_file(self):
@@ -200,6 +302,13 @@ class Disk(object):
         self.size = size
 
 
+class ZypperRepo(object):
+    def __init__(self, name, url, priority):
+        self.name = name
+        self.url = url
+        self.priority = priority
+
+
 class Node(object):
     def __init__(self, name, fqdn, roles, public_address, cluster_address=None, storage_disks=None):
         self.name = name
@@ -211,6 +320,7 @@ class Node(object):
             storage_disks = []
         self.storage_disks = storage_disks
         self.status = None
+        self.repos = []
 
     def has_role(self, role):
         return role in self.roles
@@ -223,6 +333,12 @@ class Deployment(object):
         self.nodes = {}
         self.admin = None
 
+        if self.settings.os is None:
+            self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
+
+        if self.settings.deployment_tool is None:
+            self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
+
         self._generate_networks()
         self._generate_nodes()
 
@@ -230,32 +346,47 @@ class Deployment(object):
     def dep_dir(self):
         return os.path.join(GlobalSettings.WORKING_DIR, self.dep_id)
 
+    def _needs_cluster_network(self):
+        if len(self.settings.roles) == 1:  # there is only 1 node
+            return False
+        num_nodes_with_storage = 0
+        for node in self.settings.roles:
+            if 'storage' in node:
+                num_nodes_with_storage += 1
+        if num_nodes_with_storage > 1:  # at least 2 nodes have storage
+            return True
+        return False
+
     def _generate_networks(self):
-        if self.settings.public_network is not None and self.settings.cluster_network is not None:
+        if self._needs_cluster_network() and self.settings.public_network is not None \
+                and self.settings.cluster_network is not None:
+            return
+        elif not self._needs_cluster_network() and self.settings.public_network is not None:
             return
 
-        deps = list_deployments()
+        deps = self.list()
         existing_networks = [dep.settings.public_network for dep in deps
                              if dep.settings.public_network]
-        existing_networks.extend([dep.settings.cluster_network for dep in deps
-                                  if dep.settings.cluster_network])
-        public_network = self.settings.public_network
-        cluster_network = self.settings.cluster_network
 
+        public_network = self.settings.public_network
         while True:
             if public_network is None or public_network in existing_networks:
                 public_network = "10.20.{}.".format(random.randint(2, 200))
             else:
                 break
-
-        while True:
-            if cluster_network is None or cluster_network in existing_networks:
-                cluster_network = "10.21.{}.".format(random.randint(2, 200))
-            else:
-                break
-
         self.settings.public_network = public_network
-        self.settings.cluster_network = cluster_network
+
+        if self._needs_cluster_network():
+            existing_networks = [dep.settings.cluster_network for dep in deps
+                                 if dep.settings.cluster_network]
+
+            cluster_network = self.settings.cluster_network
+            while True:
+                if cluster_network is None or cluster_network in existing_networks:
+                    cluster_network = "10.21.{}.".format(random.randint(2, 200))
+                else:
+                    break
+            self.settings.cluster_network = cluster_network
 
     def _generate_nodes(self):
         node_id = 1
@@ -270,15 +401,27 @@ class Deployment(object):
                 public_address = '{}{}'.format(self.settings.public_network, 200 + node_id)
                 node_id += 1
 
+            if self.settings.version != 'ses5':
+                node_roles = [r for r in node_roles if r != 'openattic']
+            else:
+                node_roles = [r for r in node_roles if r not in ['grafana', 'prometheus']]
+
             node = Node(name, fqdn, node_roles, public_address)
             if 'admin' in node_roles:
                 self.admin = node
 
             if 'storage' in node_roles:
-                node.cluster_address = '{}{}'.format(self.settings.cluster_network,
-                                                     200 + node_id)
+                if self.settings.cluster_network:
+                    node.cluster_address = '{}{}'.format(self.settings.cluster_network,
+                                                         200 + node_id)
                 for _ in range(self.settings.num_disks):
                     node.storage_disks.append(Disk(self.settings.disk_size))
+
+            r_name = 'custom-repo-{}'
+            idx = 1
+            for repo_url in self.settings.repos:
+                node.repos.append(ZypperRepo(r_name.format(idx), repo_url, 95-idx))
+                idx += 1
 
             self.nodes[node.name] = node
 
@@ -287,6 +430,16 @@ class Deployment(object):
                    * self.settings.num_disks
 
         vagrant_box = self.settings.os
+
+        try:
+            version_repo = VERSION_OS_REPO_MAPPING[self.settings.version][self.settings.os]
+        except KeyError:
+            raise VersionOSNotSupported(self.settings.version, self.settings.os)
+
+        if self.settings.os in OS_REPOS:
+            os_base_repos = [(name, url) for name, url in OS_REPOS[self.settings.os].items()]
+        else:
+            os_base_repos = []
 
         template = jinja_env.get_template('Vagrantfile.j2')
         return template.render(**{
@@ -307,7 +460,9 @@ class Deployment(object):
             'use_deepsea_cli': self.settings.use_deepsea_cli,
             'stop_before_stage': self.settings.stop_before_stage,
             'num_osds': num_osds,
-            'deployment_tool': self.settings.deployment_tool
+            'deployment_tool': self.settings.deployment_tool,
+            'version_repo': version_repo,
+            'os_base_repos': os_base_repos,
         })
 
     def _save(self):
@@ -367,8 +522,7 @@ class Deployment(object):
         if not found_box:
             if using_custom_box:
                 logger.error("Vagrant box '%s' is not installed", vagrant_box)
-                raise Exception("Vagrant box '{}' does not exist, you need to add it with"
-                                " 'vagrant box add' command".format(vagrant_box))
+                raise VagrantBoxDoesNotExist(vagrant_box)
 
             logger.info("Vagrant box for '%s' is not installed, we need to add it",
                         self.settings.os)
@@ -397,7 +551,8 @@ class Deployment(object):
                            self.nodes[node].status)
             return
         ssh_cmd = self._ssh_cmd(node)
-        ssh_cmd.extend(['echo "sleep 2 && shutdown -h now" > /root/shutdown.sh && chmod +x /root/shutdown.sh'])
+        ssh_cmd.extend(['echo "sleep 2 && shutdown -h now" > /root/shutdown.sh '
+                        '&& chmod +x /root/shutdown.sh'])
         tools.run_sync(ssh_cmd)
         ssh_cmd = self._ssh_cmd(node)
         ssh_cmd.extend(['nohup /root/shutdown.sh > /dev/null 2>&1 &'])
@@ -405,7 +560,7 @@ class Deployment(object):
 
     def stop(self, log_handler, node=None):
         if node and node not in self.nodes:
-            raise Exception("Node '{}' does not exist in this deployment".format(node))
+            raise NodeDoesNotExist(node)
         elif node:
             self._stop(node, log_handler)
         else:
@@ -414,7 +569,7 @@ class Deployment(object):
 
     def start(self, log_handler, node=None):
         if node and node not in self.nodes:
-            raise Exception("Node '{}' does not exist in this deployment".format(node))
+            raise NodeDoesNotExist(node)
 
         if self.settings.vm_engine == 'libvirt':
             self.get_vagrant_box(log_handler)
@@ -444,14 +599,40 @@ class Deployment(object):
                         self.nodes[line_arr[0]].status = "suspended"
 
     def status(self):
-        result = "{}:\n".format(self.dep_id)
+        result = "Deployment VMs:\n"
         for k, v in self.nodes.items():
-            result += "  - {}: {}\t{}\n".format(k, v.roles, v.status)
+            result += "  -- {}:\n".format(k)
+            result += "     - status:           {}\n".format(v.status)
+            result += "     - OS:               {}\n".format(self.settings.os)
+            result += "     - ses_version:      {}\n".format(self.settings.version)
+            if k == 'admin':
+                result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
+            result += "     - roles:            {}\n".format(v.roles)
+            if self.settings.vagrant_box:
+                result += "     - vagrant_box       {}\n".format(self.settings.vagrant_box)
+            result += "     - fqdn:             {}\n".format(v.fqdn)
+            result += "     - public_address:   {}\n".format(v.public_address)
+            if v.cluster_address:
+                result += "     - cluster_address:   {}\n".format(v.cluster_address)
+            result += "     - cpus:             {}\n".format(self.settings.cpus)
+            result += "     - ram:              {}G\n".format(self.settings.ram)
+            if v.storage_disks:
+                result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
+                dev_letter = ord('a')
+                for disk in v.storage_disks:
+                    result += "       - /dev/vd{}        {}G\n".format(str(chr(dev_letter)),
+                                                                       disk.size)
+                    dev_letter += 1
+            if v.repos:
+                result += "     - custom_repos:\n"
+                for repo in v.repos:
+                    result += "       - {}\n".format(repo.url)
+            result += "\n"
         return result
 
     def _ssh_cmd(self, name):
         if name not in self.nodes:
-            raise Exception("Node '{}' does not exist in this deployment".format(name))
+            raise NodeDoesNotExist(name)
 
         out = tools.run_sync(["vagrant", "ssh-config", name], cwd=self.dep_dir)
         address = None
@@ -478,55 +659,111 @@ class Deployment(object):
     def ssh(self, name):
         tools.run_interactive(self._ssh_cmd(name))
 
-    def start_port_forwarding(self, service):
-        ssh_cmd = self._ssh_cmd('admin')
-        if service == 'dashboard':
-            port = 8443
-        elif service == 'grafana':
-            port = 3000
-        else:
-            raise Exception("Service '{}' not supported".format(service))
+    def _find_service_node(self, service):
+        if service == 'grafana' and self.settings.version == 'ses5':
+            return 'admin'
+        nodes = [name for name, node in self.nodes.items() if service in node.roles]
+        return nodes[0] if nodes else None
 
+    def start_port_forwarding(self, service=None, node=None, remote_port=None, local_port=None,
+                              local_address=None):
+        if local_address is None:
+            local_address = 'localhost'
+
+        if service is not None:
+            if service not in ['dashboard', 'grafana', 'openattic']:
+                raise ServicePortForwardingNotSupported(service)
+
+            if service in ['openattic', 'grafana']:
+                node = self._find_service_node(service)
+                if not node:
+                    raise ServiceNotFound(service)
+
+            if service == 'openattic':
+                remote_port = 80
+                local_port = 8080
+                service_url = 'http://{}:{}'.format(local_address, local_port)
+            elif service == 'grafana':
+                remote_port = 3000
+                local_port = 3000
+                if self.settings.version == 'ses5':
+                    service_url = 'http://{}:{}'.format(local_address, local_port)
+                else:
+                    service_url = 'https://{}:{}'.format(local_address, local_port)
+            elif service == 'dashboard':
+                remote_port = 8443
+                local_port = 8443
+                service_url = 'https://{}:{}'.format(local_address, local_port)
+
+                # we need to find which node has the active mgr
+                ssh_cmd = self._ssh_cmd('admin')
+                ssh_cmd.append("ceph mgr services | jq -r .dashboard "
+                               "| sed 's!https://\\(.*\\)\\.{}:.*/!\\1!g'"
+                               .format(self.settings.domain.format(self.dep_id)))
+                try:
+                    node = tools.run_sync(ssh_cmd)
+                    node = node.strip()
+                except tools.CmdException:
+                    node == 'null'
+                if node == 'null':
+                    raise ServiceNotFound(service)
+
+                logger.info("dashboard is running on node %s", node)
+
+        else:
+            if node not in self.nodes:
+                raise NodeDoesNotExist(node)
+            if remote_port is None:
+                raise NoSourcePortForPortForwarding()
+            if local_port is None:
+                local_port = remote_port
+            service_url = '{}:{}'.format(local_address, local_port)
+
+        ssh_cmd = self._ssh_cmd(node)
         ssh_cmd.extend(["-M", "-S", "{}-admin-socket".format(self.dep_id), "-fNT", "-L",
-                        "{}:{}:{}".format(port, self.nodes['admin'].fqdn, port)])
-        print("You can now access '{}' in: https://localhost:{}".format(service, port))
+                        "{}:{}:{}:{}".format(local_address, local_port, self.nodes[node].fqdn,
+                                             remote_port)])
+        print("You can now access the service in: {}".format(service_url))
         tools.run_sync(ssh_cmd)
 
     @classmethod
     def create(cls, dep_id, settings):
+        dep_dir = os.path.join(GlobalSettings.WORKING_DIR, dep_id)
+        if os.path.exists(dep_dir):
+            raise DeploymentAlreadyExists(dep_id)
+
         dep = cls(dep_id, settings)
         logger.info("creating new deployment: %s", dep)
         dep._save()
         return dep
 
     @classmethod
-    def load(cls, dep_id):
+    def load(cls, dep_id, load_status=True):
         dep_dir = os.path.join(GlobalSettings.WORKING_DIR, dep_id)
         if not os.path.exists(dep_dir) or not os.path.isdir(dep_dir):
             logger.debug("%s does not exist or is not a directory", dep_dir)
-            return None
+            raise DeploymentDoesNotExists(dep_id)
         metadata_file = os.path.join(dep_dir, METADATA_FILENAME)
         if not os.path.exists(metadata_file) or not os.path.isfile(metadata_file):
             logger.debug("metadata file %s does not exist or is not a file", metadata_file)
-            return None
+            raise DeploymentDoesNotExists(dep_id)
 
         with open(metadata_file, 'r') as file:
             metadata = json.load(file)
 
         dep = cls(metadata['id'], Settings(**metadata['settings']))
-        dep._load_status()
+        if load_status:
+            dep._load_status()
         return dep
 
-
-def list_deployments():
-    """
-    List the available deployments
-    """
-    deps = []
-    if not os.path.exists(GlobalSettings.WORKING_DIR):
+    @classmethod
+    def list(cls, load_status=False):
+        deps = []
+        if not os.path.exists(GlobalSettings.WORKING_DIR):
+            return deps
+        for dep_id in os.listdir(GlobalSettings.WORKING_DIR):
+            try:
+                deps.append(Deployment.load(dep_id, load_status))
+            except DeploymentDoesNotExists:
+                continue
         return deps
-    for dep_id in os.listdir(GlobalSettings.WORKING_DIR):
-        dep = Deployment.load(dep_id)
-        if dep:
-            deps.append(dep)
-    return deps
