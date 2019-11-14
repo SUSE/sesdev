@@ -29,7 +29,7 @@ $ sudo systemctl restart libvirtd
 #### Install sesdev from package
 
 ```
-$ sudo zypper ar https://download.opensuse.org/repositories/home:/rjdias/<repo> sesdev_repo
+$ sudo zypper ar https://download.opensuse.org/repositories/home:/rjdias:/sesdev/<repo> sesdev_repo
 $ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
 $ sudo zypper ref
 $ sudo zypper install sesdev
