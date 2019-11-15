@@ -26,6 +26,21 @@ $ sudo systemctl enable libvirtd
 $ sudo systemctl restart libvirtd
 ```
 
+#### Add user to libvirt group
+
+If you are running libvirt on the same machine where you installed sesdev,
+add your user to the "libvirt" group to avoid "no polkit agent available"
+errors when vagrant attempts to connect to the libvirt daemon:
+
+```
+$ sudo groupadd libvirt
+groupadd: group 'libvirt' already exists
+$ sudo usermod -a -G libvirt $USER
+```
+
+Log out, and then log back in. You should now be a member of the "libvirt"
+group.
+
 #### Install sesdev from package
 
 ```
@@ -67,21 +82,6 @@ $ virtualenv --python=<path_to_python3> venv
 $ source venv/bin/activate
 $ pip install .
 ```
-
-### Add user to libvirt group
-
-If you are running libvirt on the same machine where you installed sesdev,
-add your user to the "libvirt" group to avoid "no polkit agent available"
-errors when vagrant attempts to connect to the libvirt daemon:
-
-```
-$ groupadd libvirt
-groupadd: group 'libvirt' already exists
-$ usermod -a -G libvirt $USER
-```
-
-Log out, and then log back in. You should now be a member of the "libvirt"
-group.
 
 ## Usage
 
