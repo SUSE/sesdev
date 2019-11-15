@@ -73,7 +73,8 @@ sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j
 %files
 %license LICENSE
 %doc CHANGELOG.md README.md
-%{python3_sitelib}/ses*
+%{python3_sitelib}/seslib*/
+%{python3_sitelib}/sesdev*/
 %{_bindir}/sesdev
 
 %changelog

@@ -20,8 +20,7 @@ def get_version_from_spec():
 setup(
     name='sesdev',
     version=get_version_from_spec(),
-    py_modules=['sesdev'],
-    packages=['seslib'],
+    packages=['seslib', 'sesdev'],
     package_data={
         'seslib': [
             'templates/*.j2',
