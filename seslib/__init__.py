@@ -704,7 +704,7 @@ class Deployment(object):
                     node = tools.run_sync(ssh_cmd)
                     node = node.strip()
                 except tools.CmdException:
-                    node == 'null'
+                    node = 'null'
                 if node == 'null':
                     raise ServiceNotFound(service)
 
