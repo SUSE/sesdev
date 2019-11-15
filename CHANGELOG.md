@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2019-11-15
+### Added
+- README instructions about libvirt configuration (PR #4)
+
+### Changed
+- CLI subcommand `info` replaced by `show`.
+
+### Fixed
+- fix typo in `sesdev start --help` command (PR #6)
+
 ## [1.0.2] - 2019-11-15
 ### Fixed
 - setup.py: missing libvirt engine template directory (PR #3)
@@ -100,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/rjfd/sesdev/compare/v1.0.2...HEAD
+[unreleased]: https://github.com/rjfd/sesdev/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/rjfd/sesdev/releases/tag/v1.0.3
 [1.0.2]: https://github.com/rjfd/sesdev/releases/tag/v1.0.2
 [1.0.1]: https://github.com/rjfd/sesdev/releases/tag/v1.0.1
 [1.0.0]: https://github.com/rjfd/sesdev/releases/tag/v1.0.0
