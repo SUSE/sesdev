@@ -68,6 +68,21 @@ $ source venv/bin/activate
 $ pip install .
 ```
 
+### Add user to libvirt group
+
+If you are running libvirt on the same machine where you installed sesdev,
+add your user to the "libvirt" group to avoid "no polkit agent available"
+errors when vagrant attempts to connect to the libvirt daemon:
+
+```
+$ groupadd libvirt
+groupadd: group 'libvirt' already exists
+$ usermod -a -G libvirt $USER
+```
+
+Log out, and then log back in. You should now be a member of the "libvirt"
+group.
+
 ## Usage
 
 Run `sesdev --help` or `sesdev <command> --help` to get check the available options and
