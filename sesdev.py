@@ -414,7 +414,7 @@ def stop(deployment_id, node=None):
 @click.argument('node', required=False)
 def start(deployment_id, node=None):
     """
-    Stars the VMs of the deployment DEPLOYMENT_ID.
+    Starts the VMs of the deployment DEPLOYMENT_ID.
 
     If cluster was not yet deployed (if was created with the --no-deploy flag), it will
     start the deployment of the cluster.
