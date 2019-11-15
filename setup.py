@@ -26,7 +26,7 @@ setup(
         'seslib': [
             'templates/*.j2',
             'templates/deepsea/*.j2',
-            'templates/engine/*.j2'
+            'templates/engine/libvirt/*.j2'
         ]
     },
     install_requires=[
