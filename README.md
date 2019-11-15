@@ -145,7 +145,7 @@ Spawns an SSH shell to the admin node, or to node `NODE` if explicitly
 specified. You can check the existing node names with the following command:
 
 ```
-$ sesdev info <deployment_id>
+$ sesdev show <deployment_id>
 ```
 
 ### Services port-forwarding

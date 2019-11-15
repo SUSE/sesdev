@@ -425,7 +425,7 @@ def start(deployment_id, node=None):
 
 @cli.command()
 @click.argument('deployment_id')
-def info(deployment_id):
+def show(deployment_id):
     """
     Shows the information of deployment DEPLOYMENT_ID
     """
