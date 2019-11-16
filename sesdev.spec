@@ -16,35 +16,36 @@
 #
 
 
+%if 0%{?el8} || (0%{?fedora} && 0%{?fedora} < 30)
+%{python_enable_dependency_generator}
+%endif
+
 Name:           sesdev
 Version:        1.0.3
 Release:        1%{?dist}
 Summary:        CLI tool to deploy and manage SES clusters
 License:        MIT
+%if 0%{?suse_version}
 Group:          Development/Languages/Python
-Url:            https://github.com/rjfd/sesdev
-Source0:        https://github.com/rjfd/sesdev/archive/v%{version}.tar.gz
+%endif
+URL:            https://github.com/rjfd/sesdev
+Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 BuildArch:      noarch
 
 %if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
-BuildRequires:  fdupes
 %else
-BuildRequires:  python-rpm-macros
-BuildRequires:  python3-rpm-macros
+BuildRequires:  python3-devel
 %endif
+BuildRequires:  fdupes
 BuildRequires:  python3-setuptools
 
-Requires:       python3-click >= 6.7
 %if 0%{?suse_version}
+Requires:       python3-click >= 6.7
 Requires:       python3-Jinja2 >= 2.10.1
 Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-PyYAML >= 3.13
 Requires:       python3-setuptools
-%else
-Requires:       python3-jinja2 >= 2.10.1
-Requires:       python3-pycryptodomex >= 3.4.6
-Requires:       python3-pyyaml >= 3.13
 %endif
 Requires:       vagrant
 Requires:       vagrant-libvirt
@@ -63,24 +64,17 @@ sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j
 %endif
 
 %build
-%if 0%{?suse_version}
-%python3_build
-%else
 %py3_build
-%endif
 
 %install
-%if 0%{?suse_version}
-%python3_install
-%fdupes %{buildroot}%{python3_sitelib}
-%else
 %py3_install
-%endif
+%fdupes %{buildroot}%{python3_sitelib}
 
 %files
 %license LICENSE
 %doc CHANGELOG.md README.md
-%{python3_sitelib}/*
+%{python3_sitelib}/seslib*/
+%{python3_sitelib}/sesdev*/
 %{_bindir}/sesdev
 
 %changelog
