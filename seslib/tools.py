@@ -20,12 +20,13 @@ def run_sync(command, cwd=None):
 
 
 def _non_block_read(fout):
+    # pylint: disable=invalid-name
     fd = fout.fileno()
     fl = fcntl.fcntl(fd, fcntl.F_GETFL)
     fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
     try:
         return fout.read()
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return None
 
 
@@ -50,7 +51,7 @@ def run_async(command, callback, cwd=None):
 
 def run_interactive(command, cwd=None):
     logger.info("Running interactive command (%s): %s", cwd if cwd else ".", command)
-    r = subprocess.call(command, stdout=sys.stdout, stdin=sys.stdin)
-    if r != 0:
-        logger.warning("SSH interactive session finished with ret=%s", r)
-    return r
+    ret = subprocess.call(command, stdout=sys.stdout, stdin=sys.stdin)
+    if ret != 0:
+        logger.warning("SSH interactive session finished with ret=%s", ret)
+    return ret

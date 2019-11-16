@@ -81,21 +81,21 @@ def _parse_roles(roles):
     roles = [r.strip() for r in roles.split(",")]
     _roles = []
     _node = None
-    for r in roles:
-        r = r.strip()
-        if r.startswith('['):
+    for role in roles:
+        role = role.strip()
+        if role.startswith('['):
             _node = []
-            if r.endswith(']'):
-                r = r[:-1]
-                _node.append(r[1:])
+            if role.endswith(']'):
+                role = role[:-1]
+                _node.append(role[1:])
                 _roles.append(_node)
             else:
-                _node.append(r[1:])
-        elif r.endswith(']'):
-            _node.append(r[:-1])
+                _node.append(role[1:])
+        elif role.endswith(']'):
+            _node.append(role[:-1])
             _roles.append(_node)
         else:
-            _node.append(r)
+            _node.append(role)
     return _roles
 
 
@@ -104,11 +104,11 @@ def _print_log(output):
     sys.stdout.flush()
 
 
-def _silent_log(output):
+def _silent_log(_):
     pass
 
 
-def _abort_if_false(ctx, param, value):
+def _abort_if_false(ctx, _, value):
     if not value:
         ctx.abort()
 
@@ -159,8 +159,8 @@ $ sesdev create octopus --roles="[admin, mon, mgr], \\
         seslib.GlobalSettings.CONFIG_FILE = config_file
 
 
-@cli.command()
-def list():
+@cli.command(name='list')
+def list_deps():
     """
     Lists all the available deployments.
     """
@@ -169,23 +169,23 @@ def list():
     click.echo("{}".format('-' * 96))
 
     def _status(nodes):
-        s = nodes['admin'].status
-        for n in nodes.values():
-            if n.status == 'running' and s == 'not deployed':
-                s = 'partially deployed'
-            elif n.status == 'stopped' and s == 'running':
-                s = 'partially running'
-            elif n.status == 'suspended' and s == 'running':
-                s = 'partially running'
-            elif n.status == 'running' and s == 'stopped':
-                s = 'partially running'
-            elif n.status == 'running' and s == 'suspended':
-                s = 'partially running'
-        return s
+        status = nodes['admin'].status
+        for node in nodes.values():
+            if node.status == 'running' and status == 'not deployed':
+                status = 'partially deployed'
+            elif node.status == 'stopped' and status == 'running':
+                status = 'partially running'
+            elif node.status == 'suspended' and status == 'running':
+                status = 'partially running'
+            elif node.status == 'running' and status == 'stopped':
+                status = 'partially running'
+            elif node.status == 'running' and status == 'suspended':
+                status = 'partially running'
+        return status
 
     for dep in deps:
-        st = _status(dep.nodes)
-        click.echo("| {:<11} | {:<15} | {:<60} |".format(dep.dep_id, st, ", ".join(dep.nodes)))
+        status = _status(dep.nodes)
+        click.echo("| {:<11} | {:<15} | {:<60} |".format(dep.dep_id, status, ", ".join(dep.nodes)))
     click.echo()
 
 
@@ -203,7 +203,6 @@ def create():
 
     $ sesdev create --help
     """
-    pass
 
 
 def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host, libvirt_user,
@@ -215,7 +214,7 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
         settings_dict['roles'] = [["admin", "storage", "mon", "mgr", "prometheus", "grafana", "mds",
-                                  "igw", "rgw", "ganesha"]]
+                                   "igw", "rgw", "ganesha"]]
 
     if os:
         settings_dict['os'] = os
@@ -261,7 +260,7 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
         settings_dict['version'] = version
 
     if repo:
-        settings_dict['repos'] = [r for r in repo]
+        settings_dict['repos'] = list(repo)
 
     if vagrant_box:
         settings_dict['vagrant_box'] = vagrant_box
@@ -368,7 +367,8 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     from filesystems:ceph:octopus OBS project.
     """
     settings_dict = _gen_settings_dict('octopus', **kwargs)
-    settings_dict['deployment_tool'] = 'deepsea'
+    if use_deepsea:
+        settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
@@ -459,7 +459,7 @@ def redeploy(deployment_id):
 @click.option('--local-port', default=None, type=int, help='The local port for the tunnel')
 @click.option('--local-address', default='localhost', type=str, show_default=True,
               help='The local address to bind the tunnel')
-def tunnel(deployment_id, service=None,  node=None, remote_port=None, local_port=None,
+def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=None,
            local_address=None):
     """
     Creates an SSH port forwarding for the services that are running in the
