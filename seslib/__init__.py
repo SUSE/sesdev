@@ -24,10 +24,10 @@ METADATA_FILENAME = ".metadata"
 
 logger = logging.getLogger(__name__)
 
-jinja_env = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
+JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
 
 
-class GlobalSettings(object):
+class GlobalSettings():
     WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
 
@@ -256,7 +256,7 @@ SETTINGS = {
 }
 
 
-class Settings(object):
+class Settings():
     # pylint: disable=no-member
     def __init__(self, **kwargs):
         config = self._load_config_file()
@@ -279,7 +279,8 @@ class Settings(object):
                 raise SettingTypeError(k, SETTINGS[k]['type'], v)
             setattr(self, k, v)
 
-    def _load_config_file(self):
+    @staticmethod
+    def _load_config_file():
         if not os.path.exists(GlobalSettings.CONFIG_FILE) \
                 or not os.path.isfile(GlobalSettings.CONFIG_FILE):
             return {}
@@ -293,23 +294,23 @@ class Settings(object):
 
 class SettingsEncoder(JSONEncoder):
     # pylint: disable=method-hidden
-    def default(self, settings):
-        return {k: getattr(settings, k) for k in SETTINGS}
+    def default(self, o):
+        return {k: getattr(o, k) for k in SETTINGS}
 
 
-class Disk(object):
+class Disk():
     def __init__(self, size):
         self.size = size
 
 
-class ZypperRepo(object):
+class ZypperRepo():
     def __init__(self, name, url, priority):
         self.name = name
         self.url = url
         self.priority = priority
 
 
-class Node(object):
+class Node():
     def __init__(self, name, fqdn, roles, public_address, cluster_address=None, storage_disks=None):
         self.name = name
         self.fqdn = fqdn
@@ -326,7 +327,7 @@ class Node(object):
         return role in self.roles
 
 
-class Deployment(object):
+class Deployment():
     def __init__(self, dep_id, settings):
         self.dep_id = dep_id
         self.settings = settings
@@ -361,7 +362,7 @@ class Deployment(object):
         if self._needs_cluster_network() and self.settings.public_network is not None \
                 and self.settings.cluster_network is not None:
             return
-        elif not self._needs_cluster_network() and self.settings.public_network is not None:
+        if not self._needs_cluster_network() and self.settings.public_network is not None:
             return
 
         deps = self.list()
@@ -437,11 +438,11 @@ class Deployment(object):
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
         if self.settings.os in OS_REPOS:
-            os_base_repos = [(name, url) for name, url in OS_REPOS[self.settings.os].items()]
+            os_base_repos = list(OS_REPOS[self.settings.os].items())
         else:
             os_base_repos = []
 
-        template = jinja_env.get_template('Vagrantfile.j2')
+        template = JINJA_ENV.get_template('Vagrantfile.j2')
         return template.render(**{
             'dep_id': self.dep_id,
             'vm_engine': self.settings.vm_engine,
@@ -465,7 +466,7 @@ class Deployment(object):
             'os_base_repos': os_base_repos,
         })
 
-    def _save(self):
+    def save(self):
         vagrant_file = self.generate_vagrantfile()
         key = RSA.generate(2048)
         private_key = key.exportKey('PEM')
@@ -545,7 +546,7 @@ class Deployment(object):
             tools.run_async(["vagrant", "destroy", node.name, "--force"], log_handler, self.dep_dir)
         shutil.rmtree(self.dep_dir)
 
-    def _stop(self, node, log_handler):
+    def _stop(self, node):
         if self.nodes[node].status != "running":
             logger.warning("Node '%s' is not running: current status '%s'", node,
                            self.nodes[node].status)
@@ -561,11 +562,11 @@ class Deployment(object):
     def stop(self, log_handler, node=None):
         if node and node not in self.nodes:
             raise NodeDoesNotExist(node)
-        elif node:
-            self._stop(node, log_handler)
+        if node:
+            self._stop(node)
         else:
-            for node in self.nodes:
-                self._stop(node, log_handler)
+            for _node in self.nodes:
+                self._stop(_node)
 
     def start(self, log_handler, node=None):
         if node and node not in self.nodes:
@@ -578,7 +579,7 @@ class Deployment(object):
     def __str__(self):
         return self.dep_id
 
-    def _load_status(self):
+    def load_status(self):
         if not os.path.exists(os.path.join(self.dep_dir, '.vagrant')):
             for node in self.nodes.values():
                 node.status = "not deployed"
@@ -704,7 +705,7 @@ class Deployment(object):
                     node = tools.run_sync(ssh_cmd)
                     node = node.strip()
                 except tools.CmdException:
-                    node == 'null'
+                    node = 'null'
                 if node == 'null':
                     raise ServiceNotFound(service)
 
@@ -734,7 +735,7 @@ class Deployment(object):
 
         dep = cls(dep_id, settings)
         logger.info("creating new deployment: %s", dep)
-        dep._save()
+        dep.save()
         return dep
 
     @classmethod
@@ -753,7 +754,7 @@ class Deployment(object):
 
         dep = cls(metadata['id'], Settings(**metadata['settings']))
         if load_status:
-            dep._load_status()
+            dep.load_status()
         return dep
 
     @classmethod

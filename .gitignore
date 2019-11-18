@@ -5,3 +5,4 @@ virtualenv*
 *.log
 **.pyc
 *.egg-info
+.eggs
