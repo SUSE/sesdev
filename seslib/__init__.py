@@ -603,7 +603,8 @@ class Deployment():
         result = "Deployment VMs:\n"
         for k, v in self.nodes.items():
             result += "  -- {}:\n".format(k)
-            result += "     - status:           {}\n".format(v.status)
+            if v.status:
+                result += "     - status:           {}\n".format(v.status)
             result += "     - OS:               {}\n".format(self.settings.os)
             result += "     - ses_version:      {}\n".format(self.settings.version)
             if k == 'admin':

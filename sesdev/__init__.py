@@ -165,8 +165,9 @@ def list_deps():
     Lists all the available deployments.
     """
     deps = seslib.Deployment.list(True)
-    click.echo("| {:^11} | {:^15} | {:^60} |".format("Deployments", "Status", "VMs"))
-    click.echo("{}".format('-' * 96))
+    click.echo("| {:^11} | {:^10} | {:^15} | {:^60} |".format("Deployments", "Version", "Status",
+                                                              "VMs"))
+    click.echo("{}".format('-' * 109))
 
     def _status(nodes):
         status = nodes['admin'].status
@@ -185,7 +186,8 @@ def list_deps():
 
     for dep in deps:
         status = _status(dep.nodes)
-        click.echo("| {:<11} | {:<15} | {:<60} |".format(dep.dep_id, status, ", ".join(dep.nodes)))
+        click.echo("| {:<11} | {:<10} | {:<15} | {:<60} |"
+                   .format(dep.dep_id, dep.settings.version, status, ", ".join(dep.nodes)))
     click.echo()
 
 
