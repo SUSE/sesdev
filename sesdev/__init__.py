@@ -275,24 +275,29 @@ def _create_command(deployment_id, deploy, settings_dict):
     click.echo("=== Creating deployment with the following configuration ===")
     click.echo(dep.status())
     if deploy:
-        if click.confirm('Do you want to continue with the deployment?', default=True):
-            dep.start(_print_log)
-            click.echo("=== Deployment Finished ===")
-            click.echo()
-            click.echo("You can login into the cluster with:")
-            click.echo()
-            click.echo("  $ sesdev ssh {}".format(deployment_id))
-            click.echo()
-            if dep.settings.version == 'ses5':
-                click.echo("Or, access openATTIC with:")
+        try:
+            if click.confirm('Do you want to continue with the deployment?', default=True):
+                dep.start(_print_log)
+                click.echo("=== Deployment Finished ===")
                 click.echo()
-                click.echo("  $ sesdev tunnel {} openattic".format(deployment_id))
+                click.echo("You can login into the cluster with:")
+                click.echo()
+                click.echo("  $ sesdev ssh {}".format(deployment_id))
+                click.echo()
+                if dep.settings.version == 'ses5':
+                    click.echo("Or, access openATTIC with:")
+                    click.echo()
+                    click.echo("  $ sesdev tunnel {} openattic".format(deployment_id))
+                else:
+                    click.echo("Or, access the Ceph Dashboard with:")
+                    click.echo()
+                    click.echo("  $ sesdev tunnel {} dashboard".format(deployment_id))
+                    click.echo()
             else:
-                click.echo("Or, access the Ceph Dashboard with:")
-                click.echo()
-                click.echo("  $ sesdev tunnel {} dashboard".format(deployment_id))
-                click.echo()
-        else:
+                raise click.Abort()
+        except click.Abort:
+            click.echo()
+            click.echo("Exiting...")
             dep.destroy(_silent_log)
 
 
