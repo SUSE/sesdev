@@ -126,14 +126,14 @@ VERSION_OS_REPO_MAPPING = {
     'octopus': {
         'leap-15.1': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
                      'openSUSE_Leap_15.1',
-        'leap-15.2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
-                     'openSUSE_Leap_15.2',
-        'tumbleweed': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
-                      'openSUSE_Tumbleweed',
+        'leap-15.2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
+                     'upstream/openSUSE_Leap_15.2',
+        'tumbleweed': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
+                      'upstream/openSUSE_Tumbleweed',
     },
     'ses7': {
-        'sles-15-sp2': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
-                       'standard/',
+        'sles-15-sp2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
+                       'upstream/SLE_15_SP2'
     }
 }
 
