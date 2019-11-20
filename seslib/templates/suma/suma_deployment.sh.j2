@@ -1,0 +1,97 @@
+systemctl stop firewalld
+
+sed -i 's/^.*onlyRequires = true$/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
+
+zypper -n in xfsprogs
+
+SW_DEV=`lsblk --nodeps -o name,size | grep ^vd | grep 101G | head -1 | cut -d' ' -f1`
+PG_DEV=`lsblk --nodeps -o name,size | grep ^vd | grep 51G | head -1 | cut -d' ' -f1`
+
+mkfs.xfs /dev/$SW_DEV
+mkfs.xfs /dev/$PG_DEV
+
+echo "/dev/$SW_DEV        /var/spacewalk  xfs defaults 1 1" >> /etc/fstab
+echo "/dev/$PG_DEV        /var/lib/pgsql  xfs defaults 1 1" >> /etc/fstab
+mkdir -p /var/spacewalk
+mkdir -p /var/lib/pgsql
+mount /var/spacewalk
+mount /var/lib/pgsql
+
+zypper -n in -t pattern uyuni_server
+
+cat > /root/setup_env.sh <<EOF
+MANAGER_FORCE_INSTALL='0'
+ACTIVATE_SLP='n'
+MANAGER_ADMIN_EMAIL='rdias@suse.com'
+MANAGER_ENABLE_TFTP='y'
+MANAGER_IP='{{ node.public_address }}'
+MANAGER_DB_PORT='5432'
+DB_BACKEND='postgresql'
+MANAGER_DB_HOST='localhost'
+MANAGER_DB_NAME='uyuni'
+MANAGER_DB_PROTOCOL='TCP'
+MANAGER_PASS='admin'
+MANAGER_PASS2='admin'
+MANAGER_USER='admin'
+LOCAL_DB='1'
+CERT_CITY='Lisbon'
+CERT_COUNTRY='PT'
+CERT_EMAIL='rdias@suse.com'
+CERT_O='test'
+CERT_OU='test'
+CERT_PASS='testtest'
+CERT_PASS2='testtest'
+CERT_STATE='Lisbon'
+{% if scc_username and scc_password %}
+SCC_USER="{{ scc_username }}"
+SCC_PASS="{{ scc_password }}"
+{% endif %}
+EOF
+
+chmod 600 /root/setup_env.sh
+
+/usr/lib/susemanager/bin/mgr-setup -s
+
+echo "JAVA_OPTS=\"-Xdebug -Xrunjdwp:transport=dt_socket,address={{ node.fqdn }}:8001,server=y,suspend=n -Dcom.sun.management.jmxremote.port=3334 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Djava.rmi.server.hostname={{ node.fqdn }}\"" > /etc/rhn/taskomatic.conf
+systemctl restart taskomatic
+
+cat > /srv/salt/sesdev_suma.sls <<EOF
+wait_for_tomcat:
+  http.wait_for_successful_query:
+    - method: GET
+    - name: https://localhost/
+    - verify_ssl: False
+    - status: 200
+
+create_first_user:
+  http.wait_for_successful_query:
+    - method: POST
+    - name: https://localhost/rhn/newlogin/CreateFirstUser.do
+    - status: 200
+    - data: "submitted=true&orgName=SUSE&login=admin&desiredpassword=admin&desiredpasswordConfirm=admin&email=rdias@suse.com&firstNames=Administrator&lastName=Administrator"
+    - verify_ssl: False
+    - unless: spacecmd -u admin -p admin user_list | grep -x admin
+    - require:
+      - http: wait_for_tomcat
+EOF
+
+salt-call --local state.apply sesdev_suma
+
+sleep 2
+
+spacecmd -u admin -p admin -- activationkey_create -n DEFAULT
+
+rhn-bootstrap --activation-keys=1-DEFAULT --no-up2date --hostname {{ node.fqdn }}
+
+sed -i 's/^#auto_accept.*/auto_accept: True/g' /etc/salt/master
+systemctl restart salt-master
+sleep 5
+
+{% for _node in nodes %}
+{% if _node != suma %}
+scp /srv/www/htdocs/pub/bootstrap/bootstrap.sh {{ _node.name }}:
+ssh {{ _node.name }} 'bash bootstrap.sh'
+ssh {{ _node.name }} 'curl http://{{ node.fqdn }}/pub/RHN-ORG-TRUSTED-SSL-CERT --output /etc/pki/trust/anchors/RHN-ORG-TRUSTED-SSL-CERT'
+ssh {{ _node.name }} 'update-ca-certificates'
+{% endif %}
+{% endfor %}
