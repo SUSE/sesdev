@@ -12,8 +12,9 @@ First, you should have both [QEMU](https://www.qemu.org/) and
 [Libvirt](https://libvirt.org/) installed in some machine to host the VMs
 created by sesdev (using Vagrant behind the scenes).
 
-Installable packages for various Linux distributions like Fedora or openSUSE can be
-found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=home%3Arjdias&package=sesdev) (OBS).
+Installable packages for various Linux distributions like Fedora or openSUSE can
+be found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=home%3Arjdias&package=sesdev)
+(OBS).
 
 ### Installation on openSUSE
 
@@ -28,9 +29,9 @@ $ sudo systemctl restart libvirtd
 
 #### Add user to libvirt group
 
-If you are running libvirt on the same machine where you installed sesdev,
-add your user to the "libvirt" group to avoid "no polkit agent available"
-errors when vagrant attempts to connect to the libvirt daemon:
+If you are running libvirt on the same machine where you installed sesdev, add
+your user to the "libvirt" group to avoid "no polkit agent available" errors
+when vagrant attempts to connect to the libvirt daemon:
 
 ```
 $ sudo groupadd libvirt
@@ -80,13 +81,15 @@ $ git clone https://github.com/rjfd/sesdev.git
 $ cd sesdev
 $ virtualenv --python=<path_to_python3> venv
 $ source venv/bin/activate
-$ pip install .
+$ pip install --editable .
 ```
+
+Remember to re-run `pip install` after each git pull.
 
 ## Usage
 
-Run `sesdev --help` or `sesdev <command> --help` to get check the available options and
-description of the commands.
+Run `sesdev --help` or `sesdev <command> --help` to get check the available
+options and description of the commands.
 
 ### Create/Deploy cluster
 
@@ -117,7 +120,8 @@ To create a multi-node Ceph cluster, we can specify the roles of each node as
 follows:
 
 ```
-$ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
+$ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], \
+  [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 
 ```
 
@@ -158,3 +162,20 @@ $ sesdev tunnel <deployment_id> dashboard
 ```
 
 The command will output the URL that you can use to access the dashboard.
+
+### Stopping a cluster
+
+A running cluster can be stopped by running the following command:
+
+```
+$ sesdev stop <deployment_id>
+```
+
+### Destroying a cluster
+
+To remove a cluster (both the deployed VMs and the configuration), use the
+following command:
+
+```
+$ sesdev destroy <deployment_id>
+```

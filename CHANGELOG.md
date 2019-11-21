@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Handle Ctrl+C on deployment creation (PR #8)
 
+### Changed
+- Updated README.md on how to use an editable Python venv
+
 ## [1.0.3] - 2019-11-15
 ### Added
 - README instructions about libvirt configuration (PR #4)
