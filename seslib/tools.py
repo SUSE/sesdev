@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess
 import sys
+import time
 
 from .exceptions import CmdException
 
@@ -38,6 +39,7 @@ def run_async(command, callback, cwd=None):
     with subprocess.Popen(_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           cwd=cwd) as proc:
         while True:
+            time.sleep(0.5)
             output = _non_block_read(proc.stdout)
             if output:
                 # got new output
