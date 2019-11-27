@@ -253,6 +253,11 @@ SETTINGS = {
         'help': 'Custom repos dictionary to apply to all nodes',
         'default': []
     },
+    'repo_priority': {
+        'type': bool,
+        'help': 'Automatically set priority on custom zypper repos',
+        'default': True
+    },
     'scc_username': {
         'type': str,
         'help': 'SCC organization username',
@@ -324,7 +329,7 @@ class Node():
     _repo_lowest_prio = 94
 
     def __init__(self, name, fqdn, roles, public_address, cluster_address=None, storage_disks=None,
-                 ram=None, cpus=None):
+                 ram=None, cpus=None, repo_priority=None):
         self.name = name
         self.fqdn = fqdn
         self.roles = roles
@@ -337,13 +342,17 @@ class Node():
         self.cpus = cpus
         self.status = None
         self.repos = []
+        self.repo_priority = repo_priority
 
     def has_role(self, role):
         return role in self.roles
 
     def add_repo(self, repo):
-        if repo.priority is None:
-            repo.priority = self._repo_lowest_prio - len(self.repos)
+        if self.repo_priority:
+            if repo.priority is None:
+                repo.priority = self._repo_lowest_prio - len(self.repos)
+        else:
+            repo.priority = None
         self.repos.append(repo)
 
 
@@ -438,7 +447,7 @@ class Deployment():
                 node_roles = [r for r in node_roles if r not in ['grafana', 'prometheus']]
 
             node = Node(name, fqdn, node_roles, public_address, ram=self.settings.ram * 2**10,
-                        cpus=self.settings.cpus)
+                        cpus=self.settings.cpus, repo_priority=self.settings.repo_priority)
 
             if 'admin' in node_roles:
                 self.admin = node
@@ -521,6 +530,7 @@ class Deployment():
             'deployment_tool': self.settings.deployment_tool,
             'version_repo': version_repo,
             'os_base_repos': os_base_repos,
+            'repo_priority': self.settings.repo_priority,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
         })
@@ -684,6 +694,7 @@ class Deployment():
                     result += "       - /dev/vd{}        {}G\n".format(str(chr(dev_letter)),
                                                                        disk.size)
                     dev_letter += 1
+            result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             if v.repos:
                 result += "     - custom_repos:\n"
                 for repo in v.repos:

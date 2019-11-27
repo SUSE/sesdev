@@ -72,7 +72,9 @@ def common_create_options(func):
         click.option('--single-node/--no-single-node', default=False,
                      help='Deploy a single node cluster. Overrides --roles'),
         click.option('--repo', multiple=True, type=str, default=None,
-                     help='Zypper repo URL. The repo will be added to each node.'),
+                     help='Custom zypper repo URL. The repo will be added to each node.'),
+        click.option('--repo-priority/--no-repo-priority', default=True,
+                     help="Automatically set priority on custom zypper repos"),
         click.option('--scc-user', type=str, default=None,
                      help='SCC organization username'),
         click.option('--scc-pass', type=str, default=None,
@@ -215,7 +217,8 @@ def create():
 
 def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host, libvirt_user,
                        libvirt_storage_pool, deepsea_cli, stop_before_deepsea_stage, deepsea_repo,
-                       deepsea_branch, repo, cpus, ram, disk_size, vagrant_box, scc_user, scc_pass):
+                       deepsea_branch, repo, cpus, ram, disk_size, repo_priority, vagrant_box,
+                       scc_user, scc_pass):
 
     settings_dict = {}
     if not single_node and roles:
@@ -269,6 +272,9 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
 
     if repo:
         settings_dict['repos'] = list(repo)
+
+    if repo_priority is not None:
+        settings_dict['repo_priority'] = repo_priority
 
     if vagrant_box:
         settings_dict['vagrant_box'] = vagrant_box
