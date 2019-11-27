@@ -66,3 +66,16 @@ class ServiceNotFound(SesDevException):
     def __init__(self, service):
         super(ServiceNotFound, self).__init__(
             "Service '{}' was not found in this deployment".format(service))
+
+
+class ExclusiveRoles(SesDevException):
+    def __init__(self, role_a, role_b):
+        super(ExclusiveRoles, self).__init__(
+            "Cannot have both roles '{}' and '{}' in the same deployment"
+            .format(role_a, role_b))
+
+
+class RoleNotSupported(SesDevException):
+    def __init__(self, role, version):
+        super(RoleNotSupported, self).__init__(
+            "Role '{}' is not supported in version '{}'".format(role, version))

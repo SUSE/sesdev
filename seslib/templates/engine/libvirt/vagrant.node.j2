@@ -4,6 +4,8 @@
 {% endif %}
 
     node.vm.provider "libvirt" do |lv|
+      lv.memory = {{ node.ram }}
+      lv.cpus = {{ node.cpus }}
 {% for disk in node.storage_disks %}
       lv.storage :file, size: "{{ disk.size }}G", type: 'qcow2'
 {% endfor %}

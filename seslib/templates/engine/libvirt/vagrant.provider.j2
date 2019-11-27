@@ -10,8 +10,6 @@
 {% endif %}
     lv.qemu_use_session = false
 
-    lv.memory = {{ ram }}
-    lv.cpus = {{ cpus }}
 {% if libvirt_storage_pool %}
     lv.storage_pool_name = "{{ libvirt_storage_pool }}"
 {% endif %}

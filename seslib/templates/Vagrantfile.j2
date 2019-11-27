@@ -63,17 +63,22 @@ cp /home/vagrant/.ssh/id_rsa* /root/.ssh/
 cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 hostnamectl set-hostname {{ node.name }}
 
+{% if not suma %}
 zypper -n install salt-minion
 sed -i 's/^#master:.*/master: {{ admin.name }}/g' /etc/salt/minion
 systemctl enable salt-minion
 systemctl start salt-minion
+{% endif %}
+
 touch /tmp/ready
 
+{% if node == admin or node == suma%}
 {% if node == admin %}
 zypper -n install salt-master
 systemctl enable salt-master
 systemctl start salt-master
 sleep 5
+{% endif %}
 
 while : ; do
   PROVISIONED_NODES=`ls -l /tmp/ready-* 2>/dev/null | wc -l`
@@ -85,6 +90,7 @@ while : ; do
 {% endfor %}
 done
 
+{% if node == admin %}
 while true; do
   sleep 1
   salt-key -L
@@ -95,6 +101,11 @@ salt-key -Ay
 
 {% if deployment_tool == "deepsea" %}
 {% include "deepsea/deepsea_deployment.sh.j2" %}
+{% endif %}
+{% endif %}
+
+{% if node == suma %}
+{% include "suma/suma_deployment.sh.j2" %}
 {% endif %}
 
 {% endif %}

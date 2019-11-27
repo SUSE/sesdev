@@ -72,7 +72,11 @@ def common_create_options(func):
         click.option('--single-node/--no-single-node', default=False,
                      help='Deploy a single node cluster. Overrides --roles'),
         click.option('--repo', multiple=True, type=str, default=None,
-                     help='Zypper repo URL. The repo will be added to each node.')
+                     help='Zypper repo URL. The repo will be added to each node.'),
+        click.option('--scc-user', type=str, default=None,
+                     help='SCC organization username'),
+        click.option('--scc-pass', type=str, default=None,
+                     help='SCC organization password'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -170,9 +174,11 @@ def list_deps():
     click.echo("{}".format('-' * 109))
 
     def _status(nodes):
-        status = nodes['admin'].status
+        status = None
         for node in nodes.values():
-            if node.status == 'running' and status == 'not deployed':
+            if status is None:
+                status = node.status
+            elif node.status == 'running' and status == 'not deployed':
                 status = 'partially deployed'
             elif node.status == 'stopped' and status == 'running':
                 status = 'partially running'
@@ -209,7 +215,7 @@ def create():
 
 def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host, libvirt_user,
                        libvirt_storage_pool, deepsea_cli, stop_before_deepsea_stage, deepsea_repo,
-                       deepsea_branch, repo, cpus, ram, disk_size, vagrant_box):
+                       deepsea_branch, repo, cpus, ram, disk_size, vagrant_box, scc_user, scc_pass):
 
     settings_dict = {}
     if not single_node and roles:
@@ -267,6 +273,12 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
     if vagrant_box:
         settings_dict['vagrant_box'] = vagrant_box
 
+    if scc_user:
+        settings_dict['scc_username'] = scc_user
+
+    if scc_pass:
+        settings_dict['scc_password'] = scc_pass
+
     return settings_dict
 
 
@@ -289,6 +301,11 @@ def _create_command(deployment_id, deploy, settings_dict):
                     click.echo("Or, access openATTIC with:")
                     click.echo()
                     click.echo("  $ sesdev tunnel {} openattic".format(deployment_id))
+                elif dep.settings.version == 'octopus' and dep.has_suma():
+                    click.echo("Or, access the SUMA WebUI with:")
+                    click.echo()
+                    click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
+                    click.echo()
                 else:
                     click.echo("Or, access the Ceph Dashboard with:")
                     click.echo()
@@ -458,7 +475,8 @@ def redeploy(deployment_id):
 
 @cli.command()
 @click.argument('deployment_id')
-@click.argument('service', type=click.Choice(['dashboard', 'grafana', 'openattic']), required=False)
+@click.argument('service', type=click.Choice(['dashboard', 'grafana', 'openattic', 'suma']),
+                required=False)
 @click.option('--node', default='admin', type=str, show_default=True,
               help='The node where we want to create the tunnel to')
 @click.option('--remote-port', default=None, type=int,

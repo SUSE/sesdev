@@ -16,7 +16,7 @@ from . import tools
 from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
                         VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
-                        ServiceNotFound
+                        ServiceNotFound, ExclusiveRoles, RoleNotSupported
 
 
 METADATA_FILENAME = ".metadata"
@@ -253,6 +253,16 @@ SETTINGS = {
         'help': 'Custom repos dictionary to apply to all nodes',
         'default': []
     },
+    'scc_username': {
+        'type': str,
+        'help': 'SCC organization username',
+        'default': None
+    },
+    'scc_password': {
+        'type': str,
+        'help': 'SCC organization password',
+        'default': None
+    },
 }
 
 
@@ -304,14 +314,17 @@ class Disk():
 
 
 class ZypperRepo():
-    def __init__(self, name, url, priority):
+    def __init__(self, name, url, priority=None):
         self.name = name
         self.url = url
         self.priority = priority
 
 
 class Node():
-    def __init__(self, name, fqdn, roles, public_address, cluster_address=None, storage_disks=None):
+    _repo_lowest_prio = 94
+
+    def __init__(self, name, fqdn, roles, public_address, cluster_address=None, storage_disks=None,
+                 ram=None, cpus=None):
         self.name = name
         self.fqdn = fqdn
         self.roles = roles
@@ -320,11 +333,18 @@ class Node():
         if storage_disks is None:
             storage_disks = []
         self.storage_disks = storage_disks
+        self.ram = ram
+        self.cpus = cpus
         self.status = None
         self.repos = []
 
     def has_role(self, role):
         return role in self.roles
+
+    def add_repo(self, repo):
+        if repo.priority is None:
+            repo.priority = self._repo_lowest_prio - len(self.repos)
+        self.repos.append(repo)
 
 
 class Deployment():
@@ -333,6 +353,7 @@ class Deployment():
         self.settings = settings
         self.nodes = {}
         self.admin = None
+        self.suma = None
 
         if self.settings.os is None:
             self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
@@ -356,6 +377,12 @@ class Deployment():
                 num_nodes_with_storage += 1
         if num_nodes_with_storage > 1:  # at least 2 nodes have storage
             return True
+        return False
+
+    def has_suma(self):
+        for roles in self.settings.roles:
+            if 'suma' in roles:
+                return True
         return False
 
     def _generate_networks(self):
@@ -392,7 +419,10 @@ class Deployment():
     def _generate_nodes(self):
         node_id = 1
         for node_roles in self.settings.roles:
-            if 'admin' in node_roles:
+            if 'suma' in node_roles and self.settings.version not in ['octopus']:
+                raise RoleNotSupported('suma', self.settings.version)
+
+            if 'admin' in node_roles or 'suma' in node_roles:
                 name = 'admin'
                 fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
                 public_address = '{}{}'.format(self.settings.public_network, 200)
@@ -407,9 +437,14 @@ class Deployment():
             else:
                 node_roles = [r for r in node_roles if r not in ['grafana', 'prometheus']]
 
-            node = Node(name, fqdn, node_roles, public_address)
+            node = Node(name, fqdn, node_roles, public_address, ram=self.settings.ram * 2**10,
+                        cpus=self.settings.cpus)
+
             if 'admin' in node_roles:
                 self.admin = node
+
+            if 'suma' in node_roles:
+                self.suma = node
 
             if 'storage' in node_roles:
                 if self.settings.cluster_network:
@@ -418,13 +453,36 @@ class Deployment():
                 for _ in range(self.settings.num_disks):
                     node.storage_disks.append(Disk(self.settings.disk_size))
 
+            if self.has_suma():  # if suma is deployed, we need to add client-tools to all nodes
+                node.add_repo(ZypperRepo(
+                    'suma_client_tools',
+                    'https://download.opensuse.org/repositories/systemsmanagement:/Uyuni:/Master:/'
+                    'openSUSE_Leap_15-Uyuni-Client-Tools/openSUSE_Leap_15.0/'))
+
+            # from https://www.uyuni-project.org/uyuni-docs/uyuni/installation/install-vm.html
+            if 'suma' in node_roles:
+                if self.settings.ram < 4:
+                    node.ram = 4096
+                if self.settings.cpus < 4:
+                    node.cpus = 4
+                # disk for /var/spacewalk
+                node.storage_disks.append(Disk(101))
+                # disk for /var/lib/pgsql
+                node.storage_disks.append(Disk(51))
+
+                node.add_repo(ZypperRepo(
+                    'suma_media1',
+                    'https://download.opensuse.org/repositories/systemsmanagement:/Uyuni:/Master/'
+                    'images-openSUSE_Leap_15.1/repo/Uyuni-Server-POOL-x86_64-Media1/'))
+
             r_name = 'custom-repo-{}'
-            idx = 1
-            for repo_url in self.settings.repos:
-                node.repos.append(ZypperRepo(r_name.format(idx), repo_url, 95-idx))
-                idx += 1
+            for idx, repo_url in enumerate(self.settings.repos):
+                node.add_repo(ZypperRepo(r_name.format(idx+1), repo_url))
 
             self.nodes[node.name] = node
+
+        if self.admin and self.suma:
+            raise ExclusiveRoles('admin', 'suma')
 
     def generate_vagrantfile(self):
         num_osds = len([n for n in self.nodes.values() if 'storage' in n.roles]) \
@@ -450,11 +508,10 @@ class Deployment():
             'libvirt_user': self.settings.libvirt_user,
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
-            'ram': self.settings.ram * 2**10,
-            'cpus': self.settings.cpus,
             'vagrant_box': vagrant_box,
             'nodes': [n for _, n in self.nodes.items()],
             'admin': self.admin,
+            'suma': self.suma,
             'deepsea_git_repo': self.settings.deepsea_git_repo,
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
@@ -464,6 +521,8 @@ class Deployment():
             'deployment_tool': self.settings.deployment_tool,
             'version_repo': version_repo,
             'os_base_repos': os_base_repos,
+            'scc_username': self.settings.scc_username,
+            'scc_password': self.settings.scc_password,
         })
 
     def save(self):
@@ -616,11 +675,11 @@ class Deployment():
             result += "     - public_address:   {}\n".format(v.public_address)
             if v.cluster_address:
                 result += "     - cluster_address:   {}\n".format(v.cluster_address)
-            result += "     - cpus:             {}\n".format(self.settings.cpus)
-            result += "     - ram:              {}G\n".format(self.settings.ram)
+            result += "     - cpus:             {}\n".format(v.cpus)
+            result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
             if v.storage_disks:
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
-                dev_letter = ord('a')
+                dev_letter = ord('b')
                 for disk in v.storage_disks:
                     result += "       - /dev/vd{}        {}G\n".format(str(chr(dev_letter)),
                                                                        disk.size)
@@ -673,7 +732,7 @@ class Deployment():
             local_address = 'localhost'
 
         if service is not None:
-            if service not in ['dashboard', 'grafana', 'openattic']:
+            if service not in ['dashboard', 'grafana', 'openattic', 'suma']:
                 raise ServicePortForwardingNotSupported(service)
 
             if service in ['openattic', 'grafana']:
@@ -711,6 +770,11 @@ class Deployment():
                     raise ServiceNotFound(service)
 
                 logger.info("dashboard is running on node %s", node)
+            elif service == 'suma':
+                node = 'admin'
+                remote_port = 443
+                local_port = 8443
+                service_url = 'https://{}:{}'.format(local_address, local_port)
 
         else:
             if node not in self.nodes:
