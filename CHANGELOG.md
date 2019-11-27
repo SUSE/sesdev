@@ -6,14 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.1.0] - 2019-11-27
 ### Added
-- Add Github Action to publish to OBS
+- Add Github Action to publish to OBS (PR #10).
+- SUMA deployment in `octopus` version (PR #14).
 
 ### Fixed
 - Handle Ctrl+C on deployment creation (PR #8)
+- seslib: fixed 100% cpu usage when deploying cluster (PR #16).
 
 ### Changed
-- Updated README.md on how to use an editable Python venv
+- Updated README.md on how to use an editable Python venv (PR #15).
+- cli: `list` subcommand now shows the version of each deployment (PR #12).
+- octopus and ses7 versions now use the OBS repo filesystems:ceph:master:upstream that
+  is updated in a daily basis (PR #13).
 
 ## [1.0.3] - 2019-11-15
 ### Added
@@ -118,7 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/rjfd/sesdev/compare/v1.0.3...HEAD
+[unreleased]: https://github.com/rjfd/sesdev/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/rjfd/sesdev/releases/tag/v1.1.0
 [1.0.3]: https://github.com/rjfd/sesdev/releases/tag/v1.0.3
 [1.0.2]: https://github.com/rjfd/sesdev/releases/tag/v1.0.2
 [1.0.1]: https://github.com/rjfd/sesdev/releases/tag/v1.0.1
