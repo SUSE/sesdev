@@ -84,7 +84,7 @@ $ source venv/bin/activate
 $ pip install --editable .
 ```
 
-Remember to re-run `pip install` after each git pull.
+Remember to re-run `pip install --editable .` after each git pull.
 
 ## Usage
 
@@ -132,6 +132,21 @@ The cluster generated will have 4 nodes: the admin node that is running the
 salt-master and one MON, two storage nodes that will also run a MON, a MGR and
 an MDS, and another node that will run an iSCSI gateway, nfs-ganesha gateway,
 and an RGW gateway.
+
+#### Custom zypper repos
+
+If you have the URL(s) of custom zypper repo(s) that you would like to add
+to all the nodes of the cluster prior to deployment, add one or more
+`--repo` options to the command line, e.g.:
+
+```
+$ sesdev create nautilus --single-node --repo [URL_OF_REPO] mini
+```
+
+By default, the custom repo(s) will be added with an elevated priority,
+to ensure that packages from these repos will be installed even if higher
+RPM versions of those packages exist. If this behavior is not desired,
+add `--no-repo-priority` to disable it.
 
 ### Listing deployments
 

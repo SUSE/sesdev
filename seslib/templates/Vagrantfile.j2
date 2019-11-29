@@ -36,7 +36,6 @@ zypper ar {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
 zypper ar {{ version_repo }} {{ version }}-repo
-zypper mr -p 95 {{ version }}-repo
 
 zypper --gpg-auto-import-keys ref
 
@@ -48,7 +47,7 @@ zypper -n install vim git iputils hostname jq make iptables patch
 
 {% for repo in node.repos %}
 zypper ar {{ repo.url }} {{ repo.name }}
-{% if repo.priority %}
+{% if repo_priority and repo.priority %}
 zypper mr -p {{ repo.priority }} {{ repo.name }}
 {% endif %}
 {% endfor %}
