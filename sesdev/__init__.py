@@ -1152,5 +1152,27 @@ def replace_ceph_salt(deployment_id, local=None):
     dep.replace_ceph_salt(local)
 
 
+@cli.command(name='replace-mgr-modules')
+@click.argument('deployment_id')
+@click.option('--local', type=str, help='The local repository path. E.g.: ~/ceph')
+@click.option('--pr', type=int, help='The PR to be fetched from a remote repository')
+@click.option('--branch', default='master', type=str, show_default=True,
+              help='The branch to be fetched from a remote repository')
+@click.option('--repo', default='ceph', type=str, show_default=True,
+              help='The remote repository from which to fetch PRs or branches')
+@click.option('--langs', default='en-US', type=str, show_default=True,
+              help='Dashboard languages to be built')
+def replace_mgr_modules(deployment_id, **kwargs):
+    """
+    Fetches a different version of Ceph MGR modules from a local repository or github,
+    replacing the installed ones.
+
+    --local, --pr and --branch conflict with each other,
+    when the first is found the remaining are ignored.
+    """
+    dep = seslib.Deployment.load(deployment_id)
+    dep.replace_mgr_modules(**kwargs)
+
+
 if __name__ == '__main__':
     sys.exit(sesdev_main())

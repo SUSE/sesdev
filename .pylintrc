@@ -163,6 +163,7 @@ good-names=i,
            Run,
            logger,
            os,
+           pr,
            _
 
 include-naming-hint=no
