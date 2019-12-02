@@ -94,6 +94,7 @@ def _parse_roles(roles):
             if role.endswith(']'):
                 role = role[1:-1].strip()
                 _node.append(role)
+                _node = list(set(_node))  # eliminate duplicate roles
                 _roles.append(_node)
             else:
                 role = role[1:].strip()
@@ -101,6 +102,7 @@ def _parse_roles(roles):
         elif role.endswith(']'):
             role = role[:-1].strip()
             _node.append(role)
+            _node = list(set(_node))  # eliminate duplicate roles
             _roles.append(_node)
         else:
             role = role.strip()
