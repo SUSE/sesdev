@@ -335,7 +335,7 @@ def ses5(deployment_id, deploy, **kwargs):
     Creates a SES5 cluster using SLES-12-SP3
     """
     settings_dict = _gen_settings_dict('ses5', **kwargs)
-    if 'roles' in settings_dict:
+    if 'roles' in settings_dict and 'single_node' in kwargs and kwargs['single_node']:
         settings_dict['roles'][0].append("openattic")
     _create_command(deployment_id, deploy, settings_dict)
 
