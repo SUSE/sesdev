@@ -684,7 +684,7 @@ class Deployment():
             result += "     - fqdn:             {}\n".format(v.fqdn)
             result += "     - public_address:   {}\n".format(v.public_address)
             if v.cluster_address:
-                result += "     - cluster_address:   {}\n".format(v.cluster_address)
+                result += "     - cluster_address:  {}\n".format(v.cluster_address)
             result += "     - cpus:             {}\n".format(v.cpus)
             result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
             if v.storage_disks:
