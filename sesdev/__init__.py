@@ -92,15 +92,18 @@ def _parse_roles(roles):
         if role.startswith('['):
             _node = []
             if role.endswith(']'):
-                role = role[:-1]
-                _node.append(role[1:])
+                role = role[1:-1].strip()
+                _node.append(role)
                 _roles.append(_node)
             else:
-                _node.append(role[1:])
+                role = role[1:].strip()
+                _node.append(role)
         elif role.endswith(']'):
-            _node.append(role[:-1])
+            role = role[:-1].strip()
+            _node.append(role)
             _roles.append(_node)
         else:
+            role = role.strip()
             _node.append(role)
     return _roles
 
