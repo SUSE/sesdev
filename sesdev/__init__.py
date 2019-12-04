@@ -92,15 +92,20 @@ def _parse_roles(roles):
         if role.startswith('['):
             _node = []
             if role.endswith(']'):
-                role = role[:-1]
-                _node.append(role[1:])
+                role = role[1:-1].strip()
+                _node.append(role)
+                _node = list(set(_node))  # eliminate duplicate roles
                 _roles.append(_node)
             else:
-                _node.append(role[1:])
+                role = role[1:].strip()
+                _node.append(role)
         elif role.endswith(']'):
-            _node.append(role[:-1])
+            role = role[:-1].strip()
+            _node.append(role)
+            _node = list(set(_node))  # eliminate duplicate roles
             _roles.append(_node)
         else:
+            role = role.strip()
             _node.append(role)
     return _roles
 
@@ -215,6 +220,10 @@ def create():
     """
 
 
+def _count_storage_nodes(roles):
+    return len([node for node in roles if 'storage' in node])
+
+
 def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host, libvirt_user,
                        libvirt_storage_pool, deepsea_cli, stop_before_deepsea_stage, deepsea_repo,
                        deepsea_branch, repo, cpus, ram, disk_size, repo_priority, vagrant_box,
@@ -224,18 +233,28 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
     if not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
-        settings_dict['roles'] = [["admin", "storage", "mon", "mgr", "prometheus", "grafana", "mds",
-                                   "igw", "rgw", "ganesha"]]
+        settings_dict['roles'] = _parse_roles("["
+                                              " ["
+                                              "   admin, storage, mon, mgr, prometheus,"
+                                              "   grafana, mds, igw, rgw, ganesha"
+                                              " ]"
+                                              "]"
+                                              )
+
+    storage_nodes = None
+    if 'roles' in settings_dict and settings_dict['roles']:
+        storage_nodes = _count_storage_nodes(settings_dict['roles'])
 
     if os:
         settings_dict['os'] = os
 
     if num_disks:
-        if single_node and num_disks < 3:
+        if storage_nodes and storage_nodes < 3 and num_disks < 3:
             num_disks = 3
         settings_dict['num_disks'] = num_disks
-    elif single_node:
-        settings_dict['num_disks'] = 3
+    else:
+        if storage_nodes and storage_nodes < 3:
+            settings_dict['num_disks'] = 3
 
     if cpus:
         settings_dict['cpus'] = cpus
