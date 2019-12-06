@@ -234,10 +234,8 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
         settings_dict['roles'] = _parse_roles("["
-                                              " ["
                                               "   admin, storage, mon, mgr, prometheus,"
                                               "   grafana, mds, igw, rgw, ganesha"
-                                              " ]"
                                               "]"
                                               )
 
