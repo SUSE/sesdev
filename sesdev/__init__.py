@@ -517,10 +517,10 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
     a generic service.
     """
     if service:
-        click.echo("Opening tunnel to service '{}'...".format(service))
+        click.echo("Opening tunnel to service '{}' on node '{}'...".format(service, node))
     elif remote_port:
-        click.echo("Opening tunnel between remote {} port and local {} port"
-                   .format(remote_port, local_port if local_port else remote_port))
+        click.echo("Opening tunnel between remote {} port and local {} port on node {}"
+                   .format(remote_port, local_port if local_port else remote_port, node))
     dep = seslib.Deployment.load(deployment_id)
     dep.start_port_forwarding(service, node, remote_port, local_port, local_address)
 
