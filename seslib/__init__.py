@@ -509,8 +509,7 @@ class Deployment():
         else:
             os_base_repos = []
 
-        template = JINJA_ENV.get_template('Vagrantfile.j2')
-        return template.render(**{
+        context = {
             'dep_id': self.dep_id,
             'vm_engine': self.settings.vm_engine,
             'libvirt_host': self.settings.libvirt_host,
@@ -518,7 +517,7 @@ class Deployment():
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'vagrant_box': vagrant_box,
-            'nodes': [n for _, n in self.nodes.items()],
+            'nodes': list(self.nodes.values()),
             'admin': self.admin,
             'suma': self.suma,
             'deepsea_git_repo': self.settings.deepsea_git_repo,
@@ -533,10 +532,28 @@ class Deployment():
             'repo_priority': self.settings.repo_priority,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
-        })
+            'sesboot_git_repo': self.settings.sesboot_git_repo,
+            'sesboot_git_branch': self.settings.sesboot_git_branch,
+            'sesformula_git_repo': self.settings.sesformula_git_repo,
+            'sesformula_git_branch': self.settings.sesformula_git_branch,
+            'stop_before_sesboot_config': self.settings.stop_before_sesboot_config,
+            'stop_before_sesboot_deploy': self.settings.stop_before_sesboot_deploy,
+        }
+
+        scripts = {}
+
+        for node in self.nodes.values():
+            context_cpy = dict(context)
+            context_cpy['node'] = node
+            template = JINJA_ENV.get_template('provision.sh.j2')
+            scripts['provision_{}.sh'.format(node.name)] = template.render(**context_cpy)
+
+        template = JINJA_ENV.get_template('Vagrantfile.j2')
+        scripts['Vagrantfile'] = template.render(**context)
+        return scripts
 
     def save(self):
-        vagrant_file = self.generate_vagrantfile()
+        scripts = self.generate_vagrantfile()
         key = RSA.generate(2048)
         private_key = key.exportKey('PEM')
         public_key = key.publickey().exportKey('OpenSSH')
@@ -549,9 +566,10 @@ class Deployment():
                 'settings': self.settings
             }, file, cls=SettingsEncoder)
 
-        vagrantfile = os.path.join(self.dep_dir, 'Vagrantfile')
-        with open(vagrantfile, 'w') as file:
-            file.write(vagrant_file)
+        for filename, script in scripts.items():
+            full_path = os.path.join(self.dep_dir, filename)
+            with open(full_path, 'w') as file:
+                file.write(script)
 
         # generate ssh key pair
         keys_dir = os.path.join(self.dep_dir, 'keys')
