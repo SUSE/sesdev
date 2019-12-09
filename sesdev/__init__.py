@@ -49,6 +49,32 @@ def deepsea_options(func):
     return _decorator_composer(click_options, func)
 
 
+def ceph_bootstrap_options(func):
+    click_options = [
+        click.option('--stop-before-ceph-bootstrap-config', is_flag=True, default=False,
+                     help='Allows to stop deployment configuring the cluster with ceph-bootstrap'),
+        click.option('--stop-before-ceph-bootstrap-deploy', is_flag=True, default=False,
+                     help='Allows to stop deployment deploying the cluster with ceph-bootstrap'),
+        click.option('--ceph-bootstrap-repo', type=str, default=None,
+                     help='ceph-bootstrap Git repo URL'),
+        click.option('--ceph-bootstrap-branch', type=str, default=None,
+                     help='ceph-bootstrap Git branch'),
+        click.option('--ceph-salt-formula-repo', type=str, default=None,
+                     help='ceph-salt-formula Git repo URL'),
+        click.option('--ceph-salt-formula-branch', type=str, default=None,
+                     help='ceph-salt-formula Git branch'),
+        click.option('--ceph-container-image', type=str, default=None,
+                     help='container image path for Ceph daemons'),
+        click.option('--deploy-bootstrap', is_flag=True, default=True,
+                     help='Run ceph-daemon bootstrap during deployment. '
+                          '(If false all other --deploy-* options will be disabled)'),
+        click.option('--deploy-mons', is_flag=True, default=True, help='Deploy Ceph Mons'),
+        click.option('--deploy-mgrs', is_flag=True, default=True, help='Deploy Ceph Mgrs'),
+        click.option('--deploy-osds', is_flag=True, default=True, help='Deploy Ceph OSDs'),
+    ]
+    return _decorator_composer(click_options, func)
+
+
 def common_create_options(func):
     click_options = [
         click.option('--roles', type=str, default=None,
@@ -227,7 +253,12 @@ def _count_storage_nodes(roles):
 def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host, libvirt_user,
                        libvirt_storage_pool, deepsea_cli, stop_before_deepsea_stage, deepsea_repo,
                        deepsea_branch, repo, cpus, ram, disk_size, repo_priority, vagrant_box,
-                       scc_user, scc_pass):
+                       scc_user, scc_pass, ceph_bootstrap_repo=None, ceph_bootstrap_branch=None,
+                       ceph_salt_formula_repo=None, ceph_salt_formula_branch=None,
+                       stop_before_ceph_bootstrap_config=False,
+                       stop_before_ceph_bootstrap_deploy=False,
+                       ceph_container_image=None, deploy_bootstrap=True, deploy_mons=True,
+                       deploy_mgrs=True, deploy_osds=True):
 
     settings_dict = {}
     if not single_node and roles:
@@ -302,6 +333,42 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
     if scc_pass:
         settings_dict['scc_password'] = scc_pass
 
+    if ceph_bootstrap_repo:
+        settings_dict['ceph_bootstrap_git_repo'] = ceph_bootstrap_repo
+
+    if ceph_bootstrap_branch:
+        settings_dict['ceph_bootstrap_git_branch'] = ceph_bootstrap_branch
+
+    if ceph_salt_formula_repo:
+        settings_dict['ceph_salt_formula_git_repo'] = ceph_salt_formula_repo
+
+    if ceph_salt_formula_branch:
+        settings_dict['ceph_salt_formula_git_branch'] = ceph_salt_formula_branch
+
+    if stop_before_ceph_bootstrap_config:
+        settings_dict['stop_before_ceph_bootstrap_config'] = stop_before_ceph_bootstrap_config
+
+    if stop_before_ceph_bootstrap_deploy:
+        settings_dict['stop_before_ceph_bootstrap_deploy'] = stop_before_ceph_bootstrap_deploy
+
+    if ceph_container_image:
+        settings_dict['ceph_container_image'] = ceph_container_image
+
+    if not deploy_bootstrap:
+        settings_dict['ceph_bootstrap_deploy_bootstrap'] = False
+        settings_dict['ceph_bootstrap_deploy_mons'] = False
+        settings_dict['ceph_bootstrap_deploy_mgrs'] = False
+        settings_dict['ceph_bootstrap_deploy_osds'] = False
+
+    if not deploy_mons:
+        settings_dict['ceph_bootstrap_deploy_mons'] = False
+
+    if not deploy_mgrs:
+        settings_dict['ceph_bootstrap_deploy_mons'] = False
+
+    if not deploy_osds:
+        settings_dict['ceph_bootstrap_deploy_osds'] = False
+
     return settings_dict
 
 
@@ -374,6 +441,7 @@ def ses6(deployment_id, deploy, **kwargs):
 @click.argument('deployment_id')
 @common_create_options
 @deepsea_options
+@ceph_bootstrap_options
 @libvirt_options
 @click.option("--use-deepsea/--use-orchestrator", default=False,
               help="Use deepsea to deploy SES7 instead of SSH orchestrator")
@@ -405,6 +473,7 @@ def nautilus(deployment_id, deploy, **kwargs):
 @click.argument('deployment_id')
 @common_create_options
 @deepsea_options
+@ceph_bootstrap_options
 @libvirt_options
 @click.option("--use-deepsea/--use-orchestrator", default=False,
               help="Use deepsea to deploy Ceph Octopus instead of SSH orchestrator")

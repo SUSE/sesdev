@@ -10,12 +10,20 @@ zypper ar {{ os_repo_url }} {{ os_repo_name }}
 
 zypper ar {{ version_repo }} {{ version }}-repo
 
+{% if version == 'ses7' %}
+zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
+{% endif %}
+
 zypper --gpg-auto-import-keys ref
 
 {% if version == 'ses5' %}
 zypper -n install vim git-core iputils jq make iptables patch
 {% else %}
 zypper -n install vim git iputils hostname jq make iptables patch
+{% endif %}
+
+{% if version == 'ses7' %}
+zypper -n install ca-certificates-suse
 {% endif %}
 
 {% for repo in node.repos %}
@@ -83,6 +91,10 @@ salt-key -Ay
 
 {% if node == suma %}
 {% include "suma/suma_deployment.sh.j2" %}
+{% endif %}
+
+{% if node == admin and deployment_tool == "orchestrator" %}
+{% include "ceph-bootstrap/ceph_bootstrap_deployment.sh.j2" %}
 {% endif %}
 
 {% endif %} {# node == admin or node == suma #}

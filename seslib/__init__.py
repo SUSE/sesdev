@@ -90,7 +90,9 @@ OS_REPOS = {
         'container-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
                           'x86_64/product/',
         'container-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
-                                 '15-SP2/x86_64/update/'
+                                 '15-SP2/x86_64/update/',
+        'storage-update': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
+                          'standard/',
     },
 }
 
@@ -132,8 +134,7 @@ VERSION_OS_REPO_MAPPING = {
                       'upstream/openSUSE_Tumbleweed',
     },
     'ses7': {
-        'sles-15-sp2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
-                       'upstream/SLE_15_SP2'
+        'sles-15-sp2': 'http://download.suse.de/ibs/Devel:/Storage:/7.0/SLE_15_SP2/'
     }
 }
 
@@ -267,6 +268,61 @@ SETTINGS = {
         'type': str,
         'help': 'SCC organization password',
         'default': None
+    },
+    'ceph_bootstrap_git_repo': {
+        'type': str,
+        'help': 'If set, it will install ceph-bootstrap from this git repo',
+        'default': None
+    },
+    'ceph_bootstrap_git_branch': {
+        'type': str,
+        'help': 'ceph-bootstrap git branch to use',
+        'default': 'master'
+    },
+    'ceph_salt_formula_git_repo': {
+        'type': str,
+        'help': 'If set, it will install ceph-salt-formula from this git repo',
+        'default': None
+    },
+    'ceph_salt_formula_git_branch': {
+        'type': str,
+        'help': 'ceph-salt-formula git branch to use',
+        'default': 'master'
+    },
+    'stop_before_ceph_bootstrap_config': {
+        'type': bool,
+        'help': 'Stops deployment before ceph-bootstrap config',
+        'default': False
+    },
+    'stop_before_ceph_bootstrap_deploy': {
+        'type': bool,
+        'help': 'Stops deployment before ceph-bootstrap deploy',
+        'default': False
+    },
+    'ceph_container_image': {
+        'type': str,
+        'help': 'Container image path for Ceph daemons',
+        'default': None
+    },
+    'ceph_bootstrap_deploy_bootstrap': {
+        'type': bool,
+        'help': 'Enable deployment bootstrap (aka ceph-daemon bootstrap) in ceph-bootstrap',
+        'default': True
+    },
+    'ceph_bootstrap_deploy_mons': {
+        'type': bool,
+        'help': 'Enable deployment of Ceph Mons in ceph-bootstrap',
+        'default': True
+    },
+    'ceph_bootstrap_deploy_mgrs': {
+        'type': bool,
+        'help': 'Enable deployment of Ceph Mgrs in ceph-bootstrap',
+        'default': True
+    },
+    'ceph_bootstrap_deploy_osds': {
+        'type': bool,
+        'help': 'Enable deployment of Ceph OSDs in ceph-bootstrap',
+        'default': True
     },
 }
 
@@ -509,8 +565,18 @@ class Deployment():
         else:
             os_base_repos = []
 
+        if self.settings.ceph_container_image is None:
+
+            if self.settings.version == 'ses7':
+                self.settings.ceph_container_image = \
+                    'registry.suse.de/devel/storage/7.0/cr/images/ses/7/ceph/ceph'
+            else:
+                self.settings.ceph_container_image = \
+                    'docker.io/ceph/daemon-base:latest-master-devel'
+
         context = {
             'dep_id': self.dep_id,
+            'os': self.settings.os,
             'vm_engine': self.settings.vm_engine,
             'libvirt_host': self.settings.libvirt_host,
             'libvirt_user': self.settings.libvirt_user,
@@ -532,12 +598,17 @@ class Deployment():
             'repo_priority': self.settings.repo_priority,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
-            'sesboot_git_repo': self.settings.sesboot_git_repo,
-            'sesboot_git_branch': self.settings.sesboot_git_branch,
-            'sesformula_git_repo': self.settings.sesformula_git_repo,
-            'sesformula_git_branch': self.settings.sesformula_git_branch,
-            'stop_before_sesboot_config': self.settings.stop_before_sesboot_config,
-            'stop_before_sesboot_deploy': self.settings.stop_before_sesboot_deploy,
+            'ceph_bootstrap_git_repo': self.settings.ceph_bootstrap_git_repo,
+            'ceph_bootstrap_git_branch': self.settings.ceph_bootstrap_git_branch,
+            'ceph_salt_formula_git_repo': self.settings.ceph_salt_formula_git_repo,
+            'ceph_salt_formula_git_branch': self.settings.ceph_salt_formula_git_branch,
+            'stop_before_ceph_bootstrap_config': self.settings.stop_before_ceph_bootstrap_config,
+            'stop_before_ceph_bootstrap_deploy': self.settings.stop_before_ceph_bootstrap_deploy,
+            'ceph_container_image': self.settings.ceph_container_image,
+            'ceph_bootstrap_deploy_bootstrap': self.settings.ceph_bootstrap_deploy_bootstrap,
+            'ceph_bootstrap_deploy_mons': self.settings.ceph_bootstrap_deploy_mons,
+            'ceph_bootstrap_deploy_mgrs': self.settings.ceph_bootstrap_deploy_mgrs,
+            'ceph_bootstrap_deploy_osds': self.settings.ceph_bootstrap_deploy_osds,
         }
 
         scripts = {}
@@ -785,8 +856,16 @@ class Deployment():
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
 
+                if self.settings.version in ['octopus', 'ses7']:
+                    ceph_client_node = None
+                    for _node in self.nodes.values():
+                        if _node.has_role('mon'):
+                            ceph_client_node = _node.name
+                            break
+                else:
+                    ceph_client_node = 'admin'
                 # we need to find which node has the active mgr
-                ssh_cmd = self._ssh_cmd('admin')
+                ssh_cmd = self._ssh_cmd(ceph_client_node)
                 ssh_cmd.append("ceph mgr services | jq -r .dashboard "
                                "| sed 's!https://\\(.*\\)\\.{}:.*/!\\1!g'"
                                .format(self.settings.domain.format(self.dep_id)))
