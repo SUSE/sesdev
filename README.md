@@ -100,7 +100,7 @@ system, run the following command:
 $ sesdev create nautilus --single-node mini
 ```
 
-The `mini` argument is the ID of the deployment. We can create many deployments
+The `mini` argument is the ID of the deployment. You can create many deployments
 by giving them different IDs.
 
 If you would like to start the cluster VMs on a remote server via libvirt/SSH,
@@ -116,22 +116,37 @@ libvirt_host: <hostname|ip address>
 Note that passwordless SSH access to this user@host combination needs to be
 configured and enabled.
 
-To create a multi-node Ceph cluster, we can specify the roles of each node as
-follows:
-
-```
-$ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], \
-  [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
-
-```
+To create a multi-node Ceph cluster, you can specify the nodes and their roles
+using the ``--roles`` option.
 
 The roles of each node are grouped in square brackets, separated by commas. The
 nodes are separated by commas, too.
 
-The cluster generated will have 4 nodes: the admin node that is running the
-salt-master and one MON, two storage nodes that will also run a MON, a MGR and
-an MDS, and another node that will run an iSCSI gateway, nfs-ganesha gateway,
-and an RGW gateway.
+The following roles can be assigned:
+
+* `admin` - The admin node, running management components like the Salt master
+  or openATTIC (SES5 only)
+* `client` - Various Ceph client utilities
+* `ganesha` - NFS Ganesha service
+* `grafana` - Grafana metrics visualization (requires Prometheus)
+* `igw` - iSCSI target gateway
+* `mds` - CephFS MDS
+* `mgr` - Ceph Manager instance
+* `mon` - Ceph Monitor instance
+* `prometheus` - Prometheus monitoring
+* `rgw` - Ceph Object Gateway
+* `storage` - OSD storage daemon
+* `suma` - SUSE Manager (octopus only)
+
+The following example will generate a cluster with 4 nodes: the admin node that
+is running the salt-master and one MON, two storage nodes that will also run a
+MON, a MGR and an MDS, and another node that will run an iSCSI gateway,
+nfs-ganesha gateway, and an RGW gateway.
+
+```
+$ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], \
+  [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
+```
 
 #### Custom zypper repos
 
@@ -170,7 +185,12 @@ $ sesdev show <deployment_id>
 ### Services port-forwarding
 
 It's possible to use an SSH tunnel to enble TCP port-forwarding for a service
-running in the cluster. Currently, only the dashboard service is implemented.
+running in the cluster. Currently, the following services can be forwarded:
+
+* dashboard - The Ceph Dashboard (nautilus and above)
+* grafana - Grafana metrics dashboard
+* openattic - openATTIC Ceph management UI (ses5 only)
+* suma - SUSE Manager (octopus only)
 
 ```
 $ sesdev tunnel <deployment_id> dashboard
