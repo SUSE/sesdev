@@ -669,7 +669,7 @@ class Deployment():
                         self.nodes[line_arr[0]].status = "suspended"
 
     def status(self):
-        result = "Deployment VMs:\n"
+        result = "{} Deployment VMs:\n".format(len(self.nodes))
         for k, v in self.nodes.items():
             result += "  -- {}:\n".format(k)
             if v.status:
