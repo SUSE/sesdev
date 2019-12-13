@@ -426,6 +426,14 @@ class Deployment():
         if self.settings.deployment_tool is None:
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
+        if self.settings.ceph_container_image is None:
+            if self.settings.version == 'ses7':
+                self.settings.ceph_container_image = \
+                    'registry.suse.de/devel/storage/7.0/cr/images/ses/7/ceph/ceph'
+            else:
+                self.settings.ceph_container_image = \
+                    'docker.io/ceph/daemon-base:latest-master-devel'
+
         self._generate_networks()
         self._generate_nodes()
 
@@ -564,15 +572,6 @@ class Deployment():
             os_base_repos = list(OS_REPOS[self.settings.os].items())
         else:
             os_base_repos = []
-
-        if self.settings.ceph_container_image is None:
-
-            if self.settings.version == 'ses7':
-                self.settings.ceph_container_image = \
-                    'registry.suse.de/devel/storage/7.0/cr/images/ses/7/ceph/ceph'
-            else:
-                self.settings.ceph_container_image = \
-                    'docker.io/ceph/daemon-base:latest-master-devel'
 
         context = {
             'dep_id': self.dep_id,
@@ -784,6 +783,10 @@ class Deployment():
                                                                        disk.size)
                     dev_letter += 1
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
+            if self.settings.version in ['octopus', 'ses7'] \
+                    and self.settings.deployment_tool == 'orchestrator':
+                result += "     - container_images:\n"
+                result += "       - ceph:           {}\n".format(self.settings.ceph_container_image)
             if v.repos:
                 result += "     - custom_repos:\n"
                 for repo in v.repos:
