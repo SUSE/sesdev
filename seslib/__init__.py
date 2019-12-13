@@ -90,7 +90,9 @@ OS_REPOS = {
         'container-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
                           'x86_64/product/',
         'container-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
-                                 '15-SP2/x86_64/update/'
+                                 '15-SP2/x86_64/update/',
+        'storage-update': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
+                          'standard/',
     },
 }
 
@@ -132,8 +134,7 @@ VERSION_OS_REPO_MAPPING = {
                       'upstream/openSUSE_Tumbleweed',
     },
     'ses7': {
-        'sles-15-sp2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
-                       'upstream/SLE_15_SP2'
+        'sles-15-sp2': 'http://download.suse.de/ibs/Devel:/Storage:/7.0/SLE_15_SP2/'
     }
 }
 
@@ -268,6 +269,61 @@ SETTINGS = {
         'help': 'SCC organization password',
         'default': None
     },
+    'ceph_bootstrap_git_repo': {
+        'type': str,
+        'help': 'If set, it will install ceph-bootstrap from this git repo',
+        'default': None
+    },
+    'ceph_bootstrap_git_branch': {
+        'type': str,
+        'help': 'ceph-bootstrap git branch to use',
+        'default': 'master'
+    },
+    'ceph_salt_formula_git_repo': {
+        'type': str,
+        'help': 'If set, it will install ceph-salt-formula from this git repo',
+        'default': None
+    },
+    'ceph_salt_formula_git_branch': {
+        'type': str,
+        'help': 'ceph-salt-formula git branch to use',
+        'default': 'master'
+    },
+    'stop_before_ceph_bootstrap_config': {
+        'type': bool,
+        'help': 'Stops deployment before ceph-bootstrap config',
+        'default': False
+    },
+    'stop_before_ceph_bootstrap_deploy': {
+        'type': bool,
+        'help': 'Stops deployment before ceph-bootstrap deploy',
+        'default': False
+    },
+    'ceph_container_image': {
+        'type': str,
+        'help': 'Container image path for Ceph daemons',
+        'default': None
+    },
+    'ceph_bootstrap_deploy_bootstrap': {
+        'type': bool,
+        'help': 'Enable deployment bootstrap (aka ceph-daemon bootstrap) in ceph-bootstrap',
+        'default': True
+    },
+    'ceph_bootstrap_deploy_mons': {
+        'type': bool,
+        'help': 'Enable deployment of Ceph Mons in ceph-bootstrap',
+        'default': True
+    },
+    'ceph_bootstrap_deploy_mgrs': {
+        'type': bool,
+        'help': 'Enable deployment of Ceph Mgrs in ceph-bootstrap',
+        'default': True
+    },
+    'ceph_bootstrap_deploy_osds': {
+        'type': bool,
+        'help': 'Enable deployment of Ceph OSDs in ceph-bootstrap',
+        'default': True
+    },
 }
 
 
@@ -369,6 +425,14 @@ class Deployment():
 
         if self.settings.deployment_tool is None:
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
+
+        if self.settings.ceph_container_image is None:
+            if self.settings.version == 'ses7':
+                self.settings.ceph_container_image = \
+                    'registry.suse.de/devel/storage/7.0/cr/images/ses/7/ceph/ceph'
+            else:
+                self.settings.ceph_container_image = \
+                    'docker.io/ceph/daemon-base:latest-master-devel'
 
         self._generate_networks()
         self._generate_nodes()
@@ -509,16 +573,16 @@ class Deployment():
         else:
             os_base_repos = []
 
-        template = JINJA_ENV.get_template('Vagrantfile.j2')
-        return template.render(**{
+        context = {
             'dep_id': self.dep_id,
+            'os': self.settings.os,
             'vm_engine': self.settings.vm_engine,
             'libvirt_host': self.settings.libvirt_host,
             'libvirt_user': self.settings.libvirt_user,
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'vagrant_box': vagrant_box,
-            'nodes': [n for _, n in self.nodes.items()],
+            'nodes': list(self.nodes.values()),
             'admin': self.admin,
             'suma': self.suma,
             'deepsea_git_repo': self.settings.deepsea_git_repo,
@@ -533,10 +597,33 @@ class Deployment():
             'repo_priority': self.settings.repo_priority,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
-        })
+            'ceph_bootstrap_git_repo': self.settings.ceph_bootstrap_git_repo,
+            'ceph_bootstrap_git_branch': self.settings.ceph_bootstrap_git_branch,
+            'ceph_salt_formula_git_repo': self.settings.ceph_salt_formula_git_repo,
+            'ceph_salt_formula_git_branch': self.settings.ceph_salt_formula_git_branch,
+            'stop_before_ceph_bootstrap_config': self.settings.stop_before_ceph_bootstrap_config,
+            'stop_before_ceph_bootstrap_deploy': self.settings.stop_before_ceph_bootstrap_deploy,
+            'ceph_container_image': self.settings.ceph_container_image,
+            'ceph_bootstrap_deploy_bootstrap': self.settings.ceph_bootstrap_deploy_bootstrap,
+            'ceph_bootstrap_deploy_mons': self.settings.ceph_bootstrap_deploy_mons,
+            'ceph_bootstrap_deploy_mgrs': self.settings.ceph_bootstrap_deploy_mgrs,
+            'ceph_bootstrap_deploy_osds': self.settings.ceph_bootstrap_deploy_osds,
+        }
+
+        scripts = {}
+
+        for node in self.nodes.values():
+            context_cpy = dict(context)
+            context_cpy['node'] = node
+            template = JINJA_ENV.get_template('provision.sh.j2')
+            scripts['provision_{}.sh'.format(node.name)] = template.render(**context_cpy)
+
+        template = JINJA_ENV.get_template('Vagrantfile.j2')
+        scripts['Vagrantfile'] = template.render(**context)
+        return scripts
 
     def save(self):
-        vagrant_file = self.generate_vagrantfile()
+        scripts = self.generate_vagrantfile()
         key = RSA.generate(2048)
         private_key = key.exportKey('PEM')
         public_key = key.publickey().exportKey('OpenSSH')
@@ -549,9 +636,10 @@ class Deployment():
                 'settings': self.settings
             }, file, cls=SettingsEncoder)
 
-        vagrantfile = os.path.join(self.dep_dir, 'Vagrantfile')
-        with open(vagrantfile, 'w') as file:
-            file.write(vagrant_file)
+        for filename, script in scripts.items():
+            full_path = os.path.join(self.dep_dir, filename)
+            with open(full_path, 'w') as file:
+                file.write(script)
 
         # generate ssh key pair
         keys_dir = os.path.join(self.dep_dir, 'keys')
@@ -695,6 +783,10 @@ class Deployment():
                                                                        disk.size)
                     dev_letter += 1
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
+            if self.settings.version in ['octopus', 'ses7'] \
+                    and self.settings.deployment_tool == 'orchestrator':
+                result += "     - container_images:\n"
+                result += "       - ceph:           {}\n".format(self.settings.ceph_container_image)
             if v.repos:
                 result += "     - custom_repos:\n"
                 for repo in v.repos:
@@ -767,8 +859,16 @@ class Deployment():
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
 
+                if self.settings.version in ['octopus', 'ses7']:
+                    ceph_client_node = None
+                    for _node in self.nodes.values():
+                        if _node.has_role('mon'):
+                            ceph_client_node = _node.name
+                            break
+                else:
+                    ceph_client_node = 'admin'
                 # we need to find which node has the active mgr
-                ssh_cmd = self._ssh_cmd('admin')
+                ssh_cmd = self._ssh_cmd(ceph_client_node)
                 ssh_cmd.append("ceph mgr services | jq -r .dashboard "
                                "| sed 's!https://\\(.*\\)\\.{}:.*/!\\1!g'"
                                .format(self.settings.domain.format(self.dep_id)))

@@ -1,0 +1,92 @@
+
+set -x
+
+{% if ceph_bootstrap_git_repo %}
+cd /root
+git clone {{ ceph_bootstrap_git_repo }}
+cd ceph-bootstrap
+zypper -n in autoconf gcc python3-devel python3-pip
+git checkout {{ ceph_bootstrap_git_branch }}
+pip install .
+{% else %}
+# ceph-salt-formula is installed automatically as a dependency of ceph-bootstrap
+zypper -n in ceph-bootstrap
+{% endif %}
+
+{% if ceph_salt_formula_git_repo %}
+cd /root
+git clone {{ ceph_salt_formula_git_repo }}
+cd ceph-salt-formula
+git checkout {{ ceph_salt_formula_git_branch }}
+mkdir -p /srv/salt/ceph-salt
+cp -r states/* /srv/salt/ceph-salt/
+chown -R salt:salt /srv
+{% endif %}
+
+cat <<EOF > /srv/pillar/top.sls
+base:
+  '*':
+    - ceph-salt
+EOF
+chown -R salt:salt /srv/pillar
+
+systemctl restart salt-master
+
+sleep 5
+
+salt '*' saltutil.pillar_refresh
+
+sleep 2
+
+{% if stop_before_ceph_bootstrap_config %}
+exit 0
+{% endif %}
+
+{% for node in nodes %}
+ceph-bootstrap config /Cluster/Minions add {{ node.fqdn }}
+{% if node.has_role('mon') %}
+ceph-bootstrap config /Cluster/Roles/Mon add {{ node.fqdn }}
+{% endif %}
+{% if node.has_role('mgr') %}
+ceph-bootstrap config /Cluster/Roles/Mgr add {{ node.fqdn }}
+{% endif %}
+{% endfor %}
+
+ceph-bootstrap config /SSH/ generate
+{% if ceph_container_image %}
+ceph-bootstrap config /Containers/Images/ceph set {{ ceph_container_image }}
+{% endif %}
+ceph-bootstrap config /Time_Server/Server_Hostname set {{ admin.fqdn }}
+ceph-bootstrap config /Time_Server/External_Servers add 0.pt.pool.ntp.org
+{% if not ceph_bootstrap_deploy_bootstrap %}
+ceph-bootstrap config /Deployment/Bootstrap disable
+{% endif %}
+{% if ceph_bootstrap_deploy_mons %}
+ceph-bootstrap config /Deployment/Mon enable
+{% endif %}
+{% if ceph_bootstrap_deploy_mgrs %}
+ceph-bootstrap config /Deployment/Mgr enable
+{% endif %}
+
+{% if ceph_bootstrap_deploy_mons %}
+ceph-bootstrap config /Deployment/OSD enable
+
+# OSDs drive groups spec for each node
+{% for node in nodes %}
+{% if node.has_role('storage') %}
+DEV_LIST=`seq 1 {{ node.storage_disks | length }} | awk 'BEGIN{i=0; printf("[");}{if (i>0){printf(", ")}; i++; printf("\"/dev/vd%c\"", $1 + 97)}END{printf("]")}'`
+ceph-bootstrap config /Storage/Drive_Groups add value="{\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": { \"paths\": $DEV_LIST }}"
+{% endif %}
+{% endfor %}
+{% endif %} {# if ceph_bootstrap_deploy_osds #}
+
+ceph-bootstrap config /Deployment/Dashboard/username set admin
+ceph-bootstrap config /Deployment/Dashboard/password set admin
+
+ceph-bootstrap config ls
+
+{% if stop_before_ceph_bootstrap_deploy %}
+exit 0
+{% endif %}
+
+salt -G 'ceph-salt:member' state.apply ceph-salt

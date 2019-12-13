@@ -1,0 +1,101 @@
+{% include "engine/" + vm_engine + "/vagrant.provision.sh.j2" ignore missing %}
+
+{% for _node in nodes %}
+echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
+{% endfor %}
+
+{% for os_repo_name, os_repo_url in os_base_repos %}
+zypper ar {{ os_repo_url }} {{ os_repo_name }}
+{% endfor %}
+
+zypper ar {{ version_repo }} {{ version }}-repo
+zypper mr -p 98 {{ version }}-repo
+
+{% if version == 'ses7' %}
+zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
+{% endif %}
+
+zypper --gpg-auto-import-keys ref
+
+{% if version == 'ses5' %}
+zypper -n install vim git-core iputils jq make iptables patch
+{% else %}
+zypper -n install vim git iputils hostname jq make iptables patch
+{% endif %}
+
+{% if version == 'ses7' %}
+zypper -n install ca-certificates-suse
+{% endif %}
+
+{% for repo in node.repos %}
+zypper ar {{ repo.url }} {{ repo.name }}
+{% if repo_priority and repo.priority %}
+zypper mr -p {{ repo.priority }} {{ repo.name }}
+{% endif %}
+{% endfor %}
+{% if node.repos|length > 0 %}
+zypper --gpg-auto-import-keys ref
+{% endif %}
+
+cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
+[ ! -e "/root/.ssh" ] && mkdir /root/.ssh
+chmod 600 /home/vagrant/.ssh/id_rsa
+cp /home/vagrant/.ssh/id_rsa* /root/.ssh/
+cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+hostnamectl set-hostname {{ node.name }}
+
+{% if not suma %}
+zypper -n install salt-minion
+sed -i 's/^#master:.*/master: {{ admin.name }}/g' /etc/salt/minion
+
+# change salt log level to info
+sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
+
+systemctl enable salt-minion
+systemctl start salt-minion
+{% endif %}
+
+touch /tmp/ready
+
+{% if node == admin or node == suma %}
+{% if node == admin %}
+zypper -n install salt-master
+sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
+systemctl enable salt-master
+systemctl start salt-master
+sleep 5
+{% endif %}
+
+while : ; do
+  PROVISIONED_NODES=`ls -l /tmp/ready-* 2>/dev/null | wc -l`
+  echo "waiting for nodes (${PROVISIONED_NODES}/{{ nodes|length }})";
+  [[ "${PROVISIONED_NODES}" != "{{ nodes|length }}" ]] || break
+  sleep 2;
+{% for node in nodes %}
+  scp -o StrictHostKeyChecking=no {{ node.name }}:/tmp/ready /tmp/ready-{{ node.name }};
+{% endfor %}
+done
+
+{% if node == admin %}
+while true; do
+  sleep 1
+  salt-key -L
+  N=`salt-key --out=json -L | jq '.minions_pre | length'`
+  [ "$N" == "{{ nodes|length }}" ] && break
+done
+salt-key -Ay
+
+{% if deployment_tool == "deepsea" %}
+{% include "deepsea/deepsea_deployment.sh.j2" %}
+{% endif %}
+{% endif %}
+
+{% if node == suma %}
+{% include "suma/suma_deployment.sh.j2" %}
+{% endif %}
+
+{% if node == admin and deployment_tool == "orchestrator" %}
+{% include "ceph-bootstrap/ceph_bootstrap_deployment.sh.j2" %}
+{% endif %}
+
+{% endif %} {# node == admin or node == suma #}
