@@ -1,4 +1,5 @@
 
+set -x
 
 {% if ceph_bootstrap_git_repo %}
 cd /root
@@ -32,6 +33,10 @@ chown -R salt:salt /srv/pillar
 systemctl restart salt-master
 
 sleep 5
+
+salt '*' saltutil.pillar_refresh
+
+sleep 2
 
 {% if stop_before_ceph_bootstrap_config %}
 exit 0
