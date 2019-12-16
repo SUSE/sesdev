@@ -6,3 +6,6 @@ virtualenv*
 **.pyc
 *.egg-info
 .eggs
+Pipfile
+build
+dist
