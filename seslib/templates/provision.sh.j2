@@ -20,9 +20,9 @@ zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
 zypper --gpg-auto-import-keys ref
 
 {% if version == 'ses5' %}
-zypper -n install vim git-core iputils jq make iptables patch
+zypper -n install vim git-core iputils jq make iptables patch man
 {% else %}
-zypper -n install vim git iputils hostname jq make iptables patch
+zypper -n install vim git iputils hostname jq make iptables patch man
 {% endif %}
 
 {% if version == 'ses7' %}
