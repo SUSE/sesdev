@@ -4,6 +4,8 @@
 echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
 {% endfor %}
 
+sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
+
 {% for os_repo_name, os_repo_url in os_base_repos %}
 zypper ar {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
