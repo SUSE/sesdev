@@ -1,6 +1,4 @@
-from datetime import datetime
 import json
-from json import JSONEncoder
 import logging
 import os
 from pathlib import Path
@@ -9,8 +7,7 @@ import shutil
 import yaml
 
 from Cryptodome.PublicKey import RSA
-
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader
 
 from . import tools
 from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
@@ -19,12 +16,10 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         ServiceNotFound, ExclusiveRoles, RoleNotSupported
 
 
+JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
 METADATA_FILENAME = ".metadata"
 
-
 logger = logging.getLogger(__name__)
-
-JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
 
 
 class GlobalSettings():
@@ -363,7 +358,7 @@ class Settings():
                 return yaml.load(file)
 
 
-class SettingsEncoder(JSONEncoder):
+class SettingsEncoder(json.JSONEncoder):
     # pylint: disable=method-hidden
     def default(self, o):
         return {k: getattr(o, k) for k in SETTINGS}
