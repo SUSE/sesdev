@@ -92,7 +92,7 @@ OS_REPOS = {
         'container-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
                                  '15-SP2/x86_64/update/',
         'storage-update': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
-                          'standard/',
+                          'images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
     },
 }
 
