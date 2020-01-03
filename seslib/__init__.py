@@ -175,6 +175,11 @@ SETTINGS = {
         'help': 'The libvirt storage pool to use for creating VMs',
         'default': None
     },
+    'libvirt_networks': {
+        'type': str,
+        'help': 'Existing libvirt networks to use (single or comma separated list)',
+        'default': None
+    },
     'ram': {
         'type': int,
         'help': 'RAM size in gigabytes for each node',
@@ -369,11 +374,21 @@ class ZypperRepo():
 class Node():
     _repo_lowest_prio = 94
 
-    def __init__(self, name, fqdn, roles, public_address, cluster_address=None, storage_disks=None,
-                 ram=None, cpus=None, repo_priority=None):
+    def __init__(self,
+                 name,
+                 fqdn,
+                 roles,
+                 networks,
+                 public_address=None,
+                 cluster_address=None,
+                 storage_disks=None,
+                 ram=None,
+                 cpus=None,
+                 repo_priority=None):
         self.name = name
         self.fqdn = fqdn
         self.roles = roles
+        self.networks = networks
         self.public_address = public_address
         self.cluster_address = cluster_address
         if storage_disks is None:
@@ -419,7 +434,8 @@ class Deployment():
                 self.settings.ceph_container_image = \
                     'docker.io/ceph/daemon-base:latest-master-devel'
 
-        self._generate_networks()
+        if not self.settings.libvirt_networks:
+            self._generate_static_networks()
         self._generate_nodes()
 
     @property
@@ -443,7 +459,7 @@ class Deployment():
                 return True
         return False
 
-    def _generate_networks(self):
+    def _generate_static_networks(self):
         if self._needs_cluster_network() and self.settings.public_network is not None \
                 and self.settings.cluster_network is not None:
             return
@@ -483,20 +499,42 @@ class Deployment():
             if 'admin' in node_roles or 'suma' in node_roles:
                 name = 'admin'
                 fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
-                public_address = '{}{}'.format(self.settings.public_network, 200)
             else:
                 name = 'node{}'.format(node_id)
                 fqdn = 'node{}.{}'.format(node_id, self.settings.domain.format(self.dep_id))
-                public_address = '{}{}'.format(self.settings.public_network, 200 + node_id)
                 node_id += 1
+
+            networks = ''
+            public_address = None
+            if self.settings.libvirt_networks:
+                for network in self.settings.libvirt_networks.split(','):
+                    networks += (
+                        'node.vm.network :private_network,'
+                        ':forward_mode => "route", :libvirt__network_name'
+                        '=> "{}"\n').format(network)
+            else:
+                if 'admin' in node_roles or 'suma' in node_roles:
+                    public_address = '{}{}'.format(self.settings.public_network, 200)
+                    networks = ('node.vm.network :private_network, ip:'
+                                '"{}"').format(public_address)
+                else:
+                    public_address = '{}{}'.format(self.settings.public_network, 200)
+                    networks = ('node.vm.network :private_network, ip:'
+                                '"{}"').format(public_address)
 
             if self.settings.version != 'ses5':
                 node_roles = [r for r in node_roles if r != 'openattic']
             else:
                 node_roles = [r for r in node_roles if r not in ['grafana', 'prometheus']]
 
-            node = Node(name, fqdn, node_roles, public_address, ram=self.settings.ram * 2**10,
-                        cpus=self.settings.cpus, repo_priority=self.settings.repo_priority)
+            node = Node(name,
+                        fqdn,
+                        node_roles,
+                        networks,
+                        public_address=public_address,
+                        ram=self.settings.ram * 2**10,
+                        cpus=self.settings.cpus,
+                        repo_priority=self.settings.repo_priority)
 
             if 'admin' in node_roles:
                 self.admin = node
@@ -753,7 +791,8 @@ class Deployment():
             if self.settings.vagrant_box:
                 result += "     - vagrant_box       {}\n".format(self.settings.vagrant_box)
             result += "     - fqdn:             {}\n".format(v.fqdn)
-            result += "     - public_address:   {}\n".format(v.public_address)
+            if v.public_address:
+                result += "     - public_address:   {}\n".format(v.public_address)
             if v.cluster_address:
                 result += "     - cluster_address:  {}\n".format(v.cluster_address)
             result += "     - cpus:             {}\n".format(v.cpus)

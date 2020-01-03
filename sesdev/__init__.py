@@ -32,7 +32,10 @@ def libvirt_options(func):
                      help='Hostname of the libvirt machine'),
         click.option('--libvirt-user', type=str, default=None,
                      help='Username for connecting to the libvirt machine'),
-        click.option('--libvirt-storage-pool', type=str, default=None, help='Libvirt storage pool'),
+        click.option('--libvirt-storage-pool', type=str, default=None,
+                     help='Libvirt storage pool'),
+        click.option('--libvirt-networks', type=str, default=None,
+                     help='Existing libvirt networks to use (single or comma separated list)'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -101,6 +104,8 @@ def common_create_options(func):
                      help='SCC organization username'),
         click.option('--scc-pass', type=str, default=None,
                      help='SCC organization password'),
+        click.option('--domain', type=str, default='{}.com',
+                     help='Domain name to use'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -246,14 +251,37 @@ def _count_storage_nodes(roles):
     return len([node for node in roles if 'storage' in node])
 
 
-def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host, libvirt_user,
-                       libvirt_storage_pool, deepsea_cli, stop_before_deepsea_stage, deepsea_repo,
-                       deepsea_branch, repo, cpus, ram, disk_size, repo_priority, vagrant_box,
-                       scc_user, scc_pass, ceph_bootstrap_repo=None, ceph_bootstrap_branch=None,
+def _gen_settings_dict(version,
+                       roles,
+                       os,
+                       num_disks,
+                       single_node,
+                       libvirt_host,
+                       libvirt_user,
+                       libvirt_storage_pool,
+                       libvirt_networks,
+                       deepsea_cli,
+                       stop_before_deepsea_stage,
+                       deepsea_repo,
+                       deepsea_branch,
+                       repo,
+                       cpus,
+                       ram,
+                       disk_size,
+                       repo_priority,
+                       vagrant_box,
+                       scc_user,
+                       scc_pass,
+                       domain,
+                       ceph_bootstrap_repo=None,
+                       ceph_bootstrap_branch=None,
                        stop_before_ceph_bootstrap_config=False,
                        stop_before_ceph_bootstrap_deploy=False,
-                       ceph_container_image=None, deploy_bootstrap=True, deploy_mons=True,
-                       deploy_mgrs=True, deploy_osds=True):
+                       ceph_container_image=None,
+                       deploy_bootstrap=True,
+                       deploy_mons=True,
+                       deploy_mgrs=True,
+                       deploy_osds=True):
 
     settings_dict = {}
     if not single_node and roles:
@@ -298,6 +326,9 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
     if libvirt_storage_pool:
         settings_dict['libvirt_storage_pool'] = libvirt_storage_pool
 
+    if libvirt_networks:
+        settings_dict['libvirt_networks'] = libvirt_networks
+
     if deepsea_cli is not None:
         settings_dict['use_deepsea_cli'] = deepsea_cli
 
@@ -327,6 +358,9 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
 
     if scc_pass:
         settings_dict['scc_password'] = scc_pass
+
+    if domain:
+        settings_dict['domain'] = domain
 
     if ceph_bootstrap_repo:
         settings_dict['ceph_bootstrap_git_repo'] = ceph_bootstrap_repo
