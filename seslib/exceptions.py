@@ -29,6 +29,13 @@ class VersionOSNotSupported(SesDevException):
             "Combination of version '{}' and OS '{}' not supported".format(version, os))
 
 
+class SettingIncompatibleError(SesDevException):
+    def __init__(self, setting1, value1, setting2, value2):
+        super(SettingIncompatibleError, self).__init__(
+            "Setting {} = {} and {} = {} are incompatible"
+            .format(setting1, value1, setting2, value2))
+
+
 class SettingTypeError(SesDevException):
     def __init__(self, setting, expected_type, value):
         super(SettingTypeError, self).__init__(
