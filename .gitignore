@@ -9,3 +9,4 @@ virtualenv*
 Pipfile
 build
 dist
+.tox
