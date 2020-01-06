@@ -176,7 +176,7 @@ OSDs:
         \b
 $ sesdev create octopus --roles="[admin, mon, mgr], \\
        [storage, mon, mgr, mds], [storage, mon, mds]" \\
-       --use-deepsea --num-disks=4 --disk-size=10 my_octopus_cluster
+       --num-disks=4 --disk-size=10 my_octopus_cluster
 
     """
     if log_file:
