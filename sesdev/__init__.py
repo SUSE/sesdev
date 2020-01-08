@@ -164,13 +164,13 @@ def cli(work_path=None, config_file=None, debug=False, log_file=None):
     """
     Welcome to the sesdev tool.
 
-    Usage example:
+    Usage examples:
 
     # Deployment of single node SES6 cluster:
 
         $ sesdev create ses6 --single-node my_ses6_cluster
 
-    # Deployment of Octopus cluster with deepsea where each storage node contains 4 10G disks for
+    # Deployment of Octopus cluster where each storage node contains 4 10G disks for
 OSDs:
 
         \b
