@@ -59,10 +59,6 @@ def ceph_bootstrap_options(func):
                      help='ceph-bootstrap Git repo URL'),
         click.option('--ceph-bootstrap-branch', type=str, default=None,
                      help='ceph-bootstrap Git branch'),
-        click.option('--ceph-salt-formula-repo', type=str, default=None,
-                     help='ceph-salt-formula Git repo URL'),
-        click.option('--ceph-salt-formula-branch', type=str, default=None,
-                     help='ceph-salt-formula Git branch'),
         click.option('--ceph-container-image', type=str, default=None,
                      help='container image path for Ceph daemons'),
         click.option('--deploy-bootstrap', is_flag=True, default=True,
@@ -254,7 +250,6 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
                        libvirt_storage_pool, deepsea_cli, stop_before_deepsea_stage, deepsea_repo,
                        deepsea_branch, repo, cpus, ram, disk_size, repo_priority, vagrant_box,
                        scc_user, scc_pass, ceph_bootstrap_repo=None, ceph_bootstrap_branch=None,
-                       ceph_salt_formula_repo=None, ceph_salt_formula_branch=None,
                        stop_before_ceph_bootstrap_config=False,
                        stop_before_ceph_bootstrap_deploy=False,
                        ceph_container_image=None, deploy_bootstrap=True, deploy_mons=True,
@@ -338,12 +333,6 @@ def _gen_settings_dict(version, roles, os, num_disks, single_node, libvirt_host,
 
     if ceph_bootstrap_branch:
         settings_dict['ceph_bootstrap_git_branch'] = ceph_bootstrap_branch
-
-    if ceph_salt_formula_repo:
-        settings_dict['ceph_salt_formula_git_repo'] = ceph_salt_formula_repo
-
-    if ceph_salt_formula_branch:
-        settings_dict['ceph_salt_formula_git_branch'] = ceph_salt_formula_branch
 
     if stop_before_ceph_bootstrap_config:
         settings_dict['stop_before_ceph_bootstrap_config'] = stop_before_ceph_bootstrap_config

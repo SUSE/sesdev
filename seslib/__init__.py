@@ -274,16 +274,6 @@ SETTINGS = {
         'help': 'ceph-bootstrap git branch to use',
         'default': 'master'
     },
-    'ceph_salt_formula_git_repo': {
-        'type': str,
-        'help': 'If set, it will install ceph-salt-formula from this git repo',
-        'default': None
-    },
-    'ceph_salt_formula_git_branch': {
-        'type': str,
-        'help': 'ceph-salt-formula git branch to use',
-        'default': 'master'
-    },
     'stop_before_ceph_bootstrap_config': {
         'type': bool,
         'help': 'Stops deployment before ceph-bootstrap config',
@@ -594,8 +584,6 @@ class Deployment():
             'scc_password': self.settings.scc_password,
             'ceph_bootstrap_git_repo': self.settings.ceph_bootstrap_git_repo,
             'ceph_bootstrap_git_branch': self.settings.ceph_bootstrap_git_branch,
-            'ceph_salt_formula_git_repo': self.settings.ceph_salt_formula_git_repo,
-            'ceph_salt_formula_git_branch': self.settings.ceph_salt_formula_git_branch,
             'stop_before_ceph_bootstrap_config': self.settings.stop_before_ceph_bootstrap_config,
             'stop_before_ceph_bootstrap_deploy': self.settings.stop_before_ceph_bootstrap_deploy,
             'ceph_container_image': self.settings.ceph_container_image,

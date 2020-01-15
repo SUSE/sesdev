@@ -2,25 +2,20 @@
 set -ex
 
 {% if ceph_bootstrap_git_repo %}
+# install ceph-bootstrap
 cd /root
 git clone {{ ceph_bootstrap_git_repo }}
 cd ceph-bootstrap
 zypper -n in autoconf gcc python3-devel python3-pip
 git checkout {{ ceph_bootstrap_git_branch }}
 pip install .
+# install ceph-salt-formula
+mkdir -p /srv/salt/ceph-salt
+cp -r ceph-salt-formula/states/* /srv/salt/ceph-salt/
+chown -R salt:salt /srv
 {% else %}
 # ceph-salt-formula is installed automatically as a dependency of ceph-bootstrap
 zypper -n in ceph-bootstrap
-{% endif %}
-
-{% if ceph_salt_formula_git_repo %}
-cd /root
-git clone {{ ceph_salt_formula_git_repo }}
-cd ceph-salt-formula
-git checkout {{ ceph_salt_formula_git_branch }}
-mkdir -p /srv/salt/ceph-salt
-cp -r states/* /srv/salt/ceph-salt/
-chown -R salt:salt /srv
 {% endif %}
 
 cat <<EOF > /srv/pillar/top.sls
