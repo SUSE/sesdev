@@ -95,3 +95,4 @@ ssh {{ _node.name }} 'curl http://{{ node.fqdn }}/pub/RHN-ORG-TRUSTED-SSL-CERT -
 ssh {{ _node.name }} 'update-ca-certificates'
 {% endif %}
 {% endfor %}
+

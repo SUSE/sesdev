@@ -104,3 +104,13 @@ exit 0
 {% endif %}
 
 salt -G 'ceph-salt:member' state.apply ceph-salt
+
+{% if qa_test is defined and qa_test is sameas true %}
+{% if ceph_bootstrap_git_repo %}
+/root/ceph-bootstrap/qa/health-ok.sh --total-nodes={{ nodes|length }}
+{% else %}
+zypper -n in ceph-bootstrap-qa
+/usr/share/ceph-bootstrap/qa/health-ok.sh --total-nodes={{ nodes|length }}
+{% endif %}
+{% endif %}
+

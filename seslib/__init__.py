@@ -276,6 +276,11 @@ SETTINGS = {
         'help': 'Automatically set priority on custom zypper repos',
         'default': True
     },
+    'qa_test': {
+        'type': bool,
+        'help': 'Automatically run integration tests on the deployed cluster',
+        'default': False
+    },
     'scc_username': {
         'type': str,
         'help': 'SCC organization username',
@@ -635,6 +640,7 @@ class Deployment():
             'version_repos': version_repos,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
+            'qa_test': self.settings.qa_test,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
             'ceph_bootstrap_git_repo': self.settings.ceph_bootstrap_git_repo,
@@ -822,6 +828,7 @@ class Deployment():
                                                                        disk.size)
                     dev_letter += 1
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
+            result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7'] \
                     and self.settings.deployment_tool == 'orchestrator':
                 result += "     - container_images:\n"
