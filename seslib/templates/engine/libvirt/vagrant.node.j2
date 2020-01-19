@@ -1,7 +1,6 @@
-    node.vm.network :private_network, ip: "{{ node.public_address }}"
-{% if node.cluster_address %}
-    node.vm.network :private_network, ip: "{{ node.cluster_address }}"
-{% endif %}
+    {{ node.networks }}
+
+    node.vm.hostname = "{{ node.name }}"
 
     node.vm.provider "libvirt" do |lv|
       lv.memory = {{ node.ram }}
