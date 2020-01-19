@@ -439,6 +439,15 @@ class Deployment():
         self.dep_id = dep_id
         self.settings = settings
         self.nodes = {}
+        self.node_counts = {
+            "ganesha": 0,
+            "igw": 0,
+            "mds": 0,
+            "mgr": 0,
+            "mon": 0,
+            "rgw": 0,
+            "storage": 0,
+        }
         self.admin = None
         self.suma = None
 
@@ -515,6 +524,10 @@ class Deployment():
     def _generate_nodes(self):
         node_id = 0
         for node_roles in self.settings.roles:
+            for role_type in ["ganesha", "igw", "mds", "mgr", "mon", "rgw", "storage"]:
+                if role_type in node_roles:
+                    self.node_counts[role_type] += 1
+
             if 'suma' in node_roles and self.settings.version not in ['octopus']:
                 raise RoleNotSupported('suma', self.settings.version)
 
@@ -641,6 +654,14 @@ class Deployment():
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
             'qa_test': self.settings.qa_test,
+            'ganesha_nodes': self.node_counts["ganesha"],
+            'igw_nodes': self.node_counts["igw"],
+            'mds_nodes': self.node_counts["mds"],
+            'mgr_nodes': self.node_counts["mgr"],
+            'mon_nodes': self.node_counts["mon"],
+            'rgw_nodes': self.node_counts["rgw"],
+            'storage_nodes': self.node_counts["storage"],
+            'total_osds': self.settings.num_disks * self.node_counts["storage"],
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
             'ceph_bootstrap_git_repo': self.settings.ceph_bootstrap_git_repo,

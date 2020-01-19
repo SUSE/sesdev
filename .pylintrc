@@ -100,6 +100,7 @@ disable=print-statement,
         too-few-public-methods,
         too-many-instance-attributes,
         too-many-statements,
+        too-many-lines,
 
 enable=c-extension-no-member
 
