@@ -491,7 +491,7 @@ class Deployment():
             self.settings.cluster_network = cluster_network
 
     def _generate_nodes(self):
-        node_id = 1
+        node_id = 0
         for node_roles in self.settings.roles:
             if 'suma' in node_roles and self.settings.version not in ['octopus']:
                 raise RoleNotSupported('suma', self.settings.version)
@@ -500,9 +500,9 @@ class Deployment():
                 name = 'admin'
                 fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
             else:
+                node_id += 1
                 name = 'node{}'.format(node_id)
                 fqdn = 'node{}.{}'.format(node_id, self.settings.domain.format(self.dep_id))
-                node_id += 1
 
             networks = ''
             public_address = None
@@ -518,7 +518,7 @@ class Deployment():
                     networks = ('node.vm.network :private_network, ip:'
                                 '"{}"').format(public_address)
                 else:
-                    public_address = '{}{}'.format(self.settings.public_network, 200)
+                    public_address = '{}{}'.format(self.settings.public_network, 200 + node_id)
                     networks = ('node.vm.network :private_network, ip:'
                                 '"{}"').format(public_address)
 
