@@ -38,47 +38,47 @@ exit 0
 {% endif %}
 
 {% for node in nodes %}
-ceph-bootstrap config /Cluster/Minions add {{ node.fqdn }}
+ceph-bootstrap config -a /Cluster/Minions add {{ node.fqdn }}
 {% if node.has_role('mon') %}
-ceph-bootstrap config /Cluster/Roles/Mon add {{ node.fqdn }}
+ceph-bootstrap config -a /Cluster/Roles/Mon add {{ node.fqdn }}
 {% endif %}
 {% if node.has_role('mgr') %}
-ceph-bootstrap config /Cluster/Roles/Mgr add {{ node.fqdn }}
+ceph-bootstrap config -a /Cluster/Roles/Mgr add {{ node.fqdn }}
 {% endif %}
 {% endfor %}
 
-ceph-bootstrap config /SSH/ generate
+ceph-bootstrap config -a /SSH/ generate
 {% if ceph_container_image %}
-ceph-bootstrap config /Containers/Images/ceph set {{ ceph_container_image }}
+ceph-bootstrap config -a /Containers/Images/ceph set {{ ceph_container_image }}
 {% endif %}
-ceph-bootstrap config /Time_Server/Server_Hostname set {{ admin.fqdn }}
-ceph-bootstrap config /Time_Server/External_Servers add 0.pt.pool.ntp.org
+ceph-bootstrap config -a /Time_Server/Server_Hostname set {{ admin.fqdn }}
+ceph-bootstrap config -a /Time_Server/External_Servers add 0.pt.pool.ntp.org
 {% if not ceph_bootstrap_deploy_bootstrap %}
-ceph-bootstrap config /Deployment/Bootstrap disable
+ceph-bootstrap config -a /Deployment/Bootstrap disable
 {% endif %}
 {% if ceph_bootstrap_deploy_mons %}
-ceph-bootstrap config /Deployment/Mon enable
+ceph-bootstrap config -a /Deployment/Mon enable
 {% endif %}
 {% if ceph_bootstrap_deploy_mgrs %}
-ceph-bootstrap config /Deployment/Mgr enable
+ceph-bootstrap config -a /Deployment/Mgr enable
 {% endif %}
 
 {% if ceph_bootstrap_deploy_mons %}
-ceph-bootstrap config /Deployment/OSD enable
+ceph-bootstrap config -a /Deployment/OSD enable
 
 # OSDs drive groups spec for each node
 {% for node in nodes %}
 {% if node.has_role('storage') %}
 DEV_LIST=`seq 1 {{ node.storage_disks | length }} | awk 'BEGIN{i=0; printf("[");}{if (i>0){printf(", ")}; i++; printf("\"/dev/vd%c\"", $1 + 97)}END{printf("]")}'`
-ceph-bootstrap config /Storage/Drive_Groups add value="{\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": { \"paths\": $DEV_LIST }}"
+ceph-bootstrap config -a /Storage/Drive_Groups add value="{\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": { \"paths\": $DEV_LIST }}"
 {% endif %}
 {% endfor %}
 {% endif %} {# if ceph_bootstrap_deploy_osds #}
 
-ceph-bootstrap config /Deployment/Dashboard/username set admin
-ceph-bootstrap config /Deployment/Dashboard/password set admin
+ceph-bootstrap config -a /Deployment/Dashboard/username set admin
+ceph-bootstrap config -a /Deployment/Dashboard/password set admin
 
-ceph-bootstrap config ls
+ceph-bootstrap config -a ls
 
 {% if stop_before_ceph_bootstrap_deploy %}
 exit 0
