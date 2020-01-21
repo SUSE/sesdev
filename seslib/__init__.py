@@ -109,27 +109,44 @@ VERSION_PREFERRED_DEPLOYMENT_TOOL = {
 
 VERSION_OS_REPO_MAPPING = {
     'ses5': {
-        'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/SLE12_SP3/',
+        'sles-12-sp3': [
+            'http://download.suse.de/ibs/Devel:/Storage:/5.0/SLE12_SP3/'
+        ],
     },
     'nautilus': {
-        'leap-15.1':  'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
-                      'openSUSE_Leap_15.1/',
-        'tumbleweed': 'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
-                      'openSUSE_Tumbleweed',
+        'leap-15.1': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
+            'openSUSE_Leap_15.1/'
+        ],
+        'tumbleweed': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
+            'openSUSE_Tumbleweed'
+        ],
     },
     'ses6': {
-        'sles-15-sp1': 'http://download.suse.de/ibs/Devel:/Storage:/6.0/SLE_15_SP1/',
+        'sles-15-sp1': [
+            'http://download.suse.de/ibs/Devel:/Storage:/6.0/SLE_15_SP1/'
+        ],
     },
     'octopus': {
-        'leap-15.1': 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
-                     'openSUSE_Leap_15.1',
-        'leap-15.2': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
-                     'upstream/openSUSE_Leap_15.2',
-        'tumbleweed': 'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/'
-                      'upstream/openSUSE_Tumbleweed',
+        'leap-15.1': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
+            'openSUSE_Leap_15.1'
+        ],
+        'leap-15.2': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'openSUSE_Leap_15.2'
+        ],
+        'tumbleweed': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'openSUSE_Tumbleweed'
+        ],
     },
     'ses7': {
-        'sles-15-sp2': 'http://download.suse.de/ibs/Devel:/Storage:/7.0/SLE_15_SP2/'
+        'sles-15-sp2': [
+            'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/standard/',
+            'http://download.suse.de/ibs/Devel:/Storage:/7.0/SLE_15_SP2/',
+        ],
     }
 }
 
@@ -587,7 +604,7 @@ class Deployment():
         vagrant_box = self.settings.os
 
         try:
-            version_repo = VERSION_OS_REPO_MAPPING[self.settings.version][self.settings.os]
+            version_repos = VERSION_OS_REPO_MAPPING[self.settings.version][self.settings.os]
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
@@ -615,7 +632,7 @@ class Deployment():
             'stop_before_stage': self.settings.stop_before_stage,
             'num_osds': num_osds,
             'deployment_tool': self.settings.deployment_tool,
-            'version_repo': version_repo,
+            'version_repos': version_repos,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
             'scc_username': self.settings.scc_username,

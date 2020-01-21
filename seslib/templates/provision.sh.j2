@@ -12,8 +12,10 @@ sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zy
 zypper ar {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
-zypper ar {{ version_repo }} {{ version }}-repo
-zypper mr -p 98 {{ version }}-repo
+{% for _repo in version_repos %}
+zypper ar {{ _repo }} {{ version }}-repo{{ loop.index }}
+zypper mr -p 98 {{ version }}-repo{{ loop.index }}
+{% endfor %}
 
 {% if version == 'ses7' %}
 zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
