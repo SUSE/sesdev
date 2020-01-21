@@ -241,9 +241,9 @@ def create():
 
     By default <working_directory> is located in `~/.sesdev`.
 
-    Checks all the options available with:
+    Check all options available for a given command with:
 
-    $ sesdev create --help
+    $ sesdev create <command> --help
     """
 
 
