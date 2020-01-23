@@ -303,6 +303,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                     public_address = '{}{}'.format(self.settings.public_network, 200 + node_id)
                     networks = ('node.vm.network :private_network, autostart: true, ip:'
                                 '"{}"').format(public_address)
+                networks = ('node.vm.network :private_network, autostart: true, ip:'
+                            '"{}"').format(public_address)
+                if self.settings.ipv6:
+                    networks += ', libvirt__guest_ipv6: "yes"' \
+                                ', libvirt__ipv6_address: "fde4:8dba:82e1::c4"' \
+                                ', libvirt__ipv6_prefix: "64"'
 
             if 'bootstrap' in node_roles:
                 self.bootstrap_mon_ip = public_address
@@ -442,6 +448,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_private_key_file': self.settings.libvirt_private_key_file,
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
+            'ipv6': self.settings.ipv6,
             'vagrant_box': self.vagrant_box,
             'nodes': list(self.nodes.values()),
             'cluster_json': json.dumps({

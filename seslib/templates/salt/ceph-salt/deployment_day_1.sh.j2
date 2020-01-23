@@ -58,6 +58,13 @@ ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
 {% endif %}
 {% endfor %}
 ceph-salt config /ceph_cluster/roles/bootstrap set {{ cephadm_bootstrap_node.fqdn }}
+{% if ipv6 %}
+IPV6_CMD="ip -6 addr | grep 'scope global dynamic mngtmpaddr' | sed -e 's/.*inet6 \(.*\)\/.*/\1/'"
+IPV6_ADDR="$(ssh {{ cephadm_bootstrap_node.name }} $IPV6_CMD)"
+ceph-salt config /cephadm_bootstrap/mon_ip set "$IPV6_ADDR"
+{% else %}
+ceph-salt config /cephadm_bootstrap/mon_ip set {{ bootstrap_mon_ip }}
+{% endif %}
 
 ceph-salt config /ssh/ generate
 ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
@@ -77,7 +84,6 @@ ceph-salt config /cephadm_bootstrap/ceph_conf/global set "osd crush chooseleaf t
 ceph-salt config /cephadm_bootstrap/dashboard/username set admin
 ceph-salt config /cephadm_bootstrap/dashboard/password set admin
 ceph-salt config /cephadm_bootstrap/dashboard/force_password_update disable
-ceph-salt config /cephadm_bootstrap/mon_ip set {{ bootstrap_mon_ip }}
 
 ceph-salt config ls
 ceph-salt export --pretty

@@ -86,6 +86,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * ["Failed to connect socket" error when attempting to use remote libvirt server](#failed-to-connect-socket-error-when-attempting-to-use-remote-libvirt-server)
    * [mount.nfs: Unknown error 521](#mountnfs-unknown-error-521)
    * [Problems accessing dashboard on remote sesdev](#problems-accessing-dashboard-on-remote-sesdev)
+   * [Error creating IPv6 cluster](#error-creating-ipv6-cluster)
 * [Contributing](#contributing)
 
 
@@ -1282,6 +1283,29 @@ PROTOCOL://CORRECT_IP_ADDRESS:ANY_ARBITRARY_HIGH_NUMBERED_PORT
 One final note: it's a good practice to use a different
 `ANY_ARBITRARY_HIGH_NUMBERED_PORT` every time you run `sesdev tunnel`. This is
 because of ``https://github.com/SUSE/sesdev/issues/276``.
+
+### Error creating IPv6 cluster
+
+#### Symptom
+
+I'm running `sesdev create` with `--ipv6` option, and I'm getting the following error:
+
+```
+Error while activating network: Call to virNetworkCreate failed: internal error:
+Check the host setup: enabling IPv6 forwarding with RA routes without accept_ra
+set to 2 is likely to cause routes loss. Interfaces to look at: enp0s25.
+```
+
+#### Resolution
+
+Set "Accept Router Advertisements" to 2 ("Overrule forwarding behaviour"), by running:
+
+```
+sysctl -w net.ipv6.conf.<if>.accept_ra=2
+```
+
+Where `<if>` is the network interface from the error, or `all` if you want to apply
+the config to all network interfaces.
 
 ## Contributing
 
