@@ -6,12 +6,11 @@ set -ex
 cd /root
 git clone {{ ceph_bootstrap_git_repo }}
 cd ceph-bootstrap
-zypper -n in autoconf gcc python3-devel python3-pip
+zypper -n in autoconf gcc python3-devel python3-pip python3-curses
 git checkout {{ ceph_bootstrap_git_branch }}
 pip install .
 # install ceph-salt-formula
-mkdir -p /srv/salt/ceph-salt
-cp -r ceph-salt-formula/states/* /srv/salt/ceph-salt/
+cp -r ceph-salt-formula/salt/* /srv/salt/
 chown -R salt:salt /srv
 {% else %}
 # ceph-salt-formula is installed automatically as a dependency of ceph-bootstrap
@@ -52,6 +51,7 @@ done
 set -ex
 
 salt '*' saltutil.pillar_refresh
+salt '*' saltutil.sync_all
 
 sleep 2
 
@@ -106,7 +106,7 @@ ceph-bootstrap config ls
 exit 0
 {% endif %}
 
-salt -G 'ceph-salt:member' state.apply ceph-salt
+ceph-bootstrap deploy -n
 
 {% if qa_test is defined and qa_test is sameas true -%}
 {%- if ceph_bootstrap_git_repo -%}
