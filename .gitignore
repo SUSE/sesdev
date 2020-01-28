@@ -1,6 +1,7 @@
 venv*
 virtualenv*
 .vscode
+.idea
 **/__pycache__
 *.log
 **.pyc
