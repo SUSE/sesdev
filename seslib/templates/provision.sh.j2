@@ -13,6 +13,10 @@ zypper ar {{ os_repo_url }} {{ os_repo_name }}
 zypper ar {{ version_repo }} {{ version }}-repo
 zypper mr -p 98 {{ version }}-repo
 
+{% if version in ['ses7', 'octopus'] %}
+zypper -n install apparmor-profiles
+{% endif %}
+
 {% if version == 'ses7' %}
 zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
 {% endif %}
