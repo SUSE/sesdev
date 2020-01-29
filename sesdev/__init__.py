@@ -306,13 +306,20 @@ def _gen_settings_dict(version,
     if os:
         settings_dict['os'] = os
 
-    if num_disks:
-        if storage_nodes and storage_nodes < 3 and num_disks < 3:
-            num_disks = 3
-        settings_dict['num_disks'] = num_disks
+    # if num_disks not given explicitly, the default value of 2 might not be enough
+    # NOTE: num_disks is guaranteed to be initialized by the
+    # "click.option('--num-disks', default=None, ...)" call, above
+    if num_disks is None:
+        if storage_nodes:
+            if storage_nodes == 1:
+                settings_dict['num_disks'] = 4
+            elif storage_nodes == 2:
+                settings_dict['num_disks'] = 3
+            else:
+                # go with the default
+                pass
     else:
-        if storage_nodes and storage_nodes < 3:
-            settings_dict['num_disks'] = 3
+        settings_dict['num_disks'] = num_disks
 
     if cpus:
         settings_dict['cpus'] = cpus
