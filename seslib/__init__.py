@@ -336,6 +336,11 @@ SETTINGS = {
         'help': 'Enable deployment of Ceph OSDs in ceph-bootstrap',
         'default': True
     },
+    'ceph_bootstrap_deploy': {
+        'type': bool,
+        'help': 'Use `ceph-bootstrap deploy` command to run ceph-salt formula',
+        'default': True
+    },
 }
 
 
@@ -673,6 +678,7 @@ class Deployment():
             'ceph_bootstrap_deploy_mons': self.settings.ceph_bootstrap_deploy_mons,
             'ceph_bootstrap_deploy_mgrs': self.settings.ceph_bootstrap_deploy_mgrs,
             'ceph_bootstrap_deploy_osds': self.settings.ceph_bootstrap_deploy_osds,
+            'ceph_bootstrap_deploy': self.settings.ceph_bootstrap_deploy,
         }
 
         scripts = {}
