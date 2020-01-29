@@ -100,6 +100,8 @@ def common_create_options(func):
                      help='Custom zypper repo URL. The repo will be added to each node.'),
         click.option('--repo-priority/--no-repo-priority', default=True,
                      help="Automatically set priority on custom zypper repos"),
+        click.option('--qa-test/--no-qa-test', default=False,
+                     help="Automatically run integration tests on the deployed cluster"),
         click.option('--scc-user', type=str, default=None,
                      help='SCC organization username'),
         click.option('--scc-pass', type=str, default=None,
@@ -269,6 +271,7 @@ def _gen_settings_dict(version,
                        ram,
                        disk_size,
                        repo_priority,
+                       qa_test,
                        vagrant_box,
                        scc_user,
                        scc_pass,
@@ -349,6 +352,9 @@ def _gen_settings_dict(version,
 
     if repo_priority is not None:
         settings_dict['repo_priority'] = repo_priority
+
+    if qa_test is not None:
+        settings_dict['qa_test'] = qa_test
 
     if vagrant_box:
         settings_dict['vagrant_box'] = vagrant_box

@@ -16,6 +16,9 @@ chown -R salt:salt /srv
 {% else %}
 # ceph-salt-formula is installed automatically as a dependency of ceph-bootstrap
 zypper -n in ceph-bootstrap
+{% if qa_test is defined and qa_test is sameas true %}
+zypper -n in ceph-bootstrap-qa
+{% endif %}
 {% endif %}
 
 cat <<EOF > /srv/pillar/top.sls
@@ -104,3 +107,13 @@ exit 0
 {% endif %}
 
 salt -G 'ceph-salt:member' state.apply ceph-salt
+
+{% if qa_test is defined and qa_test is sameas true -%}
+{%- if ceph_bootstrap_git_repo -%}
+/root/ceph-bootstrap/
+{%- else -%}
+/usr/share/ceph-bootstrap/
+{%- endif -%}
+qa/health-ok.sh --total-nodes={{ nodes|length }} --nfs-ganesha-nodes={{ ganesha_nodes }} --igw-nodes={{ igw_nodes }} --mds-nodes={{ mds_nodes }} --mgr-nodes={{ mgr_nodes }} --mon-nodes={{ mon_nodes }} --osd-nodes={{ storage_nodes }} --osds={{ total_osds }} --rgw-nodes={{ rgw_nodes }}
+{%- endif %}
+
