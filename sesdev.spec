@@ -28,7 +28,7 @@ License:        MIT
 %if 0%{?suse_version}
 Group:          Development/Languages/Python
 %endif
-URL:            https://github.com/rjfd/sesdev
+URL:            https://github.com/SUSE/sesdev
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 BuildArch:      noarch
 

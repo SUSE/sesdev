@@ -13,7 +13,7 @@ First, you should have both [QEMU](https://www.qemu.org/) and
 created by sesdev (using Vagrant behind the scenes).
 
 Installable packages for various Linux distributions like Fedora or openSUSE can
-be found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=home%3Arjdias&package=sesdev)
+be found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=filesystems%3Aceph&package=sesdev)
 (OBS).
 
 ### Installation on openSUSE
@@ -45,7 +45,7 @@ group.
 #### Install sesdev from package
 
 ```
-$ sudo zypper ar https://download.opensuse.org/repositories/home:/rjdias:/sesdev/<repo> sesdev_repo
+$ sudo zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> sesdev_repo
 $ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
 $ sudo zypper ref
 $ sudo zypper install sesdev
@@ -77,7 +77,7 @@ Where `<distro>` can be either `Fedora_29` or `Fedora_30`.
 ### Install sesdev from source
 
 ```
-$ git clone https://github.com/rjfd/sesdev.git
+$ git clone https://github.com/SUSE/sesdev.git
 $ cd sesdev
 $ virtualenv --python=<path_to_python3> venv
 $ source venv/bin/activate
