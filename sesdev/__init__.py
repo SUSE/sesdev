@@ -70,6 +70,8 @@ def ceph_bootstrap_options(func):
         click.option('--deploy-mons', is_flag=True, default=True, help='Deploy Ceph Mons'),
         click.option('--deploy-mgrs', is_flag=True, default=True, help='Deploy Ceph Mgrs'),
         click.option('--deploy-osds', is_flag=True, default=True, help='Deploy Ceph OSDs'),
+        click.option('--ceph-bootstrap-deploy/--no-ceph-bootstrap-deploy', default=True,
+                     help='Use `ceph-bootstrap deploy` command to run ceph-salt formula'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -284,7 +286,8 @@ def _gen_settings_dict(version,
                        deploy_bootstrap=True,
                        deploy_mons=True,
                        deploy_mgrs=True,
-                       deploy_osds=True):
+                       deploy_osds=True,
+                       ceph_bootstrap_deploy=True):
 
     settings_dict = {}
     if not single_node and roles:
@@ -397,6 +400,9 @@ def _gen_settings_dict(version,
 
     if not deploy_osds:
         settings_dict['ceph_bootstrap_deploy_osds'] = False
+
+    if not ceph_bootstrap_deploy:
+        settings_dict['ceph_bootstrap_deploy'] = False
 
     return settings_dict
 
