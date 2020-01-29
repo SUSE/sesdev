@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2020-01-29
+### Added
+- Octopus and SES7 deployment with ceph-bootstrap (PR #28)
+- Implement --repo-priority / --no-repo-priority (PR #19)
+- Add option for predefined libvirt networks (PR #39) 
+- qa: initial qa integration (PR #46)
+
+### Fixed
+- When deploying ses5 with explicit --roles, do not add openattic (PR #23)
+- Enable display of manpages (PR #33)
+- ceph_bootstrap_deployment.sh: Also set -e (PR #35)
+- vagrant: generate random serial number for each attached disk (PR #50)
+- ceph_bootstrap_deployment: ensure minions are responding (PR #52)
+
+### Changed
+- Add node info to SSH tunnel command (PR #27)
+- Display amount of deployed VMs in status output (PR #31)
+- Enable linter via travis (PR #38)
+- ceph-bootstrap: 'ceph-salt-formula' moved to 'ceph-bootstrap' (PR #44)
+- ceph_bootstrap: use "ceph-bootstrap deploy" command to run ceph-salt formula
+  (PR #62)
+
 ## [1.1.0] - 2019-11-27
 ### Added
 - Add Github Action to publish to OBS (PR #10).
@@ -125,14 +147,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/rjfd/sesdev/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/rjfd/sesdev/releases/tag/v1.1.0
-[1.0.3]: https://github.com/rjfd/sesdev/releases/tag/v1.0.3
-[1.0.2]: https://github.com/rjfd/sesdev/releases/tag/v1.0.2
-[1.0.1]: https://github.com/rjfd/sesdev/releases/tag/v1.0.1
-[1.0.0]: https://github.com/rjfd/sesdev/releases/tag/v1.0.0
-[0.2.2]: https://github.com/rjfd/sesdev/releases/tag/v0.2.2
-[0.2.1]: https://github.com/rjfd/sesdev/releases/tag/v0.2.1
-[0.2.0]: https://github.com/rjfd/sesdev/releases/tag/v0.2.0
-[0.1.0]: https://github.com/rjfd/sesdev/releases/tag/v0.1.0
-[0.0.1]: https://github.com/rjfd/sesdev/releases/tag/v0.0.1
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.0...HEAD
+[1.1.1]: https://github.com/SUSE/sesdev/releases/tag/v1.1.1
+[1.1.0]: https://github.com/SUSE/sesdev/releases/tag/v1.1.0
+[1.0.3]: https://github.com/SUSE/sesdev/releases/tag/v1.0.3
+[1.0.2]: https://github.com/SUSE/sesdev/releases/tag/v1.0.2
+[1.0.1]: https://github.com/SUSE/sesdev/releases/tag/v1.0.1
+[1.0.0]: https://github.com/SUSE/sesdev/releases/tag/v1.0.0
+[0.2.2]: https://github.com/SUSE/sesdev/releases/tag/v0.2.2
+[0.2.1]: https://github.com/SUSE/sesdev/releases/tag/v0.2.1
+[0.2.0]: https://github.com/SUSE/sesdev/releases/tag/v0.2.0
+[0.1.0]: https://github.com/SUSE/sesdev/releases/tag/v0.1.0
+[0.0.1]: https://github.com/SUSE/sesdev/releases/tag/v0.0.1
