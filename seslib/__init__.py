@@ -1,4 +1,5 @@
 import json
+import libvirt
 import logging
 import os
 from pathlib import Path
@@ -13,7 +14,7 @@ from . import tools
 from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
                         VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
-                        ServiceNotFound, ExclusiveRoles, RoleNotSupported
+                        ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -347,6 +348,113 @@ SETTINGS = {
         'default': True
     },
 }
+
+
+class Box():
+    # pylint: disable=no-member
+    def __init__(self, settings):
+        self.libvirt_use_ssh = settings.libvirt_use_ssh
+        self.libvirt_private_key_file = settings.libvirt_private_key_file
+        self.libvirt_user = settings.libvirt_user
+        self.libvirt_host = settings.libvirt_host
+        self.libvirt_storage_pool = (
+            settings.libvirt_storage_pool if settings.libvirt_storage_pool else 'default'
+        )
+        self.libvirt_conn = None
+        self.libvirt_uri = None
+        self.pool = None
+        self._populate_box_list()
+            
+    def _build_libvirt_uri(self):
+        uri = None
+        if self.libvirt_use_ssh:
+            uri = 'qemu+ssh://'
+            if self.libvirt_user:
+                uri += "{}@".format(self.libvirt_user)
+            assert self.libvirt_host, "Cannot use qemu+ssh without a host"
+            uri += "{}/system".format(self.libvirt_host)
+            if self.libvirt_private_key_file:
+                if '/' not in self.libvirt_private_key_file:
+                    self.libvirt_private_key_file = os.path.join(
+                            os.path.expanduser('~'),
+                            '.ssh',
+                            self.libvirt_private_key_file
+                        )
+                uri += '?keyfile={}'.format(self.libvirt_private_key_file)
+        else:
+            uri = 'qemu:///system'
+        self.libvirt_uri =  uri
+
+    def _populate_box_list(self):
+        self.all_possible_boxes = OS_BOX_MAPPING.keys()
+        self.boxes = []
+        output = tools.run_sync(["vagrant", "box", "list"])
+        lines = output.split('\n')
+        for line in lines:
+            if 'libvirt' in line:
+                box_name = line.split()[0]
+                if box_name in self.all_possible_boxes:
+                    self.boxes.append(box_name)
+
+    def exists(self, box_name):
+        return box_name in self.boxes
+
+    def get_image_to_remove(self, box_name):
+        #
+        # verify that the Vagrant Box exists
+        assert box_name in self.boxes, \
+            (
+                "The box needs to exist if calling get_image_to_remove. "
+                "Internal error - please report a bug!"
+            )
+        #
+        # open connection to libvirt server
+        self.open_libvirt_connection()
+        #
+        # verify that the corresponding image exists in libvirt storage pool
+        self.pool = self.libvirt_conn.storagePoolLookupByName(self.libvirt_storage_pool)
+        removal_candidates = []
+        for removal_candidate in self.pool.listVolumes():
+            if box_name in str(removal_candidate):
+                removal_candidates.append(removal_candidate)
+        if len(removal_candidates) == 0:
+            print("No {} image found in local libvirt storage pool".format(box_name))
+            print()
+            return None
+        elif len(removal_candidates) == 1:
+            self.removal_candidate = removal_candidates[0]
+            return self.removal_candidate
+        else:
+            print("Removal candidates")
+            print("==================")
+            for candidate in removal_candidate:
+                print(candidate)
+            print()
+            assert False, \
+                (
+                    "Too many removal candidates. Don't know which one to remove. "
+                    "This should not happen - please raise a bug"
+                )
+
+    def list(self):
+        for box in self.boxes:
+            print(box)
+
+    def open_libvirt_connection(self):
+        if self.libvirt_conn:
+            return
+        self._build_libvirt_uri()
+        print("Opening libvirt connection to ->{}<-".format(self.libvirt_uri))
+        self.libvirt_conn = libvirt.open(self.libvirt_uri)
+            
+    def remove_image(self, image_name):
+        assert image_name == self.removal_candidate, \
+                "Wrong image_name passed to Box.remove_image!"
+        image = self.pool.storageVolLookupByName(image_name)
+        image.delete()
+
+    def remove_box(self, box_name):
+        tools.run_sync(["vagrant", "box", "remove", box_name])
 
 
 class Settings():
