@@ -13,7 +13,7 @@ from . import tools
 from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
                         VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
-                        ServiceNotFound, ExclusiveRoles, RoleNotSupported
+                        ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -342,6 +342,71 @@ SETTINGS = {
         'default': True
     },
 }
+
+
+class Box():
+    # pylint: disable=no-member
+    def __init__(self):
+        self.all_possible_boxes = OS_BOX_MAPPING.keys()
+        self.boxes = []
+        output = tools.run_sync(["vagrant", "box", "list"])
+        lines = output.split('\n')
+        for line in lines:
+            if 'libvirt' in line:
+                box_name = line.split()[0]
+                if box_name in self.all_possible_boxes:
+                    self.boxes.append(box_name)
+
+    def list(self):
+        for box in self.boxes:
+            print(box)
+
+    def get_image_to_remove(self, box_name, libvirt_storage_pool="default"):
+        #
+        # verify that the Vagrant Box exists
+        if box_name in self.boxes:
+            print("You have asked to remove the Vagrant Box ->{}<-".format(box_name))
+        else:
+            print("No such box ->{}<-".format(box_name))
+        #
+        # test passwordless sudo
+        try:
+            tools.run_sync(["sudo", "-n", "true"])
+        except CmdException as error:
+            print("You must have passwordless sudo privileges to run this command.")
+            print("Sorry.")
+            exit(-1)
+        #
+        # verify that the corresponding image exists in libvirt storage
+        removal_candidates = []
+        output = tools.run_sync(["sudo", "virsh", "vol-list", libvirt_storage_pool])
+        lines = output.split('\n')
+        for line in lines:
+            line = line.lstrip()
+            if box_name in line:
+                candidate_box_name = line.split()[0]
+                removal_candidates.append(candidate_box_name)
+        if len(removal_candidates) == 0:
+            print("No {} image found in local libvirt storage pool".format(box_name))
+            print("Sorry.")
+            exit(-1)
+        elif len(removal_candidates) == 1:
+            return removal_candidates[0]
+        else:
+            print("Removal candidates")
+            print("==================")
+            for candidate in removal_candidate:
+                print(candidate)
+            print()
+            print("Too many removal candidates. Don't know which one to remove.")
+            print("Sorry.")
+            exit(-1)
+
+    def remove_image(self, image_name, libvirt_storage_pool="default"):
+        tools.run_sync(["sudo", "virsh", "vol-delete", "--pool", libvirt_storage_pool, image_name])
+
+    def remove_box(self, box_name):
+        tools.run_sync(["vagrant", "box", "remove", box_name])
 
 
 class Settings():

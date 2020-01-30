@@ -236,6 +236,61 @@ def list_deps():
 
 
 @cli.group()
+@click.option('--debug/--no-debug', default=False)
+def box(debug):
+    """
+    Commands for manipulating Vagrant Boxes
+    """
+    pass
+
+
+@box.command(name='list')
+def list_boxes():
+    """
+    List all Vagrant Boxes installed in the system by sesdev.
+    """
+    box = seslib.Box()
+    box.list()
+
+
+@box.command(name='remove')
+@click.argument('box_name')
+@libvirt_options
+def remove_box(box_name, **kwargs):
+    """
+    Remove a Vagrant Box installed in the system by sesdev.
+
+    This involves first removing the corresponding image from the libvirt
+    storage pool, and then running 'vagrant box remove' on it.
+    """
+    if kwargs['libvirt_host'] == None:
+        pass
+    else:
+        print("Box removal is not supported when using a remove libvirt instance")
+        print("Sorry.")
+        exit(-1)
+    box = seslib.Box()
+    if kwargs['libvirt_storage_pool'] is None:
+        kwargs['libvirt_storage_pool'] = 'default'
+    image_to_remove = box.get_image_to_remove(box_name, libvirt_storage_pool=kwargs['libvirt_storage_pool'])
+    click.echo("""
+Before I can remove the Vagrant Box, I must first remove the
+corresponding image from the libvirt storage pool.
+That image is called ->{}<-
+""".format(image_to_remove))
+    try:
+        if click.confirm('Do you wish to remove that image now?', default=False):
+            box.remove_image(image_to_remove)
+            box.remove_box(box_name)
+            click.echo("Vagrant box ->{}<- successfully removed".format(box_name))
+        else:
+            raise click.Abort()
+    except click.Abort:
+        click.echo()
+        click.echo("Exiting...")
+        
+
+@cli.group()
 def create():
     """
     Creates a new Vagrant based SES cluster.
