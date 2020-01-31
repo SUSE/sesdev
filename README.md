@@ -79,7 +79,7 @@ Where `<distro>` can be either `Fedora_29` or `Fedora_30`.
 ```
 $ git clone https://github.com/SUSE/sesdev.git
 $ cd sesdev
-$ virtualenv --python=<path_to_python3> venv
+$ virtualenv --system-site-packages venv
 $ source venv/bin/activate
 $ pip install --editable .
 ```
