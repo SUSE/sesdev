@@ -43,6 +43,7 @@ BuildRequires:  python3-setuptools
 %if 0%{?suse_version}
 Requires:       python3-click >= 6.7
 Requires:       python3-Jinja2 >= 2.10.1
+Requires:       python3-libvirt-python >= 5.1.0
 Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-PyYAML >= 3.13
 Requires:       python3-setuptools
