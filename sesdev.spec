@@ -57,7 +57,7 @@ based OS.
 
 %prep
 %autosetup -p1
-%if 0%{?fedora} < 30
+%if 0%{?fedora} && 0%{?fedora} < 30
 sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j2
 %endif
 
