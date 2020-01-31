@@ -76,10 +76,22 @@ Where `<distro>` can be either `Fedora_29` or `Fedora_30`.
 
 ### Install sesdev from source
 
+sesdev uses the libvirt API Python bindings, and these cannot be installed via
+pip unless the RPM package "libvirt-devel" is installed. So, before proceeding,
+make sure that package is installed:
+
+```
+$ sudo zypper -n install libvirt-devel
+```
+
+Once libvirt-devel is installed in the system, you can proceed to clone the
+sesdev source code repo, create and activate a virtualenv, and install sesdev's
+Python dependencies:
+
 ```
 $ git clone https://github.com/SUSE/sesdev.git
 $ cd sesdev
-$ virtualenv --python=<path_to_python3> venv
+$ virtualenv venv
 $ source venv/bin/activate
 $ pip install --editable .
 ```
