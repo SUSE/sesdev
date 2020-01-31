@@ -56,7 +56,7 @@ versions of Ceph and SES, as well as, different versions of the openSUSE
 based OS.
 
 %prep
-%autosetup -n sesdev-%{version} -p1
+%autosetup -p1
 %if 0%{?fedora} < 30
 sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j2
 %endif
