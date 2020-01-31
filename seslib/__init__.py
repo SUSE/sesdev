@@ -187,6 +187,11 @@ SETTINGS = {
         'help': 'Flag to control the use of SSH when connecting to the libvirt host',
         'default': None
     },
+    'libvirt_private_key_file': {
+        'type': str,
+        'help': 'Path to SSH private key file to use when connecting to the libvirt host',
+        'default': None
+    },
     'libvirt_storage_pool': {
         'type': str,
         'help': 'The libvirt storage pool to use for creating VMs',
@@ -643,6 +648,7 @@ class Deployment():
             'libvirt_host': self.settings.libvirt_host,
             'libvirt_user': self.settings.libvirt_user,
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
+            'libvirt_private_key_file': self.settings.libvirt_private_key_file,
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'vagrant_box': vagrant_box,
             'nodes': list(self.nodes.values()),
