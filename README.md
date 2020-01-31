@@ -45,7 +45,7 @@ group.
 #### Install sesdev from package
 
 ```
-$ sudo zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> sesdev_repo
+$ sudo zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> filesystems_ceph
 $ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
 $ sudo zypper ref
 $ sudo zypper install sesdev

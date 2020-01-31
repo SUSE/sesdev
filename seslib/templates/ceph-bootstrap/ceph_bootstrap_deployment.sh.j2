@@ -107,7 +107,7 @@ exit 0
 {% endif %}
 
 {% if ceph_bootstrap_deploy %}
-stdbuf -o0 ceph-bootstrap deploy --non-interactive
+stdbuf -o0 ceph-bootstrap -ldebug deploy --non-interactive
 {% else %}
 salt -G 'ceph-salt:member' state.apply ceph-salt
 {% endif %}
