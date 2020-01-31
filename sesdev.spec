@@ -25,9 +25,6 @@ Version:        1.1.1
 Release:        1%{?dist}
 Summary:        CLI tool to deploy and manage SES clusters
 License:        MIT
-%if 0%{?suse_version}
-Group:          Development/Languages/Python
-%endif
 URL:            https://github.com/SUSE/sesdev
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 BuildArch:      noarch
