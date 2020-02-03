@@ -1,5 +1,8 @@
 {% include "engine/" + vm_engine + "/vagrant.provision.sh.j2" ignore missing %}
 
+# remove the first line introduced by vagrant
+head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
+
 {% for _node in nodes %}
 {% if _node.public_address %}
 echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
@@ -48,7 +51,7 @@ cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
 chmod 600 /home/vagrant/.ssh/id_rsa
 cp /home/vagrant/.ssh/id_rsa* /root/.ssh/
 cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
-hostnamectl set-hostname {{ node.fqdn }}
+hostnamectl set-hostname {{ node.name }}
 
 {% if not suma %}
 zypper -n install salt-minion
