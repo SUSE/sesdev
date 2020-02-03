@@ -233,6 +233,7 @@ int-import-graph=
 known-standard-library=
 known-third-party=enchant
 preferred-modules=
+ignored-modules=libvirt
 
 
 [CLASSES]
