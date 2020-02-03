@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 class GlobalSettings():
     WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
+    DEBUG = False
 
     @classmethod
     def init_path_to_qa(cls, full_path_to_sesdev_executable):
@@ -1008,13 +1009,18 @@ class Deployment():
         cmd = ["vagrant", "up"]
         if node is not None:
             cmd.append(node)
+        if GlobalSettings.DEBUG:
+            cmd.append('--debug')
         tools.run_async(cmd, log_handler, self.dep_dir)
 
     def destroy(self, log_handler):
         for node in self.nodes.values():
             if node.status == 'not deployed':
                 continue
-            tools.run_async(["vagrant", "destroy", node.name, "--force"], log_handler, self.dep_dir)
+            cmd = ["vagrant", "destroy", node.name, "--force"]
+            if GlobalSettings.DEBUG:
+                cmd.append('--debug')
+            tools.run_async(cmd, log_handler, self.dep_dir)
         shutil.rmtree(self.dep_dir)
         # clean up any orphaned volumes
         images_to_remove = self.box.get_images_by_deployment(self.dep_id)
