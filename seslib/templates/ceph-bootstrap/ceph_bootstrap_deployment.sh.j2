@@ -20,6 +20,15 @@ zypper -n in ceph-bootstrap-qa
 {% endif %}
 {% endif %}
 
+cat <<EOF > /srv/pillar/top.sls
+base:
+  '*':
+    - ceph-salt
+EOF
+chown -R salt:salt /srv/pillar
+
+systemctl restart salt-master
+
 # make sure all minions are responding
 set +ex
 LOOP_COUNT="0"
