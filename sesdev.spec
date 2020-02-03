@@ -25,9 +25,6 @@ Version:        1.1.1
 Release:        1%{?dist}
 Summary:        CLI tool to deploy and manage SES clusters
 License:        MIT
-%if 0%{?suse_version}
-Group:          Development/Languages/Python
-%endif
 URL:            https://github.com/SUSE/sesdev
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 BuildArch:      noarch
@@ -59,8 +56,8 @@ versions of Ceph and SES, as well as, different versions of the openSUSE
 based OS.
 
 %prep
-%autosetup -n sesdev-%{version} -p1
-%if 0%{?fedora} < 30
+%autosetup -p1
+%if 0%{?fedora} && 0%{?fedora} < 30
 sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j2
 %endif
 
