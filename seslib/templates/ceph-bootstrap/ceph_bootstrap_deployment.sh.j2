@@ -91,8 +91,7 @@ ceph-bootstrap config /Deployment/OSD enable
 # OSDs drive groups spec for each node
 {% for node in nodes %}
 {% if node.has_role('storage') %}
-DEV_LIST=`seq 1 {{ node.storage_disks | length }} | awk 'BEGIN{i=0; printf("[");}{if (i>0){printf(", ")}; i++; printf("\"/dev/vd%c\"", $1 + 97)}END{printf("]")}'`
-ceph-bootstrap config /Storage/Drive_Groups add value="{\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": { \"paths\": $DEV_LIST }}"
+ceph-bootstrap config /Storage/Drive_Groups add value="{\"testing_dg_{{ node.name }}\": {\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": {\"all\": true}}}"
 {% endif %}
 {% endfor %}
 {% endif %} {# if ceph_bootstrap_deploy_osds #}
