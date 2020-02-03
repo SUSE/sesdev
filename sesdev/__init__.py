@@ -34,6 +34,8 @@ def libvirt_options(func):
                      help='Username for connecting to the libvirt machine'),
         click.option('--libvirt-storage-pool', type=str, default=None,
                      help='Libvirt storage pool'),
+        click.option('--libvirt-private-key-file', type=str, default=None,
+                     help='Path to SSH private key to use when building the qemu+ssh connection'),
         click.option('--libvirt-networks', type=str, default=None,
                      help='Existing libvirt networks to use (single or comma separated list)'),
     ]
@@ -262,6 +264,7 @@ def _gen_settings_dict(version,
                        single_node,
                        libvirt_host,
                        libvirt_user,
+                       libvirt_private_key_file,
                        libvirt_storage_pool,
                        libvirt_networks,
                        deepsea_cli,
@@ -335,6 +338,9 @@ def _gen_settings_dict(version,
 
     if libvirt_user:
         settings_dict['libvirt_user'] = libvirt_user
+
+    if libvirt_private_key_file:
+        settings_dict['libvirt_private_key_file'] = libvirt_private_key_file
 
     if libvirt_storage_pool:
         settings_dict['libvirt_storage_pool'] = libvirt_storage_pool

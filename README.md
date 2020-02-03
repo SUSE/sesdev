@@ -110,6 +110,7 @@ content:
 ```
 libvirt_use_ssh: true
 libvirt_user: <ssh_user>
+libvirt_private_key_file: <private_key_file>   # defaults to $HOME/.ssh/id_rsa
 libvirt_host: <hostname|ip address>
 ```
 

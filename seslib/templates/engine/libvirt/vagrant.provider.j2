@@ -8,12 +8,13 @@
 {% if libvirt_use_ssh %}
     lv.connect_via_ssh = {{ libvirt_use_ssh }}
 {% endif %}
+{% if libvirt_private_key_file %}
+    lv.id_ssh_key_file = "{{ libvirt_private_key_file }}"
+{% endif %}
     lv.qemu_use_session = false
-
 {% if libvirt_storage_pool %}
     lv.storage_pool_name = "{{ libvirt_storage_pool }}"
 {% endif %}
-
     lv.nic_model_type = "e1000"
     lv.cpu_mode = 'host-passthrough'
   end
