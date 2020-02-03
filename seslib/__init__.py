@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 class GlobalSettings():
     WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
+    DEBUG = False
 
     @classmethod
     def init(cls, working_dir):
@@ -883,15 +884,22 @@ class Deployment():
 
     def vagrant_up(self, node, log_handler):
         cmd = ["vagrant", "up"]
+        env = None
+        if GlobalSettings.DEBUG:
+            env = {"VAGRANT_LOG": "debug"}
         if node is not None:
             cmd.append(node)
-        tools.run_async(cmd, log_handler, self.dep_dir)
+        tools.run_async(cmd, log_handler, self.dep_dir, env)
 
     def destroy(self, log_handler):
         for node in self.nodes.values():
             if node.status == 'not deployed':
                 continue
-            tools.run_async(["vagrant", "destroy", node.name, "--force"], log_handler, self.dep_dir)
+            cmd = ["vagrant", "destroy", node.name, "--force"]
+            env = None
+            if GlobalSettings.DEBUG:
+                env = {"VAGRANT_LOG": "debug"}
+            tools.run_async(cmd, log_handler, self.dep_dir, env)
         shutil.rmtree(self.dep_dir)
 
     def _stop(self, node):

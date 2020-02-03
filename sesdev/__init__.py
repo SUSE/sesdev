@@ -189,10 +189,14 @@ $ sesdev create octopus --roles="[admin, mon, mgr], \\
     if log_file:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
                             filename=log_file, filemode='w',
-                            level=logging.INFO if not debug else logging.DEBUG)
+                            level=logging.DEBUG if debug else logging.INFO)
     else:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
                             level=logging.CRITICAL)
+
+    if debug:
+        logger.info("Debug mode: %s", "ON" if debug else "OFF")
+        seslib.GlobalSettings.DEBUG = debug
 
     if work_path:
         logger.info("Working path: %s", work_path)
