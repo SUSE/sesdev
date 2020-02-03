@@ -238,6 +238,84 @@ def list_deps():
 
 
 @cli.group()
+def box():
+    """
+    Commands for manipulating Vagrant Boxes
+    """
+
+
+@box.command(name='list')
+@libvirt_options
+def list_boxes(**kwargs):
+    """
+    List all Vagrant Boxes installed in the system.
+    """
+    click.echo("List of all Vagrant Boxes installed in the system")
+    click.echo("-------------------------------------------------")
+    settings_dict = _gen_box_settings_dict(**kwargs)
+    settings = seslib.Settings(**settings_dict)
+    box_obj = seslib.Box(settings)
+    box_obj.list()
+
+
+@box.command(name='remove')
+@click.argument('box_name')
+@libvirt_options
+@click.option('--force', is_flag=True, callback=_abort_if_false, expose_value=False,
+              help='Allow to remove Vagrant Box without user confirmation',
+              prompt='Are you sure you want to remove the Vagrant Box?')
+def remove_box(box_name, **kwargs):
+    """
+    Remove a Vagrant Box installed in the system by sesdev.
+
+    This involves first removing the corresponding image from the libvirt
+    storage pool, and then running 'vagrant box remove' on it.
+    """
+    settings_dict = _gen_box_settings_dict(**kwargs)
+    settings = seslib.Settings(**settings_dict)
+    #
+    # existing deployments might be using this box
+    deps = seslib.Deployment.list(True)
+    existing_deployments = []
+    for dep in deps:
+        if box_name == dep.settings.os:
+            existing_deployments.append(dep.dep_id)
+    if existing_deployments:
+        if len(existing_deployments) == 1:
+            click.echo("The following deployment is already using box ->{}<-:"
+                       .format(box_name))
+        else:
+            click.echo("The following deployments are already using box ->{}<-:"
+                       .format(box_name))
+        for dep_id in existing_deployments:
+            click.echo("        {}".format(dep_id))
+        click.echo()
+        if len(existing_deployments) == 1:
+            click.echo("It must be destroyed first!")
+        else:
+            click.echo("These must be destroyed first!")
+        sys.exit(-1)
+
+    box_obj = seslib.Box(settings)
+
+    if box_obj.exists(box_name):
+        click.echo("Proceeding to remove Vagrant Box ->{}<-".format(box_name))
+    else:
+        click.echo("There is no Vagrant Box called ->{}<-".format(box_name))
+        sys.exit(-1)
+
+    image_to_remove = box_obj.get_image_to_remove(box_name)
+    if image_to_remove:
+        click.echo("Found related image ->{}<- in libvirt storage pool"
+                   .format(image_to_remove))
+        box_obj.remove_image(image_to_remove)
+        click.echo("Libvirt image removed.")
+
+    box_obj.remove_box(box_name)
+    click.echo("Vagrant Box removed.")
+
+
+@cli.group()
 def create():
     """
     Creates a new Vagrant based SES cluster.
@@ -255,6 +333,31 @@ def create():
 
 def _count_storage_nodes(roles):
     return len([node for node in roles if 'storage' in node])
+
+
+def _gen_box_settings_dict(libvirt_host,
+                           libvirt_user,
+                           libvirt_private_key_file,
+                           libvirt_storage_pool,
+                           libvirt_networks):
+    settings_dict = {}
+
+    if libvirt_host:
+        settings_dict['libvirt_host'] = libvirt_host
+
+    if libvirt_user:
+        settings_dict['libvirt_user'] = libvirt_user
+
+    if libvirt_private_key_file:
+        settings_dict['libvirt_private_key_file'] = libvirt_private_key_file
+
+    if libvirt_storage_pool:
+        settings_dict['libvirt_storage_pool'] = libvirt_storage_pool
+
+    if libvirt_networks:
+        settings_dict['libvirt_networks'] = libvirt_networks
+
+    return settings_dict
 
 
 def _gen_settings_dict(version,

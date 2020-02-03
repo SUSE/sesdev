@@ -7,6 +7,8 @@ matrix:
     env: TOX_ENV=py37
   - python: 3.7
     env: TOX_ENV=lint
+before_install:
+- sudo apt-get -y install libvirt-dev
 install:
 - pip install tox
 script:
