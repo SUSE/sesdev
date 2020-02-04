@@ -4,8 +4,10 @@ class SesDevException(Exception):
 
 class CmdException(SesDevException):
     def __init__(self, command, retcode, stderr):
-        super(CmdException, self).__init__("Command '{}' failed: ret={} stderr:\n{}"
-                                           .format(command, retcode, stderr))
+        super(CmdException, self).__init__(
+            "Command '{}' failed: ret={} stderr:\n{}"
+            .format(command, retcode, stderr)
+            )
         self.command = command
         self.retcode = retcode
         self.stderr = stderr

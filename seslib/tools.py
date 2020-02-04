@@ -47,7 +47,7 @@ def run_async(command, callback, cwd=None):
             retcode = proc.poll()
             if retcode is not None:
                 if retcode != 0:
-                    raise CmdException(command, retcode, proc.stderr.read())
+                    raise CmdException(command, retcode, proc.stderr.read().decode('utf-8'))
                 break
 
 
