@@ -31,13 +31,13 @@ def _non_block_read(fout):
         return None
 
 
-def run_async(command, callback, cwd=None):
+def run_async(command, callback, cwd=None, env=None):
     logger.info("Running async command (%s): %s", cwd if cwd else ".", command)
     callback("=== Running shell command ===\n{}\n".format(" ".join(command)))
     _command = ["stdbuf", "-oL"]
     _command.extend(command)
     with subprocess.Popen(_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          cwd=cwd) as proc:
+                          cwd=cwd, env=env) as proc:
         while True:
             time.sleep(0.5)
             output = _non_block_read(proc.stdout)
