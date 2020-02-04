@@ -12,10 +12,11 @@ from jinja2 import Environment, PackageLoader
 import libvirt
 
 from . import tools
-from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
-                        VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
-                        ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
-                        ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException
+from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, VersionQANotSupported, \
+                        SettingTypeError, VagrantBoxDoesNotExist, NodeDoesNotExist, \
+                        NoSourcePortForPortForwarding, ServicePortForwardingNotSupported, \
+                        DeploymentAlreadyExists, ServiceNotFound, ExclusiveRoles, \
+                        RoleNotSupported, CmdException
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -156,6 +157,16 @@ VERSION_OS_REPO_MAPPING = {
     }
 }
 
+VERSION_QA_REPO_MAPPING = {
+    'ses7': {
+        'sles-15-sp2': [
+            'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/'
+            'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
+            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+            'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/'
+        ],
+    }
+}
 
 SETTINGS = {
     'version': {
@@ -745,6 +756,12 @@ class Deployment():
             version_repos = VERSION_OS_REPO_MAPPING[self.settings.version][self.settings.os]
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
+
+        try:
+            if self.settings.qa_test:
+                version_repos += VERSION_QA_REPO_MAPPING[self.settings.version][self.settings.os]
+        except KeyError:
+            raise VersionQANotSupported(self.settings.version, self.settings.os)
 
         if self.settings.os in OS_REPOS:
             os_base_repos = list(OS_REPOS[self.settings.os].items())
