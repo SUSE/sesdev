@@ -71,6 +71,10 @@ ceph-bootstrap config /Deployment/Dashboard/password set admin
 
 ceph-bootstrap config ls
 
+zypper lr -upEP
+zypper info cephadm | grep -E '(^Repo|^Version)'
+ceph-bootstrap --version
+
 {% if stop_before_ceph_bootstrap_deploy %}
 exit 0
 {% endif %}
