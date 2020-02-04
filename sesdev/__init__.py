@@ -304,7 +304,7 @@ def remove_box(box_name, **kwargs):
         click.echo("There is no Vagrant Box called ->{}<-".format(box_name))
         sys.exit(-1)
 
-    image_to_remove = box_obj.get_image_to_remove(box_name)
+    image_to_remove = box_obj.get_image_by_box(box_name)
     if image_to_remove:
         click.echo("Found related image ->{}<- in libvirt storage pool"
                    .format(image_to_remove))

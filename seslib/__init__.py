@@ -364,7 +364,6 @@ class Box():
         self.libvirt_conn = None
         self.libvirt_uri = None
         self.pool = None
-        self.removal_candidate = None
         self._populate_box_list()
 
     def _build_libvirt_uri(self):
@@ -401,7 +400,7 @@ class Box():
     def exists(self, box_name):
         return box_name in self.boxes
 
-    def get_image_to_remove(self, box_name):
+    def get_image_by_box(self, box_name):
         #
         # open connection to libvirt server
         self.open_libvirt_connection()
@@ -415,21 +414,29 @@ class Box():
         if len(removal_candidates) == 0:
             return None
         if len(removal_candidates) == 1:
-            self.removal_candidate = removal_candidates[0]
-            return self.removal_candidate
+            return removal_candidates[0]
         #
         # bad news - multiple images match the box name
-        print("Removal candidates")
-        print("==================")
+        print("Images matching Vagrant Box ->{}<-".format(box_name))
+        print("===================================================")
         for candidate in removal_candidates:
             print(candidate)
         print()
         assert False, \
             (
-                "Too many removal candidates. Don't know which one to remove. "
+                "Too many matching images. Don't know which one to remove. "
                 "This should not happen - please raise a bug!"
             )
         return None
+
+    def get_images_by_deployment(self, dep_id):
+        self.open_libvirt_connection()
+        self.pool = self.libvirt_conn.storagePoolLookupByName(self.libvirt_storage_pool)
+        matching_images = []
+        for removal_candidate in self.pool.listVolumes():
+            if str(matching_images).startswith(dep_id):
+                matching_images.append(removal_candidate)
+        return matching_images
 
     def list(self):
         for box in self.boxes:
@@ -444,8 +451,6 @@ class Box():
         return None
 
     def remove_image(self, image_name):
-        assert image_name == self.removal_candidate, \
-                "Wrong image_name passed to Box.remove_image!"
         image = self.pool.storageVolLookupByName(image_name)
         image.delete()
 
@@ -870,7 +875,7 @@ class Deployment():
 
             log_handler("Downloading vagrant box: {}\n".format(self.settings.os))
 
-            image_to_remove = self.box.get_image_to_remove(self.settings.os)
+            image_to_remove = self.box.get_image_by_box(self.settings.os)
             if image_to_remove:
                 # remove image in libvirt to guarantee that, when "vagrant up"
                 # runs, the new box will be uploaded to libvirt
@@ -891,6 +896,13 @@ class Deployment():
                 continue
             tools.run_async(["vagrant", "destroy", node.name, "--force"], log_handler, self.dep_dir)
         shutil.rmtree(self.dep_dir)
+        # clean up any orphaned volumes
+        images_to_remove = self.box.get_images_by_deployment(self.dep_id)
+        if images_to_remove:
+            log_handler("Found orphaned volumes: {}".format(images_to_remove))
+            log_handler("Removing them!")
+            for image in images_to_remove:
+                self.box.remove_image(image)
 
     def _stop(self, node):
         if self.nodes[node].status != "running":
