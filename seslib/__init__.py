@@ -898,7 +898,7 @@ class Deployment():
             cmd = ["vagrant", "destroy", node.name, "--force"]
             env = None
             if GlobalSettings.DEBUG:
-                env = {"VAGRANT_LOG": "debug"}
+                env = {"VAGRANT_LOG": "debug", "VAGRANT_HOME": self.dep_dir}
             tools.run_async(cmd, log_handler, self.dep_dir, env)
         shutil.rmtree(self.dep_dir)
 
