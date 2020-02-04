@@ -112,7 +112,8 @@ VERSION_PREFERRED_DEPLOYMENT_TOOL = {
 VERSION_OS_REPO_MAPPING = {
     'ses5': {
         'sles-12-sp3': [
-            'http://download.suse.de/ibs/Devel:/Storage:/5.0/SLE12_SP3/'
+            'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+            'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/'
         ],
     },
     'nautilus': {
@@ -127,7 +128,8 @@ VERSION_OS_REPO_MAPPING = {
     },
     'ses6': {
         'sles-15-sp1': [
-            'http://download.suse.de/ibs/Devel:/Storage:/6.0/SLE_15_SP1/'
+            'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+            'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/'
         ],
     },
     'octopus': {
@@ -146,8 +148,8 @@ VERSION_OS_REPO_MAPPING = {
     },
     'ses7': {
         'sles-15-sp2': [
-            'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/standard/',
-            'http://download.suse.de/ibs/Devel:/Storage:/7.0/SLE_15_SP2/',
+            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+            'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
         ],
     }
 }
