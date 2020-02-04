@@ -98,6 +98,22 @@ $ pip install --editable .
 
 Remember to re-run `pip install --editable .` after each git pull.
 
+#### Linting
+
+If you are preparing a code change for submission and would like to run it
+through the linter, install the "tox" and "pylint" packages in your system,
+first:
+
+```
+zypper -n install python3-tox python3-pylint
+```
+
+Then, execute the following command in the top-level of your local git clone:
+
+```
+tox -elint
+```
+
 ## Usage
 
 Run `sesdev --help` or `sesdev <command> --help` to get check the available
