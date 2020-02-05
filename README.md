@@ -83,10 +83,20 @@ make sure that package is installed:
 ```
 $ sudo zypper -n install libvirt-devel
 ```
+Once libvirt-devel is installed in the system, you can proceed to install the needed
+packages and to clone the sesdev source code repo, create and activate a virtualenv, 
+and install sesdev's Python dependencies:
 
-Once libvirt-devel is installed in the system, you can proceed to clone the
-sesdev source code repo, create and activate a virtualenv, and install sesdev's
-Python dependencies:
+#### Install needed packages and repositories on openSUSE
+
+```
+$ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
+$ pip install vagrant-libvirt
+$ sudo zypper -n install patterns-openSUSE-kvm_server patterns-server-kvm_tools \
+bridge-utils git gcc python3-devel
+$ sudo systemctl enable libvirtd
+$ sudo systemctl restart libvirtd
+```
 
 ```
 $ git clone https://github.com/SUSE/sesdev.git
