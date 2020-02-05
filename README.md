@@ -147,7 +147,7 @@ tox -elint
 
 ## Usage
 
-Run `sesdev --help` or `sesdev <command> --help` to get check the available
+Run `sesdev --help` or `sesdev <command> --help` to get the available
 options and description of the commands.
 
 ### Create/Deploy cluster
