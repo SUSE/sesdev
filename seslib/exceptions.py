@@ -26,7 +26,15 @@ class DeploymentDoesNotExists(SesDevException):
 class VersionOSNotSupported(SesDevException):
     def __init__(self, version, os):
         super(VersionOSNotSupported, self).__init__(
-            "Combination of version '{}' and OS '{}' not supported".format(version, os))
+            "Combination of version '{}' and OS '{}' not supported"
+            .format(version, os))
+
+
+class VersionQANotSupported(SesDevException):
+    def __init__(self, version, os):
+        super(VersionQANotSupported, self).__init__(
+            "Combination of version '{}' and OS '{}' not supported with --qa-test"
+            .format(version, os))
 
 
 class SettingIncompatibleError(SesDevException):
