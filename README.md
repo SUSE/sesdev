@@ -42,16 +42,35 @@ $ sudo usermod -a -G libvirt $USER
 Log out, and then log back in. You should now be a member of the "libvirt"
 group.
 
+#### Install Vagrant
+
+sesdev needs Vagrant to work.
+
+```
+$ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
+$ sudo zypper ref
+$ sudo zypper -n install vagrant vagrant-libvirt
+```
+
+Where `<repo>` can be `openSUSE_Leap_15.1` or `openSUSE_Tumbleweed`.
+
 #### Install sesdev from package
+
+sesdev itself can be installed either from package or from source. If you
+prefer to install from package, follow the instructions in this section. If you
+prefer to install from source, skip down to the "Install sesdev from source"
+section.
 
 ```
 $ sudo zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> filesystems_ceph
-$ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
 $ sudo zypper ref
 $ sudo zypper install sesdev
 ```
 
-Where `<repo>` can be either `openSUSE_Leap_15.1` or `openSUSE_Tumbleweed`.
+Where `<repo>` can be `openSUSE_Leap_15.1`, `openSUSE_Leap_15.2` or `openSUSE_Tumbleweed`.
+
+At this point, sesdev should be installed and ready to use: refer to the "Usage"
+chapter, below, for further information.
 
 ### Installation on Fedora Linux
 
@@ -74,19 +93,28 @@ dnf install sesdev
 
 Where `<distro>` can be either `Fedora_29` or `Fedora_30`.
 
+At this point, sesdev should be installed and ready to use: refer to the "Usage"
+chapter, below, for further information.
+
 ### Install sesdev from source
 
+sesdev itself can be installed either from package or from source. If you
+prefer to install from source, follow the instructions in this section. If you
+prefer to install from package, scroll up to the "Install sesdev from package"
+section for your operating system.
+
 sesdev uses the libvirt API Python bindings, and these cannot be installed via
-pip unless the RPM package "libvirt-devel" is installed. So, before proceeding,
-make sure that package is installed:
+pip unless the RPM packages "gcc", "python3-devel", and "libvirt-devel" are
+installed, first. Also, in order to clone the sesdev git repo, the "git-core"
+package is needed. So, before proceeding, make sure that all of these packages
+are installed in the system:
 
 ```
-$ sudo zypper -n install libvirt-devel
+$ sudo zypper -n install gcc git-core libvirt-devel python3-devel
 ```
 
-Once libvirt-devel is installed in the system, you can proceed to clone the
-sesdev source code repo, create and activate a virtualenv, and install sesdev's
-Python dependencies:
+Now you can proceed to clone the sesdev source code repo, create and activate
+a virtualenv, and install sesdev's Python dependencies in it:
 
 ```
 $ git clone https://github.com/SUSE/sesdev.git
@@ -97,6 +125,9 @@ $ pip install --editable .
 ```
 
 Remember to re-run `pip install --editable .` after each git pull.
+
+At this point, sesdev should be installed and ready to use: refer to the "Usage"
+chapter, below, for further information.
 
 #### Linting
 
