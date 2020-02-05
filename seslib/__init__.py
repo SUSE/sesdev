@@ -148,6 +148,8 @@ VERSION_OS_REPO_MAPPING = {
     },
     'ses7': {
         'sles-15-sp2': [
+            'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/'
+            'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
             'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
             'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
         ],
