@@ -113,7 +113,7 @@ $ sudo systemctl restart libvirtd
 
 ```
 $ sudo dnf config-manager --add-repo \
-https://download.opensuse.org/repositories/home:rjdias/<distro>/home:rjdias.repo
+https://download.opensuse.org/repositories/filesystems:/ceph/<distro>/filesystems:ceph.repo
 dnf install sesdev
 ```
 
