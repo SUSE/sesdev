@@ -28,6 +28,7 @@ the VMs and run the deployment scripts.
       * [Custom zypper repos](#custom-zypper-repos)
    * [Listing deployments](#listing-deployments)
    * [SSH access to the cluster](#ssh-access-to-the-cluster)
+   * [SCP files between cluster and host system](#scp-files-between-cluster-and-host-system)
    * [Services port-forwarding](#services-port-forwarding)
    * [Stopping a cluster](#stopping-a-cluster)
    * [Destroying a cluster](#destroying-a-cluster)
@@ -267,6 +268,37 @@ specified. You can check the existing node names with the following command:
 ```
 $ sesdev show <deployment_id>
 ```
+
+### SCP files between cluster and host system
+
+`sesdev` does not currently have any built-in feature for this use case,
+so for now we have to do this manually. Here are some hints.
+
+`sesdev` stores the `Vagrantfile` and SSH keypair for each cluster in
+the directory
+
+    $HOME/.sesdev/<deployment_id>
+
+where `<deployment_id>` is the name you gave to the cluster when you
+created it. Make this your current working directory:
+
+    $ cd $HOME/.sesdev/<deployment_id>
+
+Now run:
+
+    $ vagrant ssh-config
+
+This will give you a series of "Host foo" blocks, one for each node in
+the cluster. For each node, `HostName` should contain the IP address
+to use for SSH communications from the host to that node. The SSH key
+to use is in the subdirectory `keys/` - do not use the `IdentityFile`
+provided by vagrant, because that only works with the user `vagrant`.
+
+Armed with this information, you can `scp` files into and out of the
+cluster. For example, if `vagrant ssh-config` says node "admin" has
+IP address 192.168.121.51, you can do:
+
+    scp -i keys/id_rsa root@192.168.121.51:/etc/os-release .
 
 ### Services port-forwarding
 
