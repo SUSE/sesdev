@@ -1,10 +1,36 @@
-# sesdev - CLI tool to deploy and manage SES/Ceph clusters [![Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev)
+# sesdev - deploy and manage SES/Ceph clusters [![Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev)
 
 `sesdev` is a CLI tool to deploy Ceph clusters (both the upstream and SUSE
 downstream versions).
 
 This tool uses [Vagrant](https://www.vagrantup.com/) behind the scenes to create
 the VMs and run the deployment scripts.
+
+## Table of Contents
+
+[//]: # (To generate a new TOC, first install https://github.com/ekalinin/github-markdown-toc)
+[//]: # (and then run "gh-md-toc README.md")
+[//]: # (the new TOC will appear on stdout: the expectation is that the maintainer will do the rest.)
+
+* [Installation](#installation)
+   * [Installation on openSUSE](#installation-on-opensuse)
+      * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt)
+      * [Add user to libvirt group](#add-user-to-libvirt-group)
+      * [Install Vagrant](#install-vagrant)
+      * [Install sesdev from package](#install-sesdev-from-package)
+   * [Installation on Fedora Linux](#installation-on-fedora-linux)
+      * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt-1)
+      * [Install sesdev from package](#install-sesdev-from-package-1)
+   * [Install sesdev from source](#install-sesdev-from-source)
+      * [Linting](#linting)
+* [Usage](#usage)
+   * [Create/Deploy cluster](#createdeploy-cluster)
+      * [Custom zypper repos](#custom-zypper-repos)
+   * [Listing deployments](#listing-deployments)
+   * [SSH access to the cluster](#ssh-access-to-the-cluster)
+   * [Services port-forwarding](#services-port-forwarding)
+   * [Stopping a cluster](#stopping-a-cluster)
+   * [Destroying a cluster](#destroying-a-cluster)
 
 ## Installation
 
@@ -18,7 +44,7 @@ be found on the [openSUSE Build Service](https://software.opensuse.org//download
 
 ### Installation on openSUSE
 
-#### Install KVM/QEMU + Libvirt
+#### Install KVM/QEMU and Libvirt
 
 ```
 $ sudo zypper -n install patterns-openSUSE-kvm_server \
@@ -74,7 +100,7 @@ chapter, below, for further information.
 
 ### Installation on Fedora Linux
 
-#### Install KVM/QEMU + Libvirt
+#### Install KVM/QEMU and Libvirt
 
 ```
 $ sudo dnf install qemu-common qemu-kvm libvirt-daemon-kvm \
