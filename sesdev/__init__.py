@@ -685,13 +685,18 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
 @click.option('--force', is_flag=True, callback=_abort_if_false, expose_value=False,
               help='Allow to destroy the deployment without user confirmation',
               prompt='Are you sure you want to destroy the cluster?')
-def destroy(deployment_id):
+@click.option('--destroy-networks', is_flag=True, default=False,
+              help='Allow to destroy networks associated with the deployment')
+def destroy(deployment_id, destroy_networks):
     """
     Destroys the deployment named DEPLOYMENT_ID by destroying the VMs and deletes the
     deployment directory.
     """
     dep = seslib.Deployment.load(deployment_id)
-    dep.destroy(_print_log)
+    logger.debug("destroy deployment: '%s', destroy networks: %s",
+                 deployment_id,
+                 destroy_networks)
+    dep.destroy(_print_log, destroy_networks)
 
 
 @cli.command()
