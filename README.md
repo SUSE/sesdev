@@ -28,6 +28,7 @@ the VMs and run the deployment scripts.
       * [Custom zypper repos](#custom-zypper-repos)
    * [Listing deployments](#listing-deployments)
    * [SSH access to the cluster](#ssh-access-to-the-cluster)
+   * [Copy files into and out of the cluster](#copy-files-into-and-out-of-the-cluster)
    * [Services port-forwarding](#services-port-forwarding)
    * [Stopping a cluster](#stopping-a-cluster)
    * [Destroying a cluster](#destroying-a-cluster)
@@ -266,6 +267,14 @@ specified. You can check the existing node names with the following command:
 
 ```
 $ sesdev show <deployment_id>
+```
+
+### Copy files into and out of the cluster
+
+`sesdev` provides a subset of `scp` functionality. For details, see:
+
+```
+$ sesdev scp --help
 ```
 
 ### Services port-forwarding

@@ -16,7 +16,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, VersionQ
                         SettingTypeError, VagrantBoxDoesNotExist, NodeDoesNotExist, \
                         NoSourcePortForPortForwarding, ServicePortForwardingNotSupported, \
                         DeploymentAlreadyExists, ServiceNotFound, ExclusiveRoles, \
-                        RoleNotSupported, CmdException
+                        RoleNotSupported, CmdException, VagrantSshConfigNoHostName, \
+                        ScpInvalidSourceOrDestination
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1021,11 +1022,12 @@ class Deployment():
             result += "\n"
         return result
 
-    def _ssh_cmd(self, name):
+    def _vagrant_ssh_config(self, name):
         if name not in self.nodes:
             raise NodeDoesNotExist(name)
 
         out = tools.run_sync(["vagrant", "ssh-config", name], cwd=self.dep_dir)
+
         address = None
         proxycmd = None
         for line in out.split('\n'):
@@ -1036,11 +1038,17 @@ class Deployment():
                 proxycmd = line[len('ProxyCommand')+1:]
 
         if address is None:
-            raise Exception("Could not get HostName info from 'vagrant ssh-config {}' command"
-                            .format(name))
+            raise VagrantSshConfigNoHostName(name)
 
         dep_private_key = os.path.join(self.dep_dir, "keys/id_rsa")
-        _cmd = ["ssh", "root@{}".format(address), "-i", dep_private_key,
+
+        return (address, proxycmd, dep_private_key)
+
+    def _ssh_cmd(self, name):
+        (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
+
+        _cmd = ["ssh", "root@{}".format(address),
+                "-i", dep_private_key,
                 "-o", "IdentitiesOnly yes", "-o", "StrictHostKeyChecking no",
                 "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no"]
         if proxycmd is not None:
@@ -1049,6 +1057,57 @@ class Deployment():
 
     def ssh(self, name):
         tools.run_interactive(self._ssh_cmd(name))
+
+    def _scp_cmd(self, recursive, source, destination):
+        host_is_source = False
+        host_is_destination = False
+        name = None
+        source_path = None
+        destination_path = None
+
+        # populate host_is_source and host_is_destination
+        if ':' in source:
+            host_is_source = False
+            host_is_destination = True
+        if ':' in destination:
+            host_is_source = True
+            host_is_destination = False
+        if host_is_source and host_is_destination:
+            raise ScpInvalidSourceOrDestination
+        if host_is_source or host_is_destination:
+            pass
+        else:
+            raise ScpInvalidSourceOrDestination
+
+        # populate name, source_path, and destination_path
+        if host_is_source:
+            source_path = source
+            (name, destination_path) = destination.split(':')
+        elif host_is_destination:
+            (name, source_path) = source.split(':')
+            destination_path = destination
+
+        # build up scp command
+        (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
+        _cmd = ['scp']
+        if recursive:
+            _cmd.extend(['-r'])
+        _cmd.extend(["-i", dep_private_key,
+                     "-o", "IdentitiesOnly yes",
+                     "-o", "StrictHostKeyChecking no",
+                     "-o", "UserKnownHostsFile /dev/null",
+                     "-o", "PasswordAuthentication no"])
+        if proxycmd is not None:
+            _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
+        if host_is_source:
+            _cmd.extend([source_path, 'root@{}:{}'.format(address, destination_path)])
+        elif host_is_destination:
+            _cmd.extend(['root@{}:{}'.format(address, source_path), destination_path])
+
+        return _cmd
+
+    def scp(self, recursive, source, destination):
+        tools.run_interactive(self._scp_cmd(recursive, source, destination))
 
     def _find_service_node(self, service):
         if service == 'grafana' and self.settings.version == 'ses5':

@@ -96,3 +96,16 @@ class RoleNotSupported(SesDevException):
     def __init__(self, role, version):
         super(RoleNotSupported, self).__init__(
             "Role '{}' is not supported in version '{}'".format(role, version))
+
+
+class VagrantSshConfigNoHostName(SesDevException):
+    def __init__(self, name):
+        super(VagrantSshConfigNoHostName, self).__init__(
+            "Could not get HostName info from 'vagrant ssh-config {}' command"
+            .format(name))
+
+
+class ScpInvalidSourceOrDestination(SesDevException):
+    def __init__(self):
+        super(ScpInvalidSourceOrDestination, self).__init__(
+            "Either source or destination must contain a ':' - not both or neither")
