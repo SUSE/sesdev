@@ -660,9 +660,53 @@ def ssh(deployment_id, node=None):
     """
     Opens an SSH shell to node NODE in deployment DEPLOYMENT_ID.
     If the node is not specified, an SSH shell is opened on the "admin" node.
+
+    Note: You can check the existing node names with the command
+    "sesdev show <deployment_id>"
     """
     dep = seslib.Deployment.load(deployment_id)
     dep.ssh(node if node else 'admin')
+
+
+@cli.command()
+@click.option('--recursive/--no-recursive', '-r/ ', is_flag=True,
+              help='Pass -r to scp')
+@click.argument('deployment_id')
+@click.argument('source')
+@click.argument('destination')
+def scp(recursive, deployment_id, source, destination):
+    """
+    Prepares and executes a 'scp' command to copy a file or entire directory
+    from a cluster node to the host, or from the host to a cluster node.
+
+    Takes three arguments: in addition to deployment_id, it needs both a source
+    and destination, one of which will be in a special form:
+
+        <node>:<path>
+
+    Note: You can check the existing node names with the command
+    "sesdev show <deployment_id>"
+
+    For example, to copy the file /etc/os-release from the node 'admin'
+    on cluster (deployment_id) 'foo' to the current directory on the host:
+
+        sesdev scp foo admin:/etc/os-release .
+
+    To recursively copy the entire directory "/bar" from the host to "/root/bar"
+    on node1 in deployment foo:
+
+        sesdev scp --recursive foo /bar node1:
+
+    (From the cluster node's perspective, the scp operation will be done as
+    root.)
+
+    The --recursive option can also be abbreviated to -r and can appear anywhere
+    in the command line, e.g.:
+
+        sesdev scp foo -r /bar node1:
+    """
+    dep = seslib.Deployment.load(deployment_id)
+    dep.scp(recursive, source, destination)
 
 
 @cli.command()
