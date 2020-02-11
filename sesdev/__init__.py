@@ -370,10 +370,6 @@ def _gen_settings_dict(version,
                        libvirt_private_key_file,
                        libvirt_storage_pool,
                        libvirt_networks,
-                       deepsea_cli,
-                       stop_before_deepsea_stage,
-                       deepsea_repo,
-                       deepsea_branch,
                        repo,
                        cpus,
                        ram,
@@ -384,6 +380,10 @@ def _gen_settings_dict(version,
                        scc_user,
                        scc_pass,
                        domain,
+                       deepsea_cli=None,
+                       stop_before_deepsea_stage=None,
+                       deepsea_repo=None,
+                       deepsea_branch=None,
                        ceph_bootstrap_repo=None,
                        ceph_bootstrap_branch=None,
                        stop_before_ceph_bootstrap_config=False,
@@ -639,6 +639,24 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     _create_command(deployment_id, deploy, settings_dict)
 
 
+@create.command()
+@click.argument('deployment_id')
+@common_create_options
+@libvirt_options
+@click.option("--deploy-ses", is_flag=True, default=False,
+              help="Deploy SES using rook in CaasP")
+def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
+    """
+    Creates a CaaSP cluster using SLES 15 SP1
+    """
+    if kwargs['num_disks'] is None:
+        kwargs['num_disks'] = 2 if deploy_ses else 0
+    settings_dict = _gen_settings_dict('caasp4', **kwargs)
+    if 'roles' not in settings_dict:
+        settings_dict['roles'] = _parse_roles("[master],[worker],[loadbalancer],[storage]")
+    _create_command(deployment_id, deploy, settings_dict)
+
+
 @cli.command()
 @click.argument('deployment_id')
 @click.option('--force', is_flag=True, callback=_abort_if_false, expose_value=False,
@@ -665,7 +683,13 @@ def ssh(deployment_id, node=None):
     "sesdev show <deployment_id>"
     """
     dep = seslib.Deployment.load(deployment_id)
-    dep.ssh(node if node else 'admin')
+    _node = node
+    if node is None:
+        if dep.settings.version == 'caasp4':
+            _node = 'master'
+        else:
+            _node = 'admin'
+    dep.ssh(_node)
 
 
 @cli.command()

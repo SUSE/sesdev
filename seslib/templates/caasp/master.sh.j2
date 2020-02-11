@@ -1,0 +1,87 @@
+
+zypper -n in -t pattern SUSE-CaaSP-Management
+
+{% if node.name == 'master1' %}
+
+function wait_for_masters_ready {
+    printf "Waiting for masters to be ready"
+    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "caasp4-master-[0-9]\s+Ready") -eq $NMASTERS ]]; do
+         sleep 5
+		 printf "."
+    done
+	printf "\n"
+}
+
+function wait_for_workers_ready {
+    printf "Waiting for workers to be ready"
+    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "caasp4-worker-[0-9]\s+Ready") -eq $NWORKERS ]]; do
+         sleep 5
+         printf "."
+    done
+    printf "\n"
+}
+
+function wait_for_workers_notready {
+    printf "Waiting for workers to be flagged 'NotReady'"
+    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "caasp4-worker-[0-9]\s+NotReady") -eq $NWORKERS ]]; do
+         sleep 5
+         printf "."
+    done
+    printf "\n"
+}
+
+touch /tmp/ready
+
+while : ; do
+  PROVISIONED_NODES=`ls -l /tmp/ready-* 2>/dev/null | wc -l`
+  echo "waiting for nodes (${PROVISIONED_NODES}/{{ nodes|length }})";
+  [[ "${PROVISIONED_NODES}" != "{{ nodes|length }}" ]] || break
+  sleep 2;
+{% for node in nodes %}
+  scp -o StrictHostKeyChecking=no {{ node.name }}:/tmp/ready /tmp/ready-{{ node.name }};
+{% endfor %}
+done
+
+SKUBA_VERBOSITY=${SKUBA_VERBOSITY:-1}
+
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/id_rsa
+
+mkdir -p ~/cluster
+cd ~/cluster
+
+skuba -v ${SKUBA_VERBOSITY} cluster init --control-plane {{ node_manager.get_one_by_role('loadbalancer').name }} caasp4-cluster
+chmod g+rx caasp4-cluster
+cd caasp4-cluster
+skuba -v ${SKUBA_VERBOSITY} node bootstrap --user sles --sudo --target {{ node.name }} {{ node.name }}
+skuba -v ${SKUBA_VERBOSITY} cluster status
+mkdir -p ~/.kube
+ln -sf /root/cluster/caasp4-cluster/admin.conf ~/.kube/config
+chmod g+r /root/cluster/caasp4-cluster/admin.conf
+kubectl get nodes -o wide
+
+# adding masters
+{% for _node in node_manager.get_by_role('master') %}
+{% if _node != node %}
+skuba -v ${SKUBA_VERBOSITY} node join --role master --user sles --sudo --target {{ _node.name }} {{ _node.name }}
+{% endif %}
+{% endfor %}
+skuba -v ${SKUBA_VERBOSITY} cluster status
+kubectl get nodes -o wide
+
+# adding workers
+{% for _node in node_manager.get_by_role('worker') %}
+skuba -v ${SKUBA_VERBOSITY} node join --role worker --user sles --sudo --target {{ _node.name }} {{ _node.name }}
+{% endfor %}
+
+wait_for_masters_ready
+wait_for_workers_ready
+
+skuba -v ${SKUBA_VERBOSITY} cluster status
+kubectl get nodes -o wide
+
+{% else %}
+
+touch /tmp/ready
+
+{% endif %}
