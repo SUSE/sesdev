@@ -1,4 +1,8 @@
+zypper -n in nfs-kernel-server
+
 mkdir /nfs
 echo '/nfs     *.{{ domain }}(rw,no_root_squash)' >/etc/exports
 systemctl enable --now nfs-server
 exportfs -a
+
+touch /tmp/ready

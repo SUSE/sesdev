@@ -6,8 +6,8 @@ echo "sles ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/sles
 cp -r ~root/.ssh ~sles/
 chown -R sles:users ~sles/.ssh
 
-zypper -n install skuba cri-o-kubeadm-criconfig kubernetes-kubeadm kubernetes-kubelet \
-          kubernetes-client podman skuba-update SUSEConnect
+zypper -n install cri-o-kubeadm-criconfig kubernetes-kubeadm kubernetes-kubelet \
+          kubernetes-client podman SUSEConnect nfs-client
 
 zypper -n install -t pattern SUSE-CaaSP-Node
 

@@ -30,6 +30,8 @@ function wait_for_workers_notready {
     printf "\n"
 }
 
+zypper -n in skuba skuba-update
+
 touch /tmp/ready
 
 while : ; do
