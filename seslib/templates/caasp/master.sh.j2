@@ -5,7 +5,7 @@ zypper -n in -t pattern SUSE-CaaSP-Management
 
 function wait_for_masters_ready {
     printf "Waiting for masters to be ready"
-    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "caasp4-master-[0-9]\s+Ready") -eq $NMASTERS ]]; do
+    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "master[0-9]\s+Ready") -eq {{node_manager.get_by_role('master') | length}} ]]; do
          sleep 5
 		 printf "."
     done
@@ -14,16 +14,7 @@ function wait_for_masters_ready {
 
 function wait_for_workers_ready {
     printf "Waiting for workers to be ready"
-    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "caasp4-worker-[0-9]\s+Ready") -eq $NWORKERS ]]; do
-         sleep 5
-         printf "."
-    done
-    printf "\n"
-}
-
-function wait_for_workers_notready {
-    printf "Waiting for workers to be flagged 'NotReady'"
-    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "caasp4-worker-[0-9]\s+NotReady") -eq $NWORKERS ]]; do
+    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "worker[0-9]\s+Ready") -eq {{node_manager.get_by_role('worker') | length}} ]]; do
          sleep 5
          printf "."
     done
@@ -81,6 +72,95 @@ wait_for_workers_ready
 
 skuba -v ${SKUBA_VERBOSITY} cluster status
 kubectl get nodes -o wide
+
+# setting up helm
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+helm init --service-account=tiller --wait
+
+# adding nfs storage class
+helm install --name=nfs-client --set nfs.server=storage1 --set nfs.path=/nfs --set storageClass.defaultClass=true stable/nfs-client-provisioner
+
+# Installing Kubernetes Dashboard
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml
+kubectl patch svc kubernetes-dashboard --type='json' -p '[{"op":"replace","path":"/spec/type","value":"NodePort"}]' -n kubernetes-dashboard
+
+cat >/tmp/dashboard-admin.yaml <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+EOF
+
+kubectl apply -f /tmp/dashboard-admin.yaml
+
+cat >/tmp/admin-user-crb.yaml <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: admin-user
+    namespace: kube-system
+EOF
+
+kubectl apply -f /tmp/admin-user-crb.yaml
+
+rm -f /tmp/dashboard-admin.yaml /tmp/admin-user-crb.yaml 2>/dev/null
+
+ST=$(kubectl -n kube-system get serviceaccounts admin-user -o jsonpath="{.secrets[0].name}")
+SECRET=$(kubectl -n kube-system get secret ${ST} -o jsonpath="{.data.token}"|base64 -d)
+export NODE_PORT=$(kubectl get -o jsonpath="{.spec.ports[0].nodePort}" services kubernetes-dashboard -n kubernetes-dashboard)
+export NODE_IP=$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}" -n kubernetes-dashboard)
+
+echo "    token: $SECRET" >> ~/.kube/config
+echo "Access your dashboard at: https://$NODE_IP:$NODE_PORT/"
+echo "Your login token is: ${SECRET}"
+echo "Or use ~/.kube/config to authenticate with kubeconfig"
+
+# setting up MetalLB
+MLBCONFIG=/tmp/metallb.yaml
+
+kubectl create namespace metallb-system
+
+cat > ${MLBCONFIG} <<EOF
+configInline:
+  address-pools:
+  - name: default
+    protocol: layer2
+    addresses:
+    - 192.168.121.240-192.168.121.250
+EOF
+
+helm install --namespace metallb-system --name metallb stable/metallb -f ${MLBCONFIG}
+rm ${MLBCONFIG}
+
+
+{% if caasp_deploy_ses %}
+
+# deploy and configure rook + Ceph
+
+zypper -n in rook-k8s-yaml
+cd /usr/share/k8s-yaml/rook/ceph/
+
+{% if node_manager.get_by_role('worker') | length <3 %}
+
+sed -i 's/allowMultiplePerNode: false/allowMultiplePerNode: true/' /usr/share/k8s-yaml/rook/ceph/cluster.yaml
+
+{% endif %}
+
+kubectl apply -f common.yaml -f operator.yaml
+sleep 15
+kubectl apply -f cluster.yaml -f toolbox.yaml
+echo "Verify the installation by running 'kubectl get pods -n rook-ceph'"
+
+{% endif %}
 
 {% else %}
 

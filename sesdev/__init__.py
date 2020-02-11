@@ -654,6 +654,8 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
     if 'roles' not in settings_dict:
         settings_dict['roles'] = _parse_roles("[master],[worker],[loadbalancer],[storage]")
+    if deploy_ses:
+        settings_dict['caasp_deploy_ses'] = True
     _create_command(deployment_id, deploy, settings_dict)
 
 
@@ -686,7 +688,7 @@ def ssh(deployment_id, node=None):
     _node = node
     if node is None:
         if dep.settings.version == 'caasp4':
-            _node = 'master'
+            _node = 'master1'
         else:
             _node = 'admin'
     dep.ssh(_node)

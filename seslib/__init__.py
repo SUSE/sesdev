@@ -376,6 +376,11 @@ SETTINGS = {
         'help': 'Use `ceph-bootstrap deploy` command to run ceph-salt formula',
         'default': True
     },
+    'caasp_deploy_ses': {
+        'type': bool,
+        'help': 'Deploy SES using rook in CaasP',
+        'default': False
+    },
 }
 
 
@@ -722,18 +727,22 @@ class Deployment():
                 fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
             elif 'master' in node_roles:
                 master_id += 1
+                node_id += 1
                 name = 'master{}'.format(master_id)
                 fqdn = 'master{}.{}'.format(master_id, self.settings.domain.format(self.dep_id))
             elif 'worker' in node_roles:
                 worker_id += 1
+                node_id += 1
                 name = 'worker{}'.format(worker_id)
                 fqdn = 'worker{}.{}'.format(worker_id, self.settings.domain.format(self.dep_id))
             elif 'loadbalancer' in node_roles:
                 loadbl_id += 1
+                node_id += 1
                 name = 'loadbl{}'.format(loadbl_id)
                 fqdn = 'loadbl{}.{}'.format(loadbl_id, self.settings.domain.format(self.dep_id))
             elif 'storage' in node_roles and self.settings.version == 'caasp4':
                 storage_id += 1
+                node_id += 1
                 name = 'storage{}'.format(storage_id)
                 fqdn = 'storage{}.{}'.format(storage_id, self.settings.domain.format(self.dep_id))
             else:
@@ -894,7 +903,8 @@ class Deployment():
             'ceph_bootstrap_deploy_mgrs': self.settings.ceph_bootstrap_deploy_mgrs,
             'ceph_bootstrap_deploy_osds': self.settings.ceph_bootstrap_deploy_osds,
             'ceph_bootstrap_deploy': self.settings.ceph_bootstrap_deploy,
-            'node_manager': NodeManager(list(self.nodes.values()))
+            'node_manager': NodeManager(list(self.nodes.values())),
+            'caasp_deploy_ses': self.settings.caasp_deploy_ses,
         }
 
         scripts = {}
