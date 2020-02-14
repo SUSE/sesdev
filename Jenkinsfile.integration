@@ -1,0 +1,63 @@
+#!groovy
+
+// base operating system to use
+def obs_image_url='https://download.opensuse.org/distribution/leap/15.1/jeos/openSUSE-Leap-15.1-JeOS.x86_64-15.1.0-kvm-and-xen-Current.qcow2'
+// base jenkins slave
+def jenkins_slave_base='storage-compute'
+// generated jenkins slave name
+def jenkins_slave_name="slave-${currentBuild.fullProjectName}-${currentBuild.number}"
+
+
+pipeline {
+    agent none
+
+    options { parallelsAlwaysFailFast() }
+
+    environment {
+        // FIXME: do not use tbechtold creds
+        AWS_ACCESS_KEY_ID = credentials('tbechtold-aws-secret-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('tbechtold-aws-secret-access-key')
+        JENKINS_URL = 'https://ceph-ci.suse.de'
+        JENKINS_USERNAME = 'storage'
+        JENKINS_PASSWORD = credentials('storage-ci-suse-de-jenkins-password')
+    }
+    stages {
+        stage('Create jenkins slave') {
+            agent {
+                label "${jenkins_slave_base}"
+            }
+            steps {
+                sh 'git clone https://github.com/toabctl/jcs.git'
+                sh 'virtualenv venv'
+                sh "source venv/bin/activate; pip install git+git://github.com/toabctl/jcs.git#egg=jcs[aws,obs,jenkins]"
+                // FIXME the worker needs a ~/.ec2utils.conf file (just a copy from git, but required) in case a new image needs to be uploaded
+                sh "source venv/bin/activate; jcs create --jenkins-credential storage-automation-for-opensuse-user ${obs_image_url} ${jenkins_slave_name}"
+            }
+        }
+
+        stage('zypper refresh') {
+            agent { label "${jenkins_slave_name}" }
+            steps {
+                sh 'zypper -n refresh'
+                sh 'zypper -n repos -d'
+            }
+        }
+        stage('Install vagrant') {
+            agent { label "${jenkins_slave_name}" }
+            steps {
+                sh 'foo'
+            }
+        }
+    }
+
+    post {
+        // cleanup is executed after every other post step
+        cleanup {
+            node("${jenkins_slave_base}") {
+                sh 'virtualenv venv'
+                sh "source venv/bin/activate; pip install git+git://github.com/toabctl/jcs.git#egg=jcs[aws,obs,jenkins]"
+                sh "source venv/bin/activate; jcs delete --cloud ${params.CLOUD} ${jenkins_slave_name}"
+            }
+        }
+    }
+}
