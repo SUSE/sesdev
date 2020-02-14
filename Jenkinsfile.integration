@@ -1,0 +1,150 @@
+#!groovy
+
+// base jenkins slave
+def jenkins_slave_base='storage-compute'
+// generated jenkins slave name
+def jenkins_slave_name="slave-${currentBuild.fullProjectName.replace('/', '_')}-${currentBuild.number}"
+
+// images
+def images_openstack = [
+    'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64'
+]
+
+// repositories
+def repos = [
+    'openSUSE-Leap-15.2': [
+        'http://download.opensuse.org/distribution/leap/15.2/repo/oss/',
+        'http://download.opensuse.org/update/leap/15.2/oss/',
+        'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Leap_15.2'
+    ]
+]
+
+// parameters depending on the selected cloud
+def cloud_params = [
+    'ovh': [
+        'cloud_network_public': 'Ext-Net',
+        'cloud_security_group': 'default',
+        // https://www.ovhcloud.com/en/public-cloud/prices/ for ovh instance types
+        'cloud_instance_type': 's1-8'
+    ],
+    'ecp': [
+        'cloud_network_public': 'floating',
+        'cloud_security_group': 'sesci',
+        'cloud_instance_type': 'm1.medium'
+    ]
+]
+
+def sesdev_create_ceph_salt_params() {
+    if (params.CEPH_SALT_FROM_GIT_MASTER == true) {
+        return "--ceph-salt-repo https://github.com/ceph/ceph-salt.git --ceph-salt-branch master"
+    } else {
+        return ""
+    }
+}
+
+def zypper_add_repos(repo_list) {
+    for (int i = 0; i < repo_list.size(); i++) {
+        sh "zypper -n ar --no-gpgcheck ${repo_list[i]} ${i}"
+    }
+}
+
+def sesdev_create_cmd = "sesdev create octopus --non-interactive ${sesdev_create_ceph_salt_params()} --image-path ${params.SESDEV_CEPH_CONTAINER_IMAGE} --qa-test --single-node mini"
+
+pipeline {
+    agent none
+
+    options { parallelsAlwaysFailFast() }
+
+    parameters {
+        /* first value in the list is the default */
+        choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
+        choice(name: 'OS', choices: ['openSUSE-Leap-15.2'], description: 'Operating system to use')
+        string(name: 'SESDEV_CEPH_CONTAINER_IMAGE',
+               defaultValue: "registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph",
+               description: 'Which Ceph container image should sesdev use?')
+        string(name: 'SLEEP_WHEN_FAILING', defaultValue: '1',
+               description: 'Keep the environment available for X minutes when job failed')
+        booleanParam(name: 'CEPH_SALT_FROM_GIT_MASTER', defaultValue: true, description: 'Use ceph-salt from git (instead of using the RPM package)')
+    }
+
+    environment {
+        OS_CLOUD = "${params.OS_CLOUD}"
+        VAGRANT_DEFAULT_PROVIDER = 'libvirt'
+        JENKINS_URL = 'https://ceph-ci.suse.de'
+        JENKINS_USERNAME = 'storage'
+        JENKINS_PASSWORD = credentials('storage-ci-suse-de-jenkins-password')
+    }
+    stages {
+        stage('Create jenkins slave') {
+            agent {
+                label "${jenkins_slave_base}"
+            }
+            steps {
+                sh 'git clone https://github.com/toabctl/jcs.git'
+                sh 'virtualenv venv'
+                sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
+                sh "source venv/bin/activate; jcs --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} create --cloud openstack --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} --jenkins-credential storage-automation-for-root-user ${images_openstack[params.OS]} ${jenkins_slave_name}"
+            }
+        }
+
+        stage('zypper add repos and refresh') {
+            agent { label "${jenkins_slave_name}" }
+            steps {
+                zypper_add_repos(repos[params.OS])
+                sh 'zypper -n refresh'
+                sh 'zypper -n repos -d'
+            }
+        }
+
+        stage('Install sesdev dependencies') {
+            agent { label "${jenkins_slave_name}" }
+            steps {
+                sh 'zypper -n install patterns-openSUSE-kvm_server patterns-server-kvm_tools bridge-utils'
+                sh 'zypper -n in vagrant vagrant-libvirt libvirt gcc git-core libvirt-devel python3-devel python3-virtualenv'
+            }
+        }
+        stage('Setup libvirt') {
+            agent { label "${jenkins_slave_name}" }
+            steps {
+                sh "usermod -a -G libvirt `whoami`"
+                sh 'systemctl enable libvirtd'
+                sh 'systemctl restart libvirtd'
+                sh 'mkdir /libvirt-pool'
+                sh 'virsh pool-define-as --name default --type dir --target /libvirt-pool'
+                sh 'virsh pool-start default'
+                sh 'virsh net-start default'
+                sh 'virsh net-list --all'
+                sh 'virsh pool-list --all'
+            }
+        }
+
+        stage('Install sesdev from source and create cluster') {
+            agent { label "${jenkins_slave_name}" }
+            steps {
+                sh """
+                virtualenv venv
+                source venv/bin/activate
+                pip install --editable .
+                """
+                sh "source venv/bin/activate; sesdev --help"
+                sh "source venv/bin/activate; ${sesdev_create_cmd}; echo \$?"
+            }
+        }
+    }
+
+    post {
+        // cleanup is executed after every other post step
+        failure {
+            node("${jenkins_slave_base}") {
+                sh "sleep ${params.SLEEP_WHEN_FAILING.toInteger() * 60}"
+            }
+        }
+        cleanup {
+            node("${jenkins_slave_base}") {
+                sh "virtualenv venv"
+                sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
+                sh "source venv/bin/activate; jcs delete --cloud openstack ${jenkins_slave_name}"
+            }
+        }
+    }
+}
