@@ -73,6 +73,7 @@ sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
 systemctl enable salt-master
 systemctl start salt-master
 sleep 5
+systemctl restart salt-minion
 {% endif %}
 
 while : ; do
