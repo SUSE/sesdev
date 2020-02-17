@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2020-02-17
+
+### Added
+Implement "vagrant box list" and "vagrant box remove" (PR#69)
+Allow user to specify custom private key file for remote libvirt (PR#71)
+spec: add Fedora-specific Requires (PR#77)
+Pillar is now automatically configured by ceph-bootstrap (PR#78)
+Implement "sesdev scp" feature (PR#101)
+Implement "sesdev create caasp4" feature (PR#103)
+
+### Fixed
+Revamp --num-disks handling (PR#65)
+Miscellaneous spec file cleanups and bugfixes (PR#72)
+several fixes for octopus/ses7 deployment (PR#76)
+Remove any orphaned images after destroy (PR#81)
+seslib: fix Ceph repos for ses5, ses6, ses7 (PR#83)
+tools/run_async: decode stderr bytes (PR#88)
+libvirt/network: autostart networks per default (PR#93)
+Fix NTP issue that was causing SES5 deployment to fail (PR#108)
+
+### Changed
+ceph_bootstrap_deployment: "ceph-bootstrap -ldebug deploy" (PR#68)
+Increase chances of getting the latest ses7 packages (PR#84)
+ceph_bootstrap_deployment: log cephadm and ceph-bootstrap version (PR#86)
+ceph_bootstrap: restart salt-master after ceph-bootstrap installation (PR#87)
+seslib: add SES7 Internal Media when --qa-test given (PR#90)
+
 ## [1.1.1] - 2020-01-29
 ### Added
 - Octopus and SES7 deployment with ceph-bootstrap (PR #28)
@@ -148,6 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The CHANGELOG file.
 
 [unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.0...HEAD
+[1.1.2]: https://github.com/SUSE/sesdev/releases/tag/v1.1.2
 [1.1.1]: https://github.com/SUSE/sesdev/releases/tag/v1.1.1
 [1.1.0]: https://github.com/SUSE/sesdev/releases/tag/v1.1.0
 [1.0.3]: https://github.com/SUSE/sesdev/releases/tag/v1.0.3
