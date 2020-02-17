@@ -9,6 +9,7 @@ fi
 zypper -n install ntp SuSEfirewall2
 SuSEfirewall2 off
 
+zypper -n install ntp
 systemctl enable ntpd
 cat > /etc/ntp.conf <<EOF
 server 0.europe.pool.ntp.org
