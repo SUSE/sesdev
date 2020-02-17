@@ -64,6 +64,10 @@ systemctl enable salt-minion
 systemctl start salt-minion
 {% endif %}
 
+{% if version == 'ses5' %}
+zypper -n rm ntp
+{% endif %}
+
 touch /tmp/ready
 
 {% if node == admin or node == suma %}

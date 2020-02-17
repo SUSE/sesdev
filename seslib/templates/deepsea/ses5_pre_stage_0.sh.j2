@@ -9,16 +9,41 @@ fi
 zypper -n install ntp SuSEfirewall2
 SuSEfirewall2 off
 
+zypper -n install ntp
 systemctl enable ntpd
+cat > /etc/ntp.conf <<EOF
+server 0.europe.pool.ntp.org
+server 1.europe.pool.ntp.org
+server 2.europe.pool.ntp.org
+EOF
+ntpd -gq
 systemctl start ntpd
+ntpq -p
 
 sed -i 's/#worker_threads: 5/worker_threads: 10/g' /etc/salt/master
 systemctl restart salt-master
 systemctl restart salt-minion
 
-sleep 10
-
-salt '*' test.ping
+# make sure all minions are responding
+set +ex
+LOOP_COUNT="0"
+while true ; do
+  set -x
+  sleep 5
+  set +x
+  if [ "$LOOP_COUNT" -ge "20" ] ; then
+    echo "ERROR: minion(s) not responding to ping?"
+    exit 1
+  fi
+  LOOP_COUNT="$((LOOP_COUNT + 1))"
+  set -x
+  MINIONS_RESPONDING="$(salt '*' test.ping | grep True | wc --lines)"
+  if [ "$MINIONS_RESPONDING" = "{{ nodes|length }}" ]; then
+    break
+  fi
+  set +x
+done
+set -ex
 
 cat > /srv/salt/ceph/updates/nop.sls <<EOF
 dummy command:
@@ -29,6 +54,8 @@ cp /srv/salt/ceph/updates/nop.sls /srv/salt/ceph/updates/restart
 echo "updates_init: nop" >> /srv/pillar/ceph/stack/global.yml
 
 echo "updates_restart: nop" >> /srv/pillar/ceph/stack/global.yml
+
+echo "time_init: ntp" >> /srv/pillar/ceph/stack/global.yml
 
 # cp /srv/salt/ceph/updates/default_my.sls /srv/salt/ceph/time
 # sed -i 's/default/default_my/g' /srv/salt/ceph/time/init.sls
@@ -46,8 +73,27 @@ cat > /root/mds-get-name.patch <<EOF
      return host
 EOF
 
+{% raw %}
+cat > /root/ntp.patch <<EOF
+--- srv/salt/ceph/time/ntp/default.sls
++++ srv/salt/ceph/time/ntp/default.sls
+@@ -26,8 +26,7 @@ sync time:
+     - fire_event: True
+
+ start ntp:
+-  service.running:
+-    - name: ntpd
+-    - enable: True
++  cmd.run:
++    - name: "systemctl enable ntpd.service && systemctl start ntpd.service"
+ {% endif %}
+
+EOF
+{% endraw %}
+
 pushd /
 patch -p0 < /root/mds-get-name.patch
+patch -p0 < /root/ntp.patch
 popd
 
 {% if num_osds < 6 %}
