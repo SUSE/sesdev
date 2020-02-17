@@ -1,0 +1,28 @@
+useradd -m sles
+usermod -v 10000000-20000000 -w 10000000-20000000 sles
+
+echo "sles ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/sles
+
+cp -r /root/.ssh/ /home/sles/
+chown -R sles:users /home/sles/.ssh/
+
+zypper -n install cri-o-kubeadm-criconfig kubernetes-kubeadm kubernetes-kubelet \
+          kubernetes-client podman SUSEConnect nfs-client
+
+zypper -n install -t pattern SUSE-CaaSP-Node
+
+{% if node.has_role('master') %}
+{% include "caasp/master.sh.j2" %}
+{% endif %}
+
+{% if node.has_role('loadbalancer') %}
+{% include "caasp/loadbalancer.sh.j2" %}
+{% endif %}
+
+{% if node.has_role('storage') %}
+{% include "caasp/storage.sh.j2" %}
+{% endif %}
+
+{% if node.has_role('worker') %}
+touch /tmp/ready
+{% endif %}

@@ -24,6 +24,10 @@ zypper mr -p 98 {{ version }}-repo{{ loop.index }}
 zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
 {% endif %}
 
+{% if version == 'ses7' or version == 'ses6' or version == 'caasp4' %}
+zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
+{% endif %}
+
 zypper --gpg-auto-import-keys ref
 
 {% if version == 'ses5' %}
@@ -32,7 +36,7 @@ zypper -n install vim git-core iputils jq make iptables patch man
 zypper -n install vim git iputils hostname jq make iptables patch man
 {% endif %}
 
-{% if version == 'ses7' %}
+{% if version == 'ses7' or version == 'caasp4' %}
 zypper -n install ca-certificates-suse
 {% endif %}
 
@@ -52,6 +56,10 @@ chmod 600 /home/vagrant/.ssh/id_rsa
 cp /home/vagrant/.ssh/id_rsa* /root/.ssh/
 cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 hostnamectl set-hostname {{ node.name }}
+
+{% if version == 'caasp4' %}
+{% include "caasp/provision.sh.j2" %}
+{% else %}
 
 {% if not suma %}
 zypper -n install salt-minion
@@ -135,3 +143,4 @@ set -ex
 
 {% endif %} {# node == admin or node == suma #}
 
+{% endif %} {# version != caasp4 #}

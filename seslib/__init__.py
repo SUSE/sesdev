@@ -101,6 +101,7 @@ VERSION_PREFERRED_OS = {
     'ses7': 'sles-15-sp2',
     'nautilus': 'leap-15.1',
     'octopus': 'leap-15.2',
+    'caasp4': 'sles-15-sp1',
 }
 
 VERSION_PREFERRED_DEPLOYMENT_TOOL = {
@@ -155,6 +156,14 @@ VERSION_OS_REPO_MAPPING = {
             'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
             'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
         ],
+    },
+    'caasp4': {
+        'sles-15-sp1': [
+            'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40:/Update/'
+            'standard/',
+            'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/',
+            'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/'
+        ]
     }
 }
 
@@ -367,6 +376,11 @@ SETTINGS = {
         'help': 'Use `ceph-bootstrap deploy` command to run ceph-salt formula',
         'default': True
     },
+    'caasp_deploy_ses': {
+        'type': bool,
+        'help': 'Deploy SES using rook in CaasP',
+        'default': False
+    },
 }
 
 
@@ -573,6 +587,29 @@ class Node():
         self.repos.append(repo)
 
 
+class NodeManager:
+    def __init__(self, nodes):
+        self.nodes = nodes
+
+    def get_by_role(self, role):
+        return [n for n in self.nodes if n.has_role(role)]
+
+    def get_one_by_role(self, role):
+        node_list = self.get_by_role(role)
+        if node_list:
+            return node_list[0]
+        return None
+
+    def get_by_name(self, name):
+        for node in self.nodes:
+            if node.name == name:
+                return node
+        return None
+
+    def count_by_role(self, role):
+        return len(self.get_by_role(role))
+
+
 class Deployment():
     def __init__(self, dep_id, settings):
         self.dep_id = dep_id
@@ -594,7 +631,7 @@ class Deployment():
         if self.settings.os is None:
             self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
 
-        if self.settings.deployment_tool is None:
+        if self.settings.deployment_tool is None and self.settings.version != 'caasp4':
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.ceph_container_image is None:
@@ -663,6 +700,11 @@ class Deployment():
 
     def _generate_nodes(self):
         node_id = 0
+        master_id = 0
+        worker_id = 0
+        storage_id = 0
+        loadbl_id = 0
+        storage_id = 0
         for node_roles in self.settings.roles:
             for role_type in ["ganesha", "igw", "mds", "mgr", "mon", "rgw", "storage"]:
                 if role_type in node_roles:
@@ -671,9 +713,38 @@ class Deployment():
             if 'suma' in node_roles and self.settings.version not in ['octopus']:
                 raise RoleNotSupported('suma', self.settings.version)
 
+            if 'master' in node_roles and self.settings.version != 'caasp4':
+                raise RoleNotSupported('master', self.settings.version)
+
+            if 'worker' in node_roles and self.settings.version != 'caasp4':
+                raise RoleNotSupported('master', self.settings.version)
+
+            if 'loadbalancer' in node_roles and self.settings.version != 'caasp4':
+                raise RoleNotSupported('master', self.settings.version)
+
             if 'admin' in node_roles or 'suma' in node_roles:
                 name = 'admin'
                 fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
+            elif 'master' in node_roles:
+                master_id += 1
+                node_id += 1
+                name = 'master{}'.format(master_id)
+                fqdn = 'master{}.{}'.format(master_id, self.settings.domain.format(self.dep_id))
+            elif 'worker' in node_roles:
+                worker_id += 1
+                node_id += 1
+                name = 'worker{}'.format(worker_id)
+                fqdn = 'worker{}.{}'.format(worker_id, self.settings.domain.format(self.dep_id))
+            elif 'loadbalancer' in node_roles:
+                loadbl_id += 1
+                node_id += 1
+                name = 'loadbl{}'.format(loadbl_id)
+                fqdn = 'loadbl{}.{}'.format(loadbl_id, self.settings.domain.format(self.dep_id))
+            elif 'storage' in node_roles and self.settings.version == 'caasp4':
+                storage_id += 1
+                node_id += 1
+                name = 'storage{}'.format(storage_id)
+                fqdn = 'storage{}.{}'.format(storage_id, self.settings.domain.format(self.dep_id))
             else:
                 node_id += 1
                 name = 'node{}'.format(node_id)
@@ -717,7 +788,7 @@ class Deployment():
             if 'suma' in node_roles:
                 self.suma = node
 
-            if 'storage' in node_roles:
+            if 'storage' in node_roles and self.settings.version != 'caasp4':
                 if self.settings.cluster_network:
                     node.cluster_address = '{}{}'.format(self.settings.cluster_network,
                                                          200 + node_id)
@@ -749,6 +820,16 @@ class Deployment():
             r_name = 'custom-repo-{}'
             for idx, repo_url in enumerate(self.settings.repos):
                 node.add_repo(ZypperRepo(r_name.format(idx+1), repo_url))
+
+            if 'master' in node_roles or 'worker' in node_roles:
+                if node.cpus < 2:
+                    node.cpus = 2
+                if self.settings.ram < 2:
+                    node.ram = 2 * 2**10
+
+            if 'worker' in node_roles:
+                for _ in range(self.settings.num_disks):
+                    node.storage_disks.append(Disk(self.settings.disk_size))
 
             self.nodes[node.name] = node
 
@@ -790,6 +871,7 @@ class Deployment():
             'nodes': list(self.nodes.values()),
             'admin': self.admin,
             'suma': self.suma,
+            'domain': self.settings.domain.format(self.dep_id),
             'deepsea_git_repo': self.settings.deepsea_git_repo,
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
@@ -821,6 +903,8 @@ class Deployment():
             'ceph_bootstrap_deploy_mgrs': self.settings.ceph_bootstrap_deploy_mgrs,
             'ceph_bootstrap_deploy_osds': self.settings.ceph_bootstrap_deploy_osds,
             'ceph_bootstrap_deploy': self.settings.ceph_bootstrap_deploy,
+            'node_manager': NodeManager(list(self.nodes.values())),
+            'caasp_deploy_ses': self.settings.caasp_deploy_ses,
         }
 
         scripts = {}
