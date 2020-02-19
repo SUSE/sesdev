@@ -259,7 +259,7 @@ SETTINGS = {
         'default': [["admin", "client", "prometheus", "grafana", "openattic"],
                     ["storage", "mon", "mgr", "rgw", "igw"],
                     ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
-                    ["storage", "mon", "mds", "rgw", "ganesha"]]
+                    ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
     },
     'public_network': {
         'type': str,
