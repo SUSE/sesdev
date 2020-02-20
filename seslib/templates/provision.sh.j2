@@ -1,5 +1,8 @@
 {% include "engine/" + vm_engine + "/vagrant.provision.sh.j2" ignore missing %}
 
+# show the user what we are doing
+set -x
+
 # remove the first line introduced by vagrant
 head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
 
