@@ -1,0 +1,116 @@
+
+set -ex
+
+{% if ceph_salt_git_repo %}
+# install ceph-salt
+cd /root
+git clone {{ ceph_salt_git_repo }}
+cd ceph-salt
+zypper -n in autoconf gcc python3-devel python3-pip python3-curses
+git checkout {{ ceph_salt_git_branch }}
+pip install .
+# install ceph-salt-formula
+cp -r ceph-salt-formula/salt/* /srv/salt/
+chown -R salt:salt /srv
+{% else %}
+# ceph-salt-formula is installed automatically as a dependency of ceph-salt
+zypper -n in ceph-salt
+{% endif %}
+
+systemctl restart salt-master
+
+# make sure all minions are responding
+set +ex
+LOOP_COUNT="0"
+while true ; do
+  set -x
+  sleep 5
+  set +x
+  if [ "$LOOP_COUNT" -ge "20" ] ; then
+    echo "ERROR: minion(s) not responding to ping?"
+    exit 1
+  fi
+  LOOP_COUNT="$((LOOP_COUNT + 1))"
+  set -x
+  MINIONS_RESPONDING="$(salt '*' test.ping | grep True | wc --lines)"
+  if [ "$MINIONS_RESPONDING" = "{{ nodes|length }}" ]; then
+    break
+  fi
+  set +x
+done
+set -ex
+
+salt '*' saltutil.pillar_refresh
+salt '*' saltutil.sync_all
+
+sleep 2
+
+{% if stop_before_ceph_salt_config %}
+exit 0
+{% endif %}
+
+{% for node in nodes %}
+ceph-salt config /Cluster/Minions add {{ node.fqdn }}
+{% if node.has_role('mon') %}
+ceph-salt config /Cluster/Roles/Mon add {{ node.fqdn }}
+{% endif %}
+{% if node.has_role('mgr') %}
+ceph-salt config /Cluster/Roles/Mgr add {{ node.fqdn }}
+{% endif %}
+{% endfor %}
+
+ceph-salt config /SSH/ generate
+{% if ceph_container_image %}
+ceph-salt config /Containers/Images/ceph set {{ ceph_container_image }}
+{% endif %}
+ceph-salt config /Time_Server/Server_Hostname set {{ admin.fqdn }}
+ceph-salt config /Time_Server/External_Servers add 0.pt.pool.ntp.org
+{% if not ceph_salt_deploy_bootstrap %}
+ceph-salt config /Deployment/Bootstrap disable
+{% endif %}
+{% if ceph_salt_deploy_mons %}
+ceph-salt config /Deployment/Mon enable
+{% endif %}
+{% if ceph_salt_deploy_mgrs %}
+ceph-salt config /Deployment/Mgr enable
+{% endif %}
+
+{% if ceph_salt_deploy_mons %}
+ceph-salt config /Deployment/OSD enable
+
+# OSDs drive groups spec for each node
+{% for node in nodes %}
+{% if node.has_role('storage') %}
+ceph-salt config /Storage/Drive_Groups add value="{\"testing_dg_{{ node.name }}\": {\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": {\"all\": true}}}"
+{% endif %}
+{% endfor %}
+{% endif %} {# if ceph_salt_deploy_osds #}
+
+ceph-salt config /Deployment/Dashboard/username set admin
+ceph-salt config /Deployment/Dashboard/password set admin
+
+ceph-salt config ls
+
+zypper lr -upEP
+zypper info cephadm | grep -E '(^Repo|^Version)'
+ceph-salt --version
+
+{% if stop_before_ceph_salt_deploy %}
+exit 0
+{% endif %}
+
+{% if ceph_salt_deploy %}
+stdbuf -o0 ceph-salt -ldebug deploy --non-interactive
+{% else %}
+salt -G 'ceph-salt:member' state.apply ceph-salt
+{% endif %}
+
+{% if qa_test is defined and qa_test is sameas true -%}
+{%- if ceph_salt_git_repo -%}
+/root/ceph-salt/
+{%- else -%}
+/usr/share/ceph-salt/
+{%- endif -%}
+qa/health-ok.sh --total-nodes={{ nodes|length }} --nfs-ganesha-nodes={{ ganesha_nodes }} --igw-nodes={{ igw_nodes }} --mds-nodes={{ mds_nodes }} --mgr-nodes={{ mgr_nodes }} --mon-nodes={{ mon_nodes }} --osd-nodes={{ storage_nodes }} --osds={{ total_osds }} --rgw-nodes={{ rgw_nodes }}
+{%- endif %}
+

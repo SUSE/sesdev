@@ -138,7 +138,7 @@ set -ex
 {% endif %}
 
 {% if node == admin and deployment_tool == "orchestrator" %}
-{% include "ceph-bootstrap/ceph_bootstrap_deployment.sh.j2" %}
+{% include "ceph-salt/ceph_salt_deployment.sh.j2" %}
 {% endif %}
 
 {% endif %} {# node == admin or node == suma #}
