@@ -326,24 +326,24 @@ SETTINGS = {
         'help': 'SCC organization password',
         'default': None
     },
-    'ceph_bootstrap_git_repo': {
+    'ceph_salt_git_repo': {
         'type': str,
-        'help': 'If set, it will install ceph-bootstrap from this git repo',
+        'help': 'If set, it will install ceph-salt from this git repo',
         'default': None
     },
-    'ceph_bootstrap_git_branch': {
+    'ceph_salt_git_branch': {
         'type': str,
-        'help': 'ceph-bootstrap git branch to use',
+        'help': 'ceph-salt git branch to use',
         'default': 'master'
     },
-    'stop_before_ceph_bootstrap_config': {
+    'stop_before_ceph_salt_config': {
         'type': bool,
-        'help': 'Stops deployment before ceph-bootstrap config',
+        'help': 'Stops deployment before ceph-salt config',
         'default': False
     },
-    'stop_before_ceph_bootstrap_deploy': {
+    'stop_before_ceph_salt_deploy': {
         'type': bool,
-        'help': 'Stops deployment before ceph-bootstrap deploy',
+        'help': 'Stops deployment before ceph-salt deploy',
         'default': False
     },
     'ceph_container_image': {
@@ -351,29 +351,29 @@ SETTINGS = {
         'help': 'Container image path for Ceph daemons',
         'default': None
     },
-    'ceph_bootstrap_deploy_bootstrap': {
+    'ceph_salt_deploy_bootstrap': {
         'type': bool,
-        'help': 'Enable deployment bootstrap (aka ceph-daemon bootstrap) in ceph-bootstrap',
+        'help': 'Enable deployment bootstrap (aka ceph-daemon bootstrap) in ceph-salt',
         'default': True
     },
-    'ceph_bootstrap_deploy_mons': {
+    'ceph_salt_deploy_mons': {
         'type': bool,
-        'help': 'Enable deployment of Ceph Mons in ceph-bootstrap',
+        'help': 'Enable deployment of Ceph Mons in ceph-salt',
         'default': True
     },
-    'ceph_bootstrap_deploy_mgrs': {
+    'ceph_salt_deploy_mgrs': {
         'type': bool,
-        'help': 'Enable deployment of Ceph Mgrs in ceph-bootstrap',
+        'help': 'Enable deployment of Ceph Mgrs in ceph-salt',
         'default': True
     },
-    'ceph_bootstrap_deploy_osds': {
+    'ceph_salt_deploy_osds': {
         'type': bool,
-        'help': 'Enable deployment of Ceph OSDs in ceph-bootstrap',
+        'help': 'Enable deployment of Ceph OSDs in ceph-salt',
         'default': True
     },
-    'ceph_bootstrap_deploy': {
+    'ceph_salt_deploy': {
         'type': bool,
-        'help': 'Use `ceph-bootstrap deploy` command to run ceph-salt formula',
+        'help': 'Use `ceph-salt deploy` command to run ceph-salt formula',
         'default': True
     },
     'caasp_deploy_ses': {
@@ -893,16 +893,16 @@ class Deployment():
             'total_osds': self.settings.num_disks * self.node_counts["storage"],
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
-            'ceph_bootstrap_git_repo': self.settings.ceph_bootstrap_git_repo,
-            'ceph_bootstrap_git_branch': self.settings.ceph_bootstrap_git_branch,
-            'stop_before_ceph_bootstrap_config': self.settings.stop_before_ceph_bootstrap_config,
-            'stop_before_ceph_bootstrap_deploy': self.settings.stop_before_ceph_bootstrap_deploy,
+            'ceph_salt_git_repo': self.settings.ceph_salt_git_repo,
+            'ceph_salt_git_branch': self.settings.ceph_salt_git_branch,
+            'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
+            'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
             'ceph_container_image': self.settings.ceph_container_image,
-            'ceph_bootstrap_deploy_bootstrap': self.settings.ceph_bootstrap_deploy_bootstrap,
-            'ceph_bootstrap_deploy_mons': self.settings.ceph_bootstrap_deploy_mons,
-            'ceph_bootstrap_deploy_mgrs': self.settings.ceph_bootstrap_deploy_mgrs,
-            'ceph_bootstrap_deploy_osds': self.settings.ceph_bootstrap_deploy_osds,
-            'ceph_bootstrap_deploy': self.settings.ceph_bootstrap_deploy,
+            'ceph_salt_deploy_bootstrap': self.settings.ceph_salt_deploy_bootstrap,
+            'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
+            'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
+            'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,
+            'ceph_salt_deploy': self.settings.ceph_salt_deploy,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
         }
