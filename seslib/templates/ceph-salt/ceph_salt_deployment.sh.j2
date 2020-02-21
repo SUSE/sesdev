@@ -105,12 +105,7 @@ stdbuf -o0 ceph-salt -ldebug deploy --non-interactive
 salt -G 'ceph-salt:member' state.apply ceph-salt
 {% endif %}
 
-{% if qa_test is defined and qa_test is sameas true -%}
-{%- if ceph_salt_git_repo -%}
-/root/ceph-salt/
-{%- else -%}
-/usr/share/ceph-salt/
-{%- endif -%}
-qa/health-ok.sh --total-nodes={{ nodes|length }} --nfs-ganesha-nodes={{ ganesha_nodes }} --igw-nodes={{ igw_nodes }} --mds-nodes={{ mds_nodes }} --mgr-nodes={{ mgr_nodes }} --mon-nodes={{ mon_nodes }} --osd-nodes={{ storage_nodes }} --osds={{ total_osds }} --rgw-nodes={{ rgw_nodes }}
-{%- endif %}
+{% if qa_test is defined and qa_test is sameas true %}
+/home/vagrant/sesdev-qa/health-ok.sh --total-nodes={{ nodes|length }} --nfs-ganesha-nodes={{ ganesha_nodes }} --igw-nodes={{ igw_nodes }} --mds-nodes={{ mds_nodes }} --mgr-nodes={{ mgr_nodes }} --mon-nodes={{ mon_nodes }} --osd-nodes={{ storage_nodes }} --osds={{ total_osds }} --rgw-nodes={{ rgw_nodes }}
+{% endif %}
 
