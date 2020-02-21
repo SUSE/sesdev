@@ -30,11 +30,6 @@ class GlobalSettings():
     WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
 
-    @classmethod
-    def init(cls, working_dir):
-        cls.WORKING_DIR = working_dir
-        os.makedirs(cls.WORKING_DIR, exist_ok=True)
-
 
 OS_BOX_MAPPING = {
     'leap-15.1': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
