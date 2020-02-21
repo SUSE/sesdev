@@ -356,7 +356,7 @@ SETTINGS = {
         'help': 'Stops deployment before ceph-salt deploy',
         'default': False
     },
-    'ceph_container_image': {
+    'image_path': {
         'type': str,
         'help': 'Container image path for Ceph daemons',
         'default': None
@@ -644,12 +644,12 @@ class Deployment():
         if self.settings.deployment_tool is None and self.settings.version != 'caasp4':
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
-        if self.settings.ceph_container_image is None:
+        if self.settings.image_path is None:
             if self.settings.version == 'ses7':
-                self.settings.ceph_container_image = \
+                self.settings.image_path = \
                     'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
             else:
-                self.settings.ceph_container_image = \
+                self.settings.image_path = \
                     'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph'
 
         if not self.settings.libvirt_networks:
@@ -908,7 +908,7 @@ class Deployment():
             'ceph_salt_git_branch': self.settings.ceph_salt_git_branch,
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
-            'ceph_container_image': self.settings.ceph_container_image,
+            'image_path': self.settings.image_path,
             'ceph_salt_deploy_bootstrap': self.settings.ceph_salt_deploy_bootstrap,
             'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
@@ -1108,8 +1108,7 @@ class Deployment():
             result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7'] \
                     and self.settings.deployment_tool == 'orchestrator':
-                result += "     - container_images:\n"
-                result += "       - ceph:           {}\n".format(self.settings.ceph_container_image)
+                result += "     - image_path:       {}\n".format(self.settings.image_path)
             if v.repos:
                 result += "     - custom_repos:\n"
                 for repo in v.repos:
