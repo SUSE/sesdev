@@ -11,6 +11,7 @@ BASEDIR=$(readlink -f "$(dirname ${0})")
 test -d $BASEDIR
 # [[ $BASEDIR =~ \/sesdev-qa$ ]]
 
+source /etc/os-release
 source $BASEDIR/common/common.sh
 
 function catch {
@@ -106,6 +107,7 @@ test -f "$CEPH_CONF"
 set +x
 
 # run tests
+support_cop_out_test
 ceph_version_test
 ceph_cluster_running_test
 ceph_health_test

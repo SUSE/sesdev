@@ -91,6 +91,32 @@ function ceph_log_grep_enoent_eaccess {
 # core validation tests
 #
 
+function support_cop_out_test {
+    set +x
+    local supported="sesdev-qa supports this OS"
+    local not_supported="ERROR: sesdev-qa does not currently support this OS"
+    echo "Detected operating system $NAME $VERSION_ID"
+    case "$ID" in
+        opensuse*|suse|sles)
+            case "$VERSION_ID" in
+                15*)
+                    echo "$supported"
+                    ;;
+                *)
+                    echo "$not_supported"
+                    ;;
+            esac
+            ;;
+        *)
+            echo "$not_supported"
+            false
+            ;;
+    esac
+    set +x
+    echo "support_cop_out_test: OK"
+    echo
+}
+
 function ceph_version_test {
 # test that ceph RPM version matches "ceph --version"
 # for a loose definition of "matches"
