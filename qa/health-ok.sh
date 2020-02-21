@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# ceph-bootstrap integration test automation script "health-ok.sh"
+# integration test automation script "health-ok.sh"
 #
 
 set -e
@@ -9,7 +9,7 @@ trap 'catch $?' EXIT
 SCRIPTNAME=$(basename ${0})
 BASEDIR=$(readlink -f "$(dirname ${0})")
 test -d $BASEDIR
-#[[ $BASEDIR =~ \/ceph-bootstrap$ ]]
+# [[ $BASEDIR =~ \/sesdev-qa$ ]]
 
 source $BASEDIR/common/common.sh
 
@@ -109,5 +109,4 @@ set +x
 ceph_version_test
 ceph_cluster_running_test
 ceph_health_test
-dump_ceph_bootstrap_config_test
 number_of_nodes_actual_vs_expected_test

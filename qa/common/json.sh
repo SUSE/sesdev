@@ -1,5 +1,5 @@
 #
-# This file is part of the ceph-bootstrap integration test suite.
+# This file is part of the sesdev-qa integration test suite.
 # It contains various cluster introspection functions.
 #
 

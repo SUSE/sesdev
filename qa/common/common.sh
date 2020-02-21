@@ -1,5 +1,5 @@
 #
-# This file is part of the ceph-bootstrap integration test suite
+# This file is part of the sesdev-qa integration test suite
 #
 
 set -e
@@ -148,19 +148,6 @@ function ceph_health_test {
         exit 1
     fi
     echo "ceph_health_test: OK"
-    echo
-}
-
-function dump_ceph_bootstrap_config_test {
-    echo
-    echo "WWWW: dump_ceph_bootstrap_config_test"
-    set -x
-    ceph-bootstrap config ls /Cluster/Minions
-    ceph-bootstrap config ls /Cluster/Roles
-    ceph-bootstrap config ls /Deployment
-    ceph-bootstrap config ls /Storage
-    set +x
-    echo "dump_ceph_bootstrap_config_test: OK"
     echo
 }
 
