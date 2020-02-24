@@ -3,6 +3,8 @@
 # show the user what we are doing
 set -x
 
+ls -lR /home/vagrant
+
 # remove the first line introduced by vagrant
 head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
 

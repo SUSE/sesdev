@@ -72,6 +72,14 @@ sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j
 %install
 %py3_install
 %fdupes %{buildroot}%{python3_sitelib}
+# qa script installation
+install -m 0755 -d %{buildroot}/%{_datadir}/%{name}/qa
+install -m 0755 -d %{buildroot}/%{_datadir}/%{name}/qa/common
+install -m 0755 qa/health-ok.sh %{buildroot}/%{_datadir}/%{name}/qa/health-ok.sh
+install -m 0644 qa/common/common.sh %{buildroot}/%{_datadir}/%{name}/qa/common/common.sh
+install -m 0644 qa/common/helper.sh %{buildroot}/%{_datadir}/%{name}/qa/common/helper.sh
+install -m 0644 qa/common/json.sh %{buildroot}/%{_datadir}/%{name}/qa/common/json.sh
+install -m 0644 qa/common/zypper.sh %{buildroot}/%{_datadir}/%{name}/qa/common/zypper.sh
 
 %files
 %license LICENSE
@@ -79,6 +87,16 @@ sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j
 %{python3_sitelib}/seslib*/
 %{python3_sitelib}/sesdev*/
 %{_bindir}/sesdev
+
+%package qa
+Summary:    Integration test script for validating Ceph deployments
+
+%description qa
+Integration test script for validating Ceph clusters deployed
+by sesdev
+
+%files qa
+%{_datadir}/%{name}/qa
 
 %changelog
 

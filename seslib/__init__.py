@@ -31,9 +31,14 @@ class GlobalSettings():
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
 
     @classmethod
-    def init(cls, working_dir):
-        cls.WORKING_DIR = working_dir
-        os.makedirs(cls.WORKING_DIR, exist_ok=True)
+    def init_path_to_qa(cls, full_path_to_sesdev_executable):
+        if full_path_to_sesdev_executable.startswith('/usr'):
+            cls.PATH_TO_QA = '/usr/share/sesdev-qa'
+        else:
+            cls.PATH_TO_QA = os.path.join(
+                os.path.dirname(full_path_to_sesdev_executable),
+                '../qa/'
+                )
 
 
 OS_BOX_MAPPING = {
@@ -859,6 +864,7 @@ class Deployment():
             os_base_repos = []
 
         context = {
+            'sesdev_path_to_qa': GlobalSettings.PATH_TO_QA,
             'dep_id': self.dep_id,
             'os': self.settings.os,
             'vm_engine': self.settings.vm_engine,

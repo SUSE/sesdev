@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def sesdev_main():
+    seslib.GlobalSettings.init_path_to_qa(__file__)
     try:
         # pylint: disable=unexpected-keyword-arg
         cli(prog_name='sesdev')
