@@ -32,6 +32,11 @@ the VMs and run the deployment scripts.
    * [Services port-forwarding](#services-port-forwarding)
    * [Stopping a cluster](#stopping-a-cluster)
    * [Destroying a cluster](#destroying-a-cluster)
+* [Common pitfalls](#common-pitfalls)
+   * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
+      * [Symptom](#symptom)
+      * [Analysis](#analysis)
+      * [Resolution](#resolution)
 
 ## Installation
 
@@ -308,4 +313,42 @@ following command:
 
 ```
 $ sesdev destroy <deployment_id>
+```
+
+## Common pitfalls
+
+This section describes some common pitfalls and how to resolve them.
+
+### Domain about to create is already taken
+
+#### Symptom
+
+After deleting the `~/.sesdev` directory, `sesdev create` fails because
+Vagrant throws an error message containing the words "domain about to create is
+already taken".
+
+#### Analysis
+
+As described
+[here](https://github.com/vagrant-libvirt/vagrant-libvirt/issues/658#issuecomment-335352340),
+this typically occurs when the `~/.sesdev` directory is deleted. The libvirt
+environment still has the domains, etc. whose metadata was deleted, and Vagrant
+does not recognize the existing VM as one it created, even though the name is
+identical.
+
+#### Resolution
+
+As described
+[here](https://github.com/vagrant-libvirt/vagrant-libvirt/issues/658#issuecomment-380976825),
+this can be resolved by manually deleting all the domains (VMs) and volumes
+associated with the old deployment:
+
+```
+$ sudo virsh list --all
+$ # see the names of the "offending" machines. For each, do:
+$ sudo virsh destroy <THE_MACHINE>
+$ sudo virsh undefine <THE_MACHINE>
+$ sudo virsh vol-list default
+$ # For each of the volumes associated with one of the deleted machines, do:
+$ sudo virsh vol-delete --pool default <THE_VOLUME>
 ```
