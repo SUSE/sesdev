@@ -95,6 +95,8 @@ function support_cop_out_test {
     set +x
     local supported="sesdev-qa supports this OS"
     local not_supported="ERROR: sesdev-qa does not currently support this OS"
+    echo
+    echo "WWWW: ceph_version_test"
     echo "Detected operating system $NAME $VERSION_ID"
     case "$ID" in
         opensuse*|suse|sles)
@@ -147,6 +149,8 @@ function ceph_cluster_running_test {
     echo
     echo "WWWW: ceph_cluster_running_test"
     _ceph_cluster_running
+    echo "ceph_cluster_running_test: OK"
+    echo
 }
 
 function ceph_health_test {
