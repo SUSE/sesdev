@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2020-02-25
+
+### Changed
+Rename ceph-bootstrap to ceph-salt (PR#114)
+Migrate ceph-bootstrap-qa to sesdev (part 2) (PR#112)
+provision: remove which RPM from test environment (PR#113)
+ceph_salt_deployment: disable system update and reboot (PR#117)
+seslib: by default, a mgr for every mon (PR#111)
+
 ## [1.1.2] - 2020-02-17
 
 ### Added
@@ -174,7 +183,8 @@ seslib: add SES7 Internal Media when --qa-test given (PR#90)
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/SUSE/sesdev/releases/tag/v1.1.3
 [1.1.2]: https://github.com/SUSE/sesdev/releases/tag/v1.1.2
 [1.1.1]: https://github.com/SUSE/sesdev/releases/tag/v1.1.1
 [1.1.0]: https://github.com/SUSE/sesdev/releases/tag/v1.1.0
