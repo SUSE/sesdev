@@ -10,38 +10,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.3] - 2020-02-25
 
 ### Changed
-Rename ceph-bootstrap to ceph-salt (PR#114)
-Migrate ceph-bootstrap-qa to sesdev (part 2) (PR#112)
-provision: remove which RPM from test environment (PR#113)
-ceph_salt_deployment: disable system update and reboot (PR#117)
-seslib: by default, a mgr for every mon (PR#111)
+- Rename ceph-bootstrap to ceph-salt (PR#114)
+- Migrate ceph-bootstrap-qa to sesdev (part 2) (PR#112)
+- provision: remove which RPM from test environment (PR#113)
+- ceph_salt_deployment: disable system update and reboot (PR#117)
+- seslib: by default, a mgr for every mon (PR#111)
 
 ## [1.1.2] - 2020-02-17
 
 ### Added
-Implement "vagrant box list" and "vagrant box remove" (PR#69)
-Allow user to specify custom private key file for remote libvirt (PR#71)
-spec: add Fedora-specific Requires (PR#77)
-Pillar is now automatically configured by ceph-bootstrap (PR#78)
-Implement "sesdev scp" feature (PR#101)
-Implement "sesdev create caasp4" feature (PR#103)
+- Implement "vagrant box list" and "vagrant box remove" (PR#69)
+- Allow user to specify custom private key file for remote libvirt (PR#71)
+- spec: add Fedora-specific Requires (PR#77)
+- Pillar is now automatically configured by ceph-bootstrap (PR#78)
+- Implement "sesdev scp" feature (PR#101)
+- Implement "sesdev create caasp4" feature (PR#103)
 
 ### Fixed
-Revamp --num-disks handling (PR#65)
-Miscellaneous spec file cleanups and bugfixes (PR#72)
-several fixes for octopus/ses7 deployment (PR#76)
-Remove any orphaned images after destroy (PR#81)
-seslib: fix Ceph repos for ses5, ses6, ses7 (PR#83)
-tools/run_async: decode stderr bytes (PR#88)
-libvirt/network: autostart networks per default (PR#93)
-Fix NTP issue that was causing SES5 deployment to fail (PR#108)
+- Revamp --num-disks handling (PR#65)
+- Miscellaneous spec file cleanups and bugfixes (PR#72)
+- several fixes for octopus/ses7 deployment (PR#76)
+- Remove any orphaned images after destroy (PR#81)
+- seslib: fix Ceph repos for ses5, ses6, ses7 (PR#83)
+- tools/run_async: decode stderr bytes (PR#88)
+- libvirt/network: autostart networks per default (PR#93)
+- Fix NTP issue that was causing SES5 deployment to fail (PR#108)
 
 ### Changed
-ceph_bootstrap_deployment: "ceph-bootstrap -ldebug deploy" (PR#68)
-Increase chances of getting the latest ses7 packages (PR#84)
-ceph_bootstrap_deployment: log cephadm and ceph-bootstrap version (PR#86)
-ceph_bootstrap: restart salt-master after ceph-bootstrap installation (PR#87)
-seslib: add SES7 Internal Media when --qa-test given (PR#90)
+- ceph_bootstrap_deployment: "ceph-bootstrap -ldebug deploy" (PR#68)
+- Increase chances of getting the latest ses7 packages (PR#84)
+- ceph_bootstrap_deployment: log cephadm and ceph-bootstrap version (PR#86)
+- ceph_bootstrap: restart salt-master after ceph-bootstrap installation (PR#87)
+- seslib: add SES7 Internal Media when --qa-test given (PR#90)
 
 ## [1.1.1] - 2020-01-29
 ### Added
