@@ -18,6 +18,8 @@ def sesdev_main():
     except SesDevException as ex:
         logger.exception(ex)
         click.echo(str(ex))
+        return 1
+    return 0
 
 
 def _decorator_composer(decorator_list, func):
@@ -817,4 +819,4 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
 
 
 if __name__ == '__main__':
-    sesdev_main()
+    sys.exit(sesdev_main())
