@@ -21,7 +21,7 @@
 %endif
 
 Name:           sesdev
-Version:        1.1.4
+Version:        1.1.5
 Release:        1%{?dist}
 Summary:        CLI tool to deploy and manage SES clusters
 License:        MIT
@@ -60,6 +60,13 @@ DeepSea. The tool is highly customizable and allows to choose different
 versions of Ceph and SES, as well as, different versions of the openSUSE
 based OS.
 
+%package qa
+Summary:    Integration test script for validating Ceph deployments
+
+%description qa
+Integration test script for validating Ceph clusters deployed
+by sesdev
+
 %prep
 %autosetup -p1
 %if 0%{?fedora} && 0%{?fedora} < 30
@@ -88,13 +95,6 @@ install -m 0644 qa/common/zypper.sh %{buildroot}/%{_datadir}/%{name}/qa/common/z
 %{python3_sitelib}/sesdev*/
 %{_bindir}/%{name}
 %dir %{_datadir}/%{name}
-
-%package qa
-Summary:    Integration test script for validating Ceph deployments
-
-%description qa
-Integration test script for validating Ceph clusters deployed
-by sesdev
 
 %files qa
 %{_datadir}/%{name}/qa
