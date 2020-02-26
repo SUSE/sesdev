@@ -513,7 +513,7 @@ def _gen_settings_dict(version,
         settings_dict['ceph_salt_deploy_mons'] = False
 
     if not deploy_mgrs:
-        settings_dict['ceph_salt_deploy_mons'] = False
+        settings_dict['ceph_salt_deploy_mgrs'] = False
 
     if not deploy_osds:
         settings_dict['ceph_salt_deploy_osds'] = False
