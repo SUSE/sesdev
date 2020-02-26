@@ -39,7 +39,7 @@ zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
 
 zypper --gpg-auto-import-keys ref
 
-{% set pkgs_to_install = [
+{% set basic_pkgs_to_install = [
        'vim',
        'git-core',
        'iputils',
@@ -51,13 +51,18 @@ zypper --gpg-auto-import-keys ref
        'command-not-found',
    ] %}
 {% if version == 'ses5' %}
-zypper -n install {{ pkgs_to_install | join(' ') }}
+zypper -n install {{ basic_pkgs_to_install | join(' ') }}
 {% else %}
-zypper -n install {{ pkgs_to_install | join(' ') }} hostname
+zypper -n install {{ basic_pkgs_to_install | join(' ') }} hostname
 {% endif %}
 
-{% if version == 'ses7' or version == 'caasp4' %}
-zypper -n install ca-certificates-suse
+{% if os.startswith("sle") %}
+{% set sle_pkgs_to_install = [
+       'ca-certificates-suse',
+       'supportutils',
+       'supportutils-plugin-ses',
+   ] %}
+zypper -n install {{ sle_pkgs_to_install | join(' ') }}
 {% endif %}
 
 {% for repo in node.repos %}
