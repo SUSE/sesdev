@@ -67,12 +67,12 @@ def ceph_salt_options(func):
                      help='ceph-salt Git branch'),
         click.option('--ceph-container-image', type=str, default=None,
                      help='container image path for Ceph daemons'),
-        click.option('--deploy-bootstrap', is_flag=True, default=True,
+        click.option('--deploy-bootstrap/--no-deploy-bootstrap', default=True,
                      help='Run ceph-daemon bootstrap during deployment. '
                           '(If false all other --deploy-* options will be disabled)'),
-        click.option('--deploy-mons', is_flag=True, default=True, help='Deploy Ceph Mons'),
-        click.option('--deploy-mgrs', is_flag=True, default=True, help='Deploy Ceph Mgrs'),
-        click.option('--deploy-osds', is_flag=True, default=True, help='Deploy Ceph OSDs'),
+        click.option('--deploy-mons/--no-deploy-mons', default=True, help='Deploy Ceph Mons'),
+        click.option('--deploy-mgrs/--no-deploy-mgrs', default=True, help='Deploy Ceph Mgrs'),
+        click.option('--deploy-osds/--no-deploy-osds', default=True, help='Deploy Ceph OSDs'),
         click.option('--ceph-salt-deploy/--no-ceph-salt-deploy', default=True,
                      help='Use `ceph-salt deploy` command to run ceph-salt formula'),
     ]
