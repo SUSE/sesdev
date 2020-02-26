@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] - 2020-02-26
+
+### Fixed
+- sesdev.spec: properly package /usr/share/sesdev directory
+  (follow-on fix for PR #112)
+
 ## [1.1.3] - 2020-02-25
 
 ### Changed
@@ -183,7 +189,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.3...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.4...HEAD
+[1.1.4]: https://github.com/SUSE/sesdev/releases/tag/v1.1.4
 [1.1.3]: https://github.com/SUSE/sesdev/releases/tag/v1.1.3
 [1.1.2]: https://github.com/SUSE/sesdev/releases/tag/v1.1.2
 [1.1.1]: https://github.com/SUSE/sesdev/releases/tag/v1.1.1
