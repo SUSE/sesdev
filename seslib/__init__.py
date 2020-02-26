@@ -281,6 +281,11 @@ SETTINGS = {
         'help': 'The domain name for nodes',
         'default': '{}.com'
     },
+    'non_interactive': {
+        'type': bool,
+        'help': 'Whether the user wants to be asked',
+        'default': False
+    },
     'deployment_tool': {
         'type': str,
         'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',

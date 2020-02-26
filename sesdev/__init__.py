@@ -113,6 +113,8 @@ def common_create_options(func):
                      help='SCC organization password'),
         click.option('--domain', type=str, default='{}.com',
                      help='Domain name to use'),
+        click.option('-n', '--non-interactive', is_flag=True, default=False,
+                     help='Do not ask the user if they really want to'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -381,6 +383,7 @@ def _gen_settings_dict(version,
                        scc_user,
                        scc_pass,
                        domain,
+                       non_interactive,
                        deepsea_cli=None,
                        stop_before_deepsea_stage=None,
                        deepsea_repo=None,
@@ -488,6 +491,9 @@ def _gen_settings_dict(version,
     if domain:
         settings_dict['domain'] = domain
 
+    if non_interactive:
+        settings_dict['non_interactive'] = non_interactive
+
     if ceph_salt_repo:
         settings_dict['ceph_salt_git_repo'] = ceph_salt_repo
 
@@ -527,11 +533,19 @@ def _gen_settings_dict(version,
 def _create_command(deployment_id, deploy, settings_dict):
     settings = seslib.Settings(**settings_dict)
     dep = seslib.Deployment.create(deployment_id, settings)
+    really_want_to = None
     click.echo("=== Creating deployment with the following configuration ===")
     click.echo(dep.status())
     if deploy:
+        if getattr(settings, 'non_interactive', False):
+            really_want_to = True
+        else:
+            really_want_to = click.confirm(
+                'Do you want to continue with the deployment?',
+                default=True,
+                )
         try:
-            if click.confirm('Do you want to continue with the deployment?', default=True):
+            if really_want_to:
                 dep.start(_print_log)
                 click.echo("=== Deployment Finished ===")
                 click.echo()
