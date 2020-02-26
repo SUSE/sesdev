@@ -86,7 +86,8 @@ install -m 0644 qa/common/zypper.sh %{buildroot}/%{_datadir}/%{name}/qa/common/z
 %doc CHANGELOG.md README.md
 %{python3_sitelib}/seslib*/
 %{python3_sitelib}/sesdev*/
-%{_bindir}/sesdev
+%{_bindir}/%{name}
+%dir %{_datadir}/%{name}
 
 %package qa
 Summary:    Integration test script for validating Ceph deployments
