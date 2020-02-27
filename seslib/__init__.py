@@ -321,7 +321,7 @@ SETTINGS = {
         'help': 'Automatically set priority on custom zypper repos',
         'default': True
     },
-    'qa_test': {
+    'qa_test_opt': {
         'type': bool,
         'help': 'Automatically run integration tests on the deployed cluster',
         'default': False
@@ -858,7 +858,7 @@ class Deployment():
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
         try:
-            if self.settings.qa_test:
+            if self.settings.qa_test_opt:
                 version_repos += VERSION_QA_REPO_MAPPING[self.settings.version][self.settings.os]
         except KeyError:
             raise VersionQANotSupported(self.settings.version, self.settings.os)
@@ -893,7 +893,7 @@ class Deployment():
             'version_repos': version_repos,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
-            'qa_test': self.settings.qa_test,
+            'qa_test': self.settings.qa_test_opt,
             'ganesha_nodes': self.node_counts["ganesha"],
             'igw_nodes': self.node_counts["igw"],
             'mds_nodes': self.node_counts["mds"],
@@ -1105,7 +1105,7 @@ class Deployment():
                                                                        disk.size)
                     dev_letter += 1
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
-            result += "     - qa_test:          {}\n".format(self.settings.qa_test)
+            result += "     - qa_test:          {}\n".format(self.settings.qa_test_opt)
             if self.settings.version in ['octopus', 'ses7'] \
                     and self.settings.deployment_tool == 'orchestrator':
                 result += "     - container_images:\n"
@@ -1205,7 +1205,11 @@ class Deployment():
         tools.run_interactive(self._scp_cmd(recursive, source, destination))
 
     def qa_test(self, log_handler):
-        tools.run_async(["vagrant", "provision", "--provision-with", "qa-test"], log_handler, self.dep_dir)
+        tools.run_async(
+            ["vagrant", "provision", "--provision-with", "qa-test"],
+            log_handler,
+            self.dep_dir
+            )
 
     def _find_service_node(self, service):
         if service == 'grafana' and self.settings.version == 'ses5':
