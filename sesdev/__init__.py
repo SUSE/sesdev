@@ -754,6 +754,16 @@ def scp(recursive, deployment_id, source, destination):
 
 @cli.command()
 @click.argument('deployment_id')
+def qa_test(deployment_id):
+    """
+    Runs QA test on an already-deployed cluster.
+    """
+    dep = seslib.Deployment.load(deployment_id)
+    dep.qa_test(_print_log)
+
+
+@cli.command()
+@click.argument('deployment_id')
 @click.argument('node', required=False)
 def stop(deployment_id, node=None):
     """

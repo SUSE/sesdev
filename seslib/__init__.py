@@ -1204,6 +1204,9 @@ class Deployment():
     def scp(self, recursive, source, destination):
         tools.run_interactive(self._scp_cmd(recursive, source, destination))
 
+    def qa_test(self, log_handler):
+        tools.run_async(["vagrant", "provision", "--provision-with", "qa-test"], log_handler, self.dep_dir)
+
     def _find_service_node(self, service):
         if service == 'grafana' and self.settings.version == 'ses5':
             return 'admin'
