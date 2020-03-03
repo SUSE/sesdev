@@ -647,10 +647,10 @@ class Deployment():
         if self.settings.ceph_container_image is None:
             if self.settings.version == 'ses7':
                 self.settings.ceph_container_image = \
-                    'registry.suse.de/devel/storage/7.0/cr/images/ses/7/ceph/ceph'
+                    'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
             else:
                 self.settings.ceph_container_image = \
-                    'docker.io/ceph/daemon-base:latest-master-devel'
+                    'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph'
 
         if not self.settings.libvirt_networks:
             self._generate_static_networks()

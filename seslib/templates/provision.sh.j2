@@ -33,7 +33,7 @@ zypper mr -p 98 {{ version }}-repo{{ loop.index }}
 zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
 {% endif %}
 
-{% if version == 'ses7' or version == 'ses6' or version == 'caasp4' %}
+{% if version == 'ses6' or version == 'caasp4' %}
 zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
 {% endif %}
 
