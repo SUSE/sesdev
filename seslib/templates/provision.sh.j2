@@ -13,6 +13,11 @@ head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
 # remove "which" RPM because testing environments typically don't have it installed
 zypper -n rm which || true
 
+# remove Python 2 so it doesn't pollute the environment
+{% if os == 'leap-15.1' or os == 'leap-15.2' or os == 'sles-15-sp1' or os == 'sles-15-sp2' %}
+zypper -n rm python-base || true
+{% endif %}
+
 {% if _node.public_address %}
 echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
 {% endif %}
