@@ -39,3 +39,12 @@ function _ping_minions_until_all_respond {
     done
 }
 
+function _extract_ceph_version {
+    # given a command that outputs a string like this:
+    #
+    #     ceph version 15.1.0-1521-gcdf35413a0 (cdf35413a036bd1aa59a8c718bb177839c45cab1) octopus (rc)
+    #
+    # return just the part before the first parentheses
+    local full_version_string="$1"
+    expr match "$full_version_string" '\(ceph version [^[:space:]]\+\)'
+}
