@@ -37,6 +37,10 @@ the VMs and run the deployment scripts.
       * [Symptom](#symptom)
       * [Analysis](#analysis)
       * [Resolution](#resolution)
+   * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
+      * [Symptom](#symptom-1)
+      * [Analysis](#analysis-1)
+      * [Resolution](#resolution-1)
 
 ## Installation
 
@@ -352,3 +356,64 @@ $ sudo virsh vol-list default
 $ # For each of the volumes associated with one of the deleted machines, do:
 $ sudo virsh vol-delete --pool default <THE_VOLUME>
 ```
+
+### Storage pool not found: no storage pool with matching name 'default'
+
+#### Symptom
+
+You run `ses create` but it does nothing and gives you a traceback ending with
+an error:
+
+```
+libvirt.libvirtError: Storage pool not found: no storage pool with matching name 'default'
+```
+
+#### Analysis
+
+For whatever reason, your libvirt deployment does not have a default pool
+defined. You can verify this by doing:
+
+```
+$ sudo virsh pool-list
+```
+
+In a working deployment, it says:
+
+```
+ Name      State    Autostart
+-------------------------------
+ default   active   no
+```
+
+but in this case the "default" storage pool is missing. (One user hit this when
+deploying sesdev on SLE-15-SP1.)
+
+#### Resolution
+
+The "libvirt-daemon" RPM owns a directory `/var/lib/libvirt/images` which is
+intended to be associated with the default storage pool:
+
+```
+$ sudo rpm -qf /var/lib/libvirt/images
+libvirt-daemon-5.1.0-lp151.7.6.1.x86_64
+```
+
+Assuming this directory exists and is empty, you can simply create a storage
+pool called "default" that points to this directory, and the issue will be
+resolved:
+
+```
+$ sudo virsh pool-define /dev/stdin <<EOF
+<pool type='dir'>
+  <name>default</name>
+  <target>
+    <path>/var/lib/libvirt/images</path>
+  </target>
+</pool>
+EOF
+$ sudo virsh pool-start default
+$ sudo virsh pool-autostart default
+```
+
+Credits to Federico Simoncelli for the resolution, which I took from
+[his post here](https://github.com/simon3z/virt-deploy/issues/8#issuecomment-73111541)
