@@ -30,26 +30,28 @@ function usage {
     echo
     echo "Usage:"
     echo "  $SCRIPTNAME [-h,--help] [--igw=X] [--mds=X] [--mgr=X]"
-    echo "  [--mon=X] [--nfs-ganesha=X] [--rgw=X]"
+    echo "  [--mon=X] [--nfs-ganesha=X] [--promiscuous-versions] [--rgw=X]"
+    echo "  [--total-nodes=X]"
     echo
     echo "Options:"
-    echo "    --help               Display this usage message"
-    echo "    --igw-nodes          expected number of nodes with iSCSI Gateway"
-    echo "    --mds-nodes          expected number of nodes with MDS"
-    echo "    --mgr-nodes          expected number of nodes with MGR"
-    echo "    --mon-nodes          expected number of nodes with MON"
-    echo "    --nfs-ganesha-nodes  expected number of nodes with NFS-Ganesha"
-    echo "    --osd-nodes          expected number of nodes with OSD"
-    echo "    --osds               expected total number of OSDs in cluster"
-    echo "    --rgw-nodes          expected number of nodes with RGW"
-    echo
+    echo "    --help                  Display this usage message"
+    echo "    --igw-nodes             expected number of nodes with iSCSI Gateway"
+    echo "    --mds-nodes             expected number of nodes with MDS"
+    echo "    --mgr-nodes             expected number of nodes with MGR"
+    echo "    --mon-nodes             expected number of nodes with MON"
+    echo "    --nfs-ganesha-nodes     expected number of nodes with NFS-Ganesha"
+    echo "    --osd-nodes             expected number of nodes with OSD"
+    echo "    --osds                  expected total number of OSDs in cluster"
+    echo "    --promiscuous-versions  Do not insist that daemon versions match \"ceph --version\""
+    echo "    --rgw-nodes             expected number of nodes with RGW"
+    echo "    --total-nodes           expected total number of nodes in cluster"
     exit 1
 }
 
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,mds-nodes:,mgr-nodes:,mon-nodes:,nfs-ganesha-nodes:,osd-nodes:,osds:,rgw-nodes:,total-nodes:" \
+--long "help,igw-nodes:,mds-nodes:,mgr-nodes:,mon-nodes:,nfs-ganesha-nodes:,osd-nodes:,osds:,promiscuous-versions,rgw-nodes:,total-nodes:" \
 -n 'health-ok.sh' -- "$@")
 
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
@@ -63,6 +65,7 @@ MON_NODES=""
 NFS_GANESHA_NODES=""
 OSD_NODES=""
 OSDS=""
+PROMISCUOUS_VERSIONS=""
 RGW_NODES=""
 TOTAL_NODES=""
 while true ; do
@@ -74,6 +77,7 @@ while true ; do
         --nfs-ganesha-nodes) shift ; NFS_GANESHA_NODES="$1" ; shift ;;
         --osd-nodes) shift ; OSD_NODES="$1" ; shift ;;
         --osds) shift ; OSDS="$1" ; shift ;;
+        --promiscuous-versions) PROMISCUOUS_VERSIONS="$1"; shift ;;
         --rgw-nodes) shift ; RGW_NODES="$1" ; shift ;;
         --total-nodes) shift ; TOTAL_NODES="$1" ; shift ;;
         -h|--help) usage ;;    # does not return
@@ -108,7 +112,8 @@ set +x
 
 # run tests
 support_cop_out_test
-ceph_version_test
+ceph_rpm_version_test
 ceph_cluster_running_test
+test -z "$PROMISCUOUS_VERSIONS" && ceph_daemon_versions_test
 ceph_health_test
 number_of_nodes_actual_vs_expected_test

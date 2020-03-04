@@ -119,11 +119,11 @@ function support_cop_out_test {
     echo
 }
 
-function ceph_version_test {
+function ceph_rpm_version_test {
 # test that ceph RPM version matches "ceph --version"
 # for a loose definition of "matches"
     echo
-    echo "WWWW: ceph_version_test"
+    echo "WWWW: ceph_rpm_version_test"
     set -x
     rpm -q ceph-common
     set +x
@@ -141,7 +141,25 @@ function ceph_version_test {
     set -x
     test "$RPM_CEPH_VERSION" = "$CEPH_CEPH_VERSION"
     set +x
-    echo "ceph_version_test: OK"
+    echo "ceph_rpm_version_test: OK"
+    echo
+}
+
+function ceph_daemon_versions_test {
+    local version_host=""
+    local version_daemon=""
+    echo
+    echo "WWWW: ceph_daemon_versions_test"
+    set -x
+    ceph --version
+    ceph versions
+    set +x
+    version_host="$(_extract_ceph_version "$(ceph --version)")"
+    version_daemon="$(_extract_ceph_version "$(ceph versions | jq -r '.overall | keys[]')")"
+    set -x
+    test "$version_host" = "$version_daemon"
+    set +x
+    echo "ceph_daemon_versions_test: OK"
     echo
 }
 
