@@ -69,8 +69,8 @@ def ceph_salt_options(func):
                      help='ceph-salt Git branch'),
         click.option('--image-path', type=str, default=None,
                      help='registry path from which to download Ceph container image'),
-        click.option('--deploy-bootstrap/--no-deploy-bootstrap', default=True,
-                     help='Run ceph-daemon bootstrap during deployment. '
+        click.option('--cephadm-bootstrap/--no-cephadm-bootstrap', default=True,
+                     help='Run cephadm bootstrap during deployment. '
                           '(If false all other --deploy-* options will be disabled)'),
         click.option('--deploy-mons/--no-deploy-mons', default=True, help='Deploy Ceph Mons'),
         click.option('--deploy-mgrs/--no-deploy-mgrs', default=True, help='Deploy Ceph Mgrs'),
@@ -395,7 +395,7 @@ def _gen_settings_dict(version,
                        stop_before_ceph_salt_config=False,
                        stop_before_ceph_salt_deploy=False,
                        image_path=None,
-                       deploy_bootstrap=True,
+                       cephadm_bootstrap=True,
                        deploy_mons=True,
                        deploy_mgrs=True,
                        deploy_osds=True,
@@ -511,8 +511,8 @@ def _gen_settings_dict(version,
     if image_path:
         settings_dict['image_path'] = image_path
 
-    if not deploy_bootstrap:
-        settings_dict['ceph_salt_deploy_bootstrap'] = False
+    if not cephadm_bootstrap:
+        settings_dict['ceph_salt_cephadm_bootstrap'] = False
         settings_dict['ceph_salt_deploy_mons'] = False
         settings_dict['ceph_salt_deploy_mgrs'] = False
         settings_dict['ceph_salt_deploy_osds'] = False
