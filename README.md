@@ -88,7 +88,8 @@ $ sudo zypper ref
 $ sudo zypper -n install vagrant vagrant-libvirt
 ```
 
-Where `<repo>` can be `openSUSE_Leap_15.1` or `openSUSE_Tumbleweed`.
+Where `<repo>` can be any of the openSUSE build targets currently enabled for
+the [Virtualization:vagrant/vagrant package in the openSUSE Build Service](https://build.opensuse.org/package/show/Virtualization:vagrant/vagrant).
 
 #### Install sesdev from package
 
@@ -103,7 +104,8 @@ $ sudo zypper ref
 $ sudo zypper install sesdev
 ```
 
-Where `<repo>` can be `openSUSE_Leap_15.1`, `openSUSE_Leap_15.2` or `openSUSE_Tumbleweed`.
+Where `<repo>` can be any of the openSUSE build targets currently enabled for
+the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/package/show/filesystems:ceph/sesdev).
 
 At this point, sesdev should be installed and ready to use: refer to the "Usage"
 chapter, below, for further information.
@@ -127,7 +129,8 @@ https://download.opensuse.org/repositories/filesystems:/ceph/<distro>/filesystem
 dnf install sesdev
 ```
 
-Where `<distro>` can be either `Fedora_29` or `Fedora_30`.
+Where `<distro>` can be any of the Fedora build targets currently enabled for
+the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/package/show/filesystems:ceph/sesdev).
 
 At this point, sesdev should be installed and ready to use: refer to the "Usage"
 chapter, below, for further information.
