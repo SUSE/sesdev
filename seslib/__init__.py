@@ -361,29 +361,29 @@ SETTINGS = {
         'help': 'Container image path for Ceph daemons',
         'default': None
     },
-    'ceph_salt_deploy_bootstrap': {
+    'ceph_salt_cephadm_bootstrap': {
         'type': bool,
-        'help': 'Enable deployment bootstrap (aka ceph-daemon bootstrap) in ceph-salt',
+        'help': 'Tell ceph-salt to run "cephadm bootstrap" during deployment',
         'default': True
     },
     'ceph_salt_deploy_mons': {
         'type': bool,
-        'help': 'Enable deployment of Ceph Mons in ceph-salt',
+        'help': 'Tell ceph-salt to deploy Ceph MONs',
         'default': True
     },
     'ceph_salt_deploy_mgrs': {
         'type': bool,
-        'help': 'Enable deployment of Ceph Mgrs in ceph-salt',
+        'help': 'Tell ceph-salt to deploy Ceph MGRs',
         'default': True
     },
     'ceph_salt_deploy_osds': {
         'type': bool,
-        'help': 'Enable deployment of Ceph OSDs in ceph-salt',
+        'help': 'Tell ceph-salt to deploy Ceph OSDs',
         'default': True
     },
     'ceph_salt_deploy': {
         'type': bool,
-        'help': 'Use `ceph-salt deploy` command to run ceph-salt formula',
+        'help': 'Use "ceph-salt deploy" instead of applying the ceph-salt highstate directly',
         'default': True
     },
     'caasp_deploy_ses': {
@@ -909,7 +909,7 @@ class Deployment():
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
             'image_path': self.settings.image_path,
-            'ceph_salt_deploy_bootstrap': self.settings.ceph_salt_deploy_bootstrap,
+            'ceph_salt_cephadm_bootstrap': self.settings.ceph_salt_cephadm_bootstrap,
             'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
             'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,

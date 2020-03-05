@@ -67,7 +67,7 @@ ceph-salt config /Containers/Images/ceph set {{ image_path }}
 {% endif %}
 ceph-salt config /Time_Server/Server_Hostname set {{ admin.fqdn }}
 ceph-salt config /Time_Server/External_Servers add 0.pt.pool.ntp.org
-{% if not ceph_salt_deploy_bootstrap %}
+{% if not ceph_salt_cephadm_bootstrap %}
 ceph-salt config /Deployment/Bootstrap disable
 {% endif %}
 {% if ceph_salt_deploy_mons %}
