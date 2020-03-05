@@ -16,10 +16,6 @@
 #
 
 
-%if 0%{?el8} || (0%{?fedora} && 0%{?fedora} < 30)
-%{python_enable_dependency_generator}
-%endif
-
 Name:           sesdev
 Version:        1.1.6
 Release:        1%{?dist}
@@ -42,7 +38,7 @@ Requires:       python3-Jinja2 >= 2.10.1
 Requires:       python3-libvirt-python >= 5.1.0
 Requires:       python3-PyYAML >= 3.13
 %endif
-%if 0%{?fedora}
+%if 0%{?el8} || 0%{?fedora}
 Requires:       python3-jinja2 >= 2.10.1
 Requires:       python3-libvirt >= 5.1.0
 Requires:       python3-pyyaml >= 3.13
@@ -52,6 +48,10 @@ Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-setuptools
 Requires:       vagrant
 Requires:       vagrant-libvirt
+
+%if 0%{?el8} || 0%{?fedora}
+%{?python_disable_dependency_generator}
+%endif
 
 %description
 sesdev is a CLI tool for developers to help with deploying SES clusters.
