@@ -33,7 +33,7 @@ class GlobalSettings():
     @classmethod
     def init_path_to_qa(cls, full_path_to_sesdev_executable):
         if full_path_to_sesdev_executable.startswith('/usr'):
-            cls.PATH_TO_QA = '/usr/share/sesdev-qa'
+            cls.PATH_TO_QA = '/usr/share/sesdev/qa'
         else:
             cls.PATH_TO_QA = os.path.join(
                 os.path.dirname(full_path_to_sesdev_executable),
