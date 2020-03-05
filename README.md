@@ -34,13 +34,9 @@ the VMs and run the deployment scripts.
    * [Destroying a cluster](#destroying-a-cluster)
 * [Common pitfalls](#common-pitfalls)
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
-      * [Symptom](#symptom)
-      * [Analysis](#analysis)
-      * [Resolution](#resolution)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
-      * [Symptom](#symptom-1)
-      * [Analysis](#analysis-1)
-      * [Resolution](#resolution-1)
+   * [When sesdev deployments get destroyed, virtual networks get left behind](#when-sesdev-deployments-get-destroyed-virtual-networks-get-left-behind)
+
 
 ## Installation
 
@@ -420,3 +416,63 @@ $ sudo virsh pool-autostart default
 
 Credits to Federico Simoncelli for the resolution, which I took from
 [his post here](https://github.com/simon3z/virt-deploy/issues/8#issuecomment-73111541)
+
+### When sesdev deployments get destroyed, virtual networks get left behind
+
+#### Symptom
+
+You create and destroy a sesdev deployment, perhaps even several
+times, and then you notice that virtual networks get left behind. For example,
+after several create/destroy cycles on deployment "foo":
+
+```
+$ sudo virsh net-list
+ Name              State    Autostart   Persistent
+----------------------------------------------------
+ foo0              active   yes         yes
+ foo1              active   yes         yes
+ foo10             active   yes         yes
+ foo2              active   yes         yes
+ foo3              active   yes         yes
+ foo4              active   yes         yes
+ foo5              active   yes         yes
+ foo6              active   yes         yes
+ foo7              active   yes         yes
+ foo8              active   yes         yes
+ foo9              active   yes         yes
+ vagrant-libvirt   active   no          yes
+```
+
+#### Analysis
+
+For some unknown reason, vagrant-libvirt is not smart (or careless) enough to
+automatically destroy a given network when the last domain using that network
+is destroyed.
+
+#### Resolution
+
+We are currently working on a `--destroy-networks` option to `sesdev destroy`.
+To quickly destroy a bunch of networks, construct a script like so:
+
+```
+#!/bin/bash
+read -r -d '' NETZ <<EOF
+foo0
+foo1
+foo2
+foo3
+foo4
+foo5
+foo6
+foo7
+foo8
+foo9
+foo10
+EOF
+for net in $NETZ ; do
+    virsh net-destroy $net
+    virsh net-undefine $net
+done
+```
+
+The script should be run as root on the libvirt server.
