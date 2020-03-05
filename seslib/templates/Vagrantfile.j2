@@ -20,9 +20,7 @@ Vagrant.configure("2") do |config|
 
 {% if node == admin %}
     node.vm.provision "file", source: "bin/", destination: "/home/vagrant/"
-{% if qa_test is defined and qa_test is sameas true %}
     node.vm.provision "file", source: "{{ sesdev_path_to_qa }}", destination: "/home/vagrant/sesdev-qa"
-{% endif %}
 {% endif %}
 
     node.vm.synced_folder ".", "/vagrant", disabled: true
@@ -31,4 +29,8 @@ Vagrant.configure("2") do |config|
   end
 
 {% endfor %}
+
+  config.vm.provision "qa-test", type: "shell", run: "never" do |s|
+    s.inline = "/home/vagrant/qa-test.sh"
+  end
 end
