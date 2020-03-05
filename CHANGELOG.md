@@ -10,19 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.6] - 2020-03-05
 
 ### Added
-sesdev: add --non-interactive option to "sesdev create" (PR #125)
-Implement "sesdev qa-test" command (PR #129)
-qa: assert "ceph versions" matches "ceph --version" (PR #131)
+- sesdev: add --non-interactive option to "sesdev create" (PR #125)
+- Implement "sesdev qa-test" command (PR #129)
+- qa: assert "ceph versions" matches "ceph --version" (PR #131)
 
 ### Fixed
-seslib: correct downstream container for "sesdev create {ses7,octopus}" (PR #130)
-provision.sh: remove Python 2 so it doesn't pollute the environment (PR #133)
+- seslib: correct downstream container for "sesdev create {ses7,octopus}" (PR #130)
+- provision.sh: remove Python 2 so it doesn't pollute the environment (PR #133)
 
 ### Changed
-Rename --ceph-container-image to --image-path (PR #115)
-provision: install "command-not-found", "supportutils", etc. in test environments (PR #123)
-Return with a non-zero exit code in a failure case (PR #127)
-seslib: rename --deploy-bootstrap to --cephadm-bootstrap (PR #137)
+- Rename --ceph-container-image to --image-path (PR #115)
+- provision: install "command-not-found", "supportutils", etc. in test environments (PR #123)
+- Return with a non-zero exit code in a failure case (PR #127)
+- seslib: rename --deploy-bootstrap to --cephadm-bootstrap (PR #137)
 
 ## [1.1.5] - 2020-02-26
 
