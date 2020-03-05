@@ -62,8 +62,8 @@ ceph-salt config /Cluster/Roles/Mgr add {{ node.fqdn }}
 ceph-salt config /System_Update/Packages disable
 ceph-salt config /System_Update/Reboot disable
 ceph-salt config /SSH/ generate
-{% if ceph_container_image %}
-ceph-salt config /Containers/Images/ceph set {{ ceph_container_image }}
+{% if image_path %}
+ceph-salt config /Containers/Images/ceph set {{ image_path }}
 {% endif %}
 ceph-salt config /Time_Server/Server_Hostname set {{ admin.fqdn }}
 ceph-salt config /Time_Server/External_Servers add 0.pt.pool.ntp.org

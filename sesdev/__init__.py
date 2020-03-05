@@ -67,8 +67,8 @@ def ceph_salt_options(func):
                      help='ceph-salt Git repo URL'),
         click.option('--ceph-salt-branch', type=str, default=None,
                      help='ceph-salt Git branch'),
-        click.option('--ceph-container-image', type=str, default=None,
-                     help='container image path for Ceph daemons'),
+        click.option('--image-path', type=str, default=None,
+                     help='registry path from which to download Ceph container image'),
         click.option('--deploy-bootstrap/--no-deploy-bootstrap', default=True,
                      help='Run ceph-daemon bootstrap during deployment. '
                           '(If false all other --deploy-* options will be disabled)'),
@@ -394,7 +394,7 @@ def _gen_settings_dict(version,
                        ceph_salt_branch=None,
                        stop_before_ceph_salt_config=False,
                        stop_before_ceph_salt_deploy=False,
-                       ceph_container_image=None,
+                       image_path=None,
                        deploy_bootstrap=True,
                        deploy_mons=True,
                        deploy_mgrs=True,
@@ -508,8 +508,8 @@ def _gen_settings_dict(version,
     if stop_before_ceph_salt_deploy:
         settings_dict['stop_before_ceph_salt_deploy'] = stop_before_ceph_salt_deploy
 
-    if ceph_container_image:
-        settings_dict['ceph_container_image'] = ceph_container_image
+    if image_path:
+        settings_dict['image_path'] = image_path
 
     if not deploy_bootstrap:
         settings_dict['ceph_salt_deploy_bootstrap'] = False
