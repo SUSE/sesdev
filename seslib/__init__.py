@@ -185,6 +185,11 @@ SETTINGS = {
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
         'default': None
     },
+    'os_repos': {
+        'type': dict,
+        'help': 'repos to add on all VMs of a given operating system (os)',
+        'default': OS_REPOS,
+    },
     'vagrant_box': {
         'type': str,
         'help': 'Vagrant box to use in deployment',
@@ -558,15 +563,25 @@ class Settings():
 
     @staticmethod
     def _load_config_file():
+        config_tree = {}
         if not os.path.exists(GlobalSettings.CONFIG_FILE) \
                 or not os.path.isfile(GlobalSettings.CONFIG_FILE):
-            return {}
-
+            return config_tree
         with open(GlobalSettings.CONFIG_FILE, 'r') as file:
             try:
-                return yaml.load(file, Loader=yaml.FullLoader)
+                config_tree = yaml.load(file, Loader=yaml.FullLoader)
             except AttributeError:  # older versions of pyyaml does not have FullLoader
-                return yaml.load(file)
+                config_tree = yaml.load(file)
+        assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
+        if 'os_repos' in config_tree:
+            # os_repos might override only a subset of OS_REPOS: bring in the
+            # rest of it in that case
+            for k, v in OS_REPOS.items():
+                if k in config_tree['os_repos']:
+                    pass
+                else:
+                    config_tree['os_repos'][k] = v
+        return config_tree
 
 
 class SettingsEncoder(json.JSONEncoder):
@@ -888,8 +903,8 @@ class Deployment():
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
-        if self.settings.os in OS_REPOS:
-            os_base_repos = list(OS_REPOS[self.settings.os].items())
+        if self.settings.os in self.settings.os_repos:
+            os_base_repos = list(self.settings.os_repos[self.settings.os].items())
         else:
             os_base_repos = []
 
