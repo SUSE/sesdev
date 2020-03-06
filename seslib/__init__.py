@@ -190,6 +190,11 @@ SETTINGS = {
         'help': 'repos to add on all VMs of a given operating system (os)',
         'default': OS_REPOS,
     },
+    'version_os_repo_mapping': {
+        'type': dict,
+        'help': 'additional repos to be added on particular VERSION:OS combinations',
+        'default': VERSION_OS_REPO_MAPPING,
+    },
     'vagrant_box': {
         'type': str,
         'help': 'Vagrant box to use in deployment',
@@ -581,6 +586,14 @@ class Settings():
                     pass
                 else:
                     config_tree['os_repos'][k] = v
+        if 'version_os_repo_mapping' in config_tree:
+            # version_os_repo_mapping might override only a subset of
+            # VERSION_OS_REPO_MAPPING: bring in the rest of it in that case
+            for k, v in VERSION_OS_REPO_MAPPING.items():
+                if k in config_tree['version_os_repo_mapping']:
+                    pass
+                else:
+                    config_tree['version_os_repo_mapping'][k] = v
         return config_tree
 
 
@@ -899,7 +912,9 @@ class Deployment():
         vagrant_box = self.settings.os
 
         try:
-            version_repos = VERSION_OS_REPO_MAPPING[self.settings.version][self.settings.os]
+            version = self.settings.version
+            os_setting = self.settings.os
+            version_repos = self.settings.version_os_repo_mapping[version][os_setting]
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
