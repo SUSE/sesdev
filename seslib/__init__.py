@@ -173,9 +173,6 @@ VERSION_OS_REPO_MAPPING = {
 }
 
 VERSION_QA_REPO_MAPPING = {
-    'octopus': {
-        'leap-15.2': [],
-    },
     'ses7': {
         'sles-15-sp2': [
             'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/'
