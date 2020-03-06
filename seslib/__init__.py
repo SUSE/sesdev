@@ -101,6 +101,11 @@ OS_REPOS = {
     },
 }
 
+IMAGE_PATHS = {
+    'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
+    'octopus': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
+}
+
 VERSION_PREFERRED_OS = {
     'ses5': 'sles-12-sp3',
     'ses6': 'sles-15-sp1',
@@ -194,6 +199,11 @@ SETTINGS = {
         'type': dict,
         'help': 'additional repos to be added on particular VERSION:OS combinations',
         'default': VERSION_OS_REPO_MAPPING,
+    },
+    'image_paths': {
+        'type': dict,
+        'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
+        'default': IMAGE_PATHS,
     },
     'vagrant_box': {
         'type': str,
@@ -579,21 +589,23 @@ class Settings():
                 config_tree = yaml.load(file)
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
         if 'os_repos' in config_tree:
-            # os_repos might override only a subset of OS_REPOS: bring in the
-            # rest of it in that case
             for k, v in OS_REPOS.items():
                 if k in config_tree['os_repos']:
                     pass
                 else:
                     config_tree['os_repos'][k] = v
         if 'version_os_repo_mapping' in config_tree:
-            # version_os_repo_mapping might override only a subset of
-            # VERSION_OS_REPO_MAPPING: bring in the rest of it in that case
             for k, v in VERSION_OS_REPO_MAPPING.items():
                 if k in config_tree['version_os_repo_mapping']:
                     pass
                 else:
                     config_tree['version_os_repo_mapping'][k] = v
+        if 'image_paths' in config_tree:
+            for k, v in IMAGE_PATHS.items():
+                if k in config_tree['image_paths']:
+                    pass
+                else:
+                    config_tree['image_paths'][k] = v
         return config_tree
 
 
@@ -704,12 +716,8 @@ class Deployment():
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.image_path is None:
-            if self.settings.version == 'ses7':
-                self.settings.image_path = \
-                    'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
-            else:
-                self.settings.image_path = \
-                    'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph'
+            if self.settings.deployment_tool == 'orchestrator':
+                self.settings.image_path = self.settings.image_paths[self.settings.version]
 
         if not self.settings.libvirt_networks:
             self._generate_static_networks()
