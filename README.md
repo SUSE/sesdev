@@ -25,7 +25,9 @@ the VMs and run the deployment scripts.
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
    * [Create/Deploy cluster](#createdeploy-cluster)
-      * [Custom zypper repos](#custom-zypper-repos)
+      * [Custom zypper repo (to be added together with the default repos)](#custom-zypper-repo-to-be-added-together-with-the-default-repos)
+      * [Custom zypper repos (completely replace the default repos)](#custom-zypper-repos-completely-replace-the-default-repos)
+      * [Custom image paths](#custom-image-paths)
    * [Listing deployments](#listing-deployments)
    * [SSH access to the cluster](#ssh-access-to-the-cluster)
    * [Copy files into and out of the cluster](#copy-files-into-and-out-of-the-cluster)
@@ -279,11 +281,14 @@ $ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], \
   [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 ```
 
-#### Custom zypper repos
+#### Custom zypper repo (to be added together with the default repos)
 
-If you have the URL(s) of custom zypper repo(s) that you would like to add
-to all the nodes of the cluster prior to deployment, add one or more
-`--repo` options to the command line, e.g.:
+Each deployment version (e.g. "octopus", "nautilus") is associated with
+a set of zypper repos which are added on each VM that is created.
+
+There are times when you may need to add additional zypper repo(s)
+to all the VMs prior to deployment. In such a case, add one or more `--repo`
+options to the command line, e.g.:
 
 ```
 $ sesdev create nautilus --single-node --repo [URL_OF_REPO] mini
@@ -293,6 +298,53 @@ By default, the custom repo(s) will be added with an elevated priority,
 to ensure that packages from these repos will be installed even if higher
 RPM versions of those packages exist. If this behavior is not desired,
 add `--no-repo-priority` to disable it.
+
+#### Custom zypper repos (completely replace the default repos)
+
+If the default zypper repos that are added to each VM
+prior to deployment are completely wrong for your use case, you can override
+them via `~/.sesdev/config.yaml`.
+
+To do this, you have to be familiar with two of sesdev's internal dictionaries:
+`OS_REPOS` and `VERSION_OS_REPO_MAPPING`. The former specifies repos that are
+added to all VMs with a given operating system, regardless of the Ceph version
+being deployed, and the latter specifies additional repos that are added to VMs
+depending on the Ceph version being deployed. Refer to `seslib/__init__.py` for
+the current defaults.
+
+To override `OS_REPOS`, add an `os_repos:` stanza to your `~/.sesdev/config.yaml`.
+
+To override `VERSION_OS_REPO_MAPPING`, add a `version_os_repo_mapping:` stanza to your `~/.sesdev/config.yaml`.
+
+Please note that you need not copy-paste any parts of these internal
+dictionaries from the source code into your config. You can selectively override
+only those parts that you need. For example, the following config snippet will
+override the default additional repos for "octopus" deployments on "leap-15.2",
+but it will not change the defaults for any of the other deployment versions:
+
+```
+version_os_repo_mapping:
+    octopus:
+        leap-15.2:
+            - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
+```
+
+#### Custom image paths
+
+In Ceph versions "octopus" and newer, the Ceph daemons run inside containers.
+When the cluster is bootstrapped, a container image is downloaded from a remote
+registry. The default image paths are set by the internal dictionary
+`IMAGE_PATHS` in `seslib/__init__.py`. You can specify a different image path
+using the `--image-path` option to, e.g., `sesdev create octopus`.
+
+If you would like to permanently specify a different image path for one or more
+Ceph versions, you can override the defaults by adding a stanza like the
+following to your `~/.sesdev/config.yaml`:
+
+```
+image_paths:
+    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
+```
 
 ### Listing deployments
 
