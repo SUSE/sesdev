@@ -92,6 +92,7 @@ ceph-salt config /Deployment/Dashboard/username set admin
 ceph-salt config /Deployment/Dashboard/password set admin
 
 ceph-salt config ls
+ceph-salt status
 
 zypper lr -upEP
 zypper info cephadm | grep -E '(^Repo|^Version)'
