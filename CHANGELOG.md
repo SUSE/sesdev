@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.7] - 2020-03-09
+
+### Added
+- ceph_salt_deployment: run "ceph-salt status" after "ceph-salt config ls"
+  (PR #138)
+- Let --debug run "vagrant up/destroy" in debug mode (PR #89)
+
+### Fixed
+- qa: fix path to qa scripts for RPM case (PR #141)
+- ceph_salt_deployment: honor --no-deploy-osds option (PR #143)
+
+### Changed
+- spec: disable RH/Fedora Python dependendency generator (PR #140)
+- spec: always install sesdev-qa RPM along with sesdev (PR #144)
+
 ## [1.1.6] - 2020-03-05
 
 ### Added
@@ -213,7 +228,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.6...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.7...HEAD
+[1.1.7]: https://github.com/SUSE/sesdev/releases/tag/v1.1.7
 [1.1.6]: https://github.com/SUSE/sesdev/releases/tag/v1.1.6
 [1.1.5]: https://github.com/SUSE/sesdev/releases/tag/v1.1.5
 [1.1.4]: https://github.com/SUSE/sesdev/releases/tag/v1.1.4
