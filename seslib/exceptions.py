@@ -101,3 +101,10 @@ class ScpInvalidSourceOrDestination(SesDevException):
     def __init__(self):
         super(ScpInvalidSourceOrDestination, self).__init__(
             "Either source or destination must contain a ':' - not both or neither")
+
+
+class MaxDisksExceeded(SesDevException):
+    def __init__(self, max_disks):
+        super(MaxDisksExceeded, self).__init__(
+            "More than {} added disks is not supported"
+            .format(max_disks))

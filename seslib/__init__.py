@@ -17,7 +17,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
                         ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException, \
-                        VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination
+                        VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
+                        MaxDisksExceeded
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1129,6 +1130,26 @@ class Deployment():
                         self.nodes[line_arr[0]].status = "suspended"
 
     def status(self):
+
+        def device_letter(letter_num):
+            """
+            letter_num is some number ranging from `ord('a') + 1` to
+            `ord('a') + num_disks`. We cannot simply do `str(chr(letter_num))`
+            because letter_num might be greater than 25.
+            """
+            retval = None
+            d_n = letter_num - ord('a')
+            max_n = 701
+            if d_n < 26:
+                retval = str(chr(letter_num))
+            elif d_n <= max_n:
+                first_letter = str(chr(ord('a') + int(d_n / 26) - 1))
+                second_letter = str(chr(ord('a') + int(d_n % 26)))
+                retval = first_letter + second_letter
+            else:
+                raise MaxDisksExceeded(max_n)
+            return retval
+
         result = "{} Deployment VMs:\n".format(len(self.nodes))
         for k, v in self.nodes.items():
             result += "  -- {}:\n".format(k)
@@ -1150,11 +1171,11 @@ class Deployment():
             result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
             if v.storage_disks:
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
-                dev_letter = ord('b')
+                dev_letter = ord('a')
                 for disk in v.storage_disks:
-                    result += "       - /dev/vd{}        {}G\n".format(str(chr(dev_letter)),
-                                                                       disk.size)
                     dev_letter += 1
+                    result += "       - /dev/vd{}        {}G\n".format(device_letter(dev_letter),
+                                                                       disk.size)
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test_opt)
             if self.settings.version in ['octopus', 'ses7'] \
