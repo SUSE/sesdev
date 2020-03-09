@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import random
 import shutil
+from xml.dom import minidom
 import yaml
 
 from Cryptodome.PublicKey import RSA
@@ -468,6 +469,32 @@ class Box():
                 matching_images.append(removal_candidate)
         return matching_images
 
+    def get_networks_by_deployment(self, dep_id):
+        self.open_libvirt_connection()
+        domains = [x for x in self.libvirt_conn.listAllDomains() if
+                   x.name().startswith(dep_id)]
+
+        logger.debug("libvirt matching domains: %s", domains)
+
+        networks = set()
+        for domain in domains:
+            xml = minidom.parseString(domain.XMLDesc())
+            sources_lst = xml.getElementsByTagName("source")
+
+            ifaces = [source for source in sources_lst if
+                      source.parentNode.nodeName == "interface" and
+                      source.parentNode.hasAttribute("type") and
+                      source.parentNode.getAttribute("type") == "network"]
+
+            logger.debug("libvirt domain's interfaces: %s", ifaces)
+
+            for iface in ifaces:
+                name = iface.getAttribute("network")
+                if name == "vagrant-libvirt":
+                    continue
+                networks.add(name)
+        return list(networks)
+
     def list(self):
         for box in self.boxes:
             print(box)
@@ -487,6 +514,23 @@ class Box():
     @staticmethod
     def remove_box(box_name):
         tools.run_sync(["vagrant", "box", "remove", box_name])
+
+    def destroy_network(self, name):
+        self.open_libvirt_connection()
+
+        try:
+            network = self.libvirt_conn.networkLookupByName(name)
+        except libvirt.libvirtError:
+            logger.warning("Unable to find network '%s' for removal", name)
+            return False
+
+        try:
+            network.destroy()
+        except libvirt.libvirtError:
+            logger.error("Something went wrong destroying network '%s'", name)
+            return False
+
+        return True
 
 
 class Settings():
@@ -993,7 +1037,17 @@ class Deployment():
             cmd.append('--debug')
         tools.run_async(cmd, log_handler, self.dep_dir)
 
-    def destroy(self, log_handler):
+    def destroy(self, log_handler, destroy_networks=False):
+
+        # if we are allowing networks to be destroyed, populate the networks
+        # list; we will find all networks now, and we'll destroy them last.
+        used_networks = []
+        if destroy_networks:
+            used_networks = self.box.get_networks_by_deployment(self.dep_id)
+
+        logger.debug("should destroy networks: %s, networks: %s",
+                     destroy_networks, used_networks)
+
         for node in self.nodes.values():
             if node.status == 'not deployed':
                 continue
@@ -1001,6 +1055,7 @@ class Deployment():
             if GlobalSettings.DEBUG:
                 cmd.append('--debug')
             tools.run_async(cmd, log_handler, self.dep_dir)
+
         shutil.rmtree(self.dep_dir)
         # clean up any orphaned volumes
         images_to_remove = self.box.get_images_by_deployment(self.dep_id)
@@ -1009,6 +1064,16 @@ class Deployment():
             log_handler("Removing them!")
             for image in images_to_remove:
                 self.box.remove_image(image)
+
+        for network in used_networks:
+            logger.info("Destroy network '%s'", network)
+            if not self.box.destroy_network(network):
+                logger.warning(
+                    "Unable to destroy network '%s' for deployment '%s'",
+                    network, self.dep_id)
+            else:
+                logger.info("Destroyed network '%s' for deployment '%s'",
+                            network, self.dep_id)
 
     def _stop(self, node):
         if self.nodes[node].status != "running":
