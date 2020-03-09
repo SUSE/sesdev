@@ -77,7 +77,7 @@ ceph-salt config /Deployment/Mon enable
 ceph-salt config /Deployment/Mgr enable
 {% endif %}
 
-{% if ceph_salt_deploy_mons %}
+{% if ceph_salt_deploy_osds %}
 ceph-salt config /Deployment/OSD enable
 
 # OSDs drive groups spec for each node
