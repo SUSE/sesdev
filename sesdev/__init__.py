@@ -815,8 +815,8 @@ def redeploy(deployment_id):
 
 @cli.command()
 @click.argument('deployment_id')
-@click.argument('service', type=click.Choice(['dashboard', 'grafana', 'openattic', 'suma']),
-                required=False)
+@click.argument('service', type=click.Choice(['dashboard', 'grafana', 'openattic', 'suma',
+                                              'prometheus', 'alertmanager']), required=False)
 @click.option('--node', default='admin', type=str, show_default=True,
               help='The node where we want to create the tunnel to')
 @click.option('--remote-port', default=None, type=int,
