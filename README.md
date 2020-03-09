@@ -318,6 +318,10 @@ following command:
 $ sesdev destroy <deployment_id>
 ```
 
+It has been reported that vagrant-libvirt sometimes leaves networks behind when
+destroying domains (i.e. the VMs associated with a sesdev deployment). If this
+bothers you, `sesdev destroy` has a `--destroy-networks` option you can use.
+
 ## Common pitfalls
 
 This section describes some common pitfalls and how to resolve them.
@@ -445,14 +449,16 @@ $ sudo virsh net-list
 
 #### Analysis
 
-For some unknown reason, vagrant-libvirt is not smart (or careless) enough to
-automatically destroy a given network when the last domain using that network
-is destroyed.
+It has been reported that vagrant-libvirt sometimes leaves networks behind when
+it destroys domains (i.e. the VMs associated with a sesdev deployment). We do
+not currently know why, or under what conditions, this happens.
 
 #### Resolution
 
-We are currently working on a `--destroy-networks` option to `sesdev destroy`.
-To quickly destroy a bunch of networks, construct a script like so:
+If this behavior bothers you, `sesdev destroy` has a `--destroy-networks` option
+you can use. Of course, `sesdev destroy --destroy-networks` only works for the
+network(s) associated with the VMs in the deployment being destroyed. To quickly
+destroy a bunch of networks, construct a script like so:
 
 ```
 #!/bin/bash
