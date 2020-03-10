@@ -36,6 +36,7 @@ the VMs and run the deployment scripts.
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
    * [When sesdev deployments get destroyed, virtual networks get left behind](#when-sesdev-deployments-get-destroyed-virtual-networks-get-left-behind)
+* [Contributing](#contributing)
 
 
 ## Installation
@@ -517,3 +518,11 @@ done
 ```
 
 The script should be run as root on the libvirt server.
+
+## Contributing
+
+If you would like to submit a patch to sesdev, please read the file
+`CONTRIBUTING.rst` in the top-level directory of the source code distribution.
+It can be found on-line here:
+
+https://github.com/SUSE/sesdev/blob/master/CONTRIBUTING.rst
