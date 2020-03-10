@@ -22,7 +22,7 @@ the VMs and run the deployment scripts.
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt-1)
       * [Install sesdev from package](#install-sesdev-from-package-1)
    * [Install sesdev from source](#install-sesdev-from-source)
-      * [Linting](#linting)
+      * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
    * [Create/Deploy cluster](#createdeploy-cluster)
       * [Custom zypper repos](#custom-zypper-repos)
@@ -36,6 +36,7 @@ the VMs and run the deployment scripts.
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
    * [When sesdev deployments get destroyed, virtual networks get left behind](#when-sesdev-deployments-get-destroyed-virtual-networks-get-left-behind)
+* [Contributing](#contributing)
 
 
 ## Installation
@@ -164,20 +165,55 @@ Remember to re-run `pip install --editable .` after each git pull.
 At this point, sesdev should be installed and ready to use: refer to the "Usage"
 chapter, below, for further information.
 
-#### Linting
+#### Running the unit tests
 
-If you are preparing a code change for submission and would like to run it
-through the linter, install the "tox" and "pylint" packages in your system,
-first:
+If you are preparing a code change for submission and would like to run the
+unit tests on it, make sure you have installed sesdev from source, as described
+above, and the virtualenv is active. Then, follow the instructions below.
 
-```
-zypper -n install python3-tox python3-pylint
-```
-
-Then, execute the following command in the top-level of your local git clone:
+First, install the "tox" package in your system:
 
 ```
-tox -elint
+zypper -n install python3-tox
+```
+
+Then, execute the following commands in the top-level of your local git clone
+to install the dependencies, including test dependencies:
+
+```
+pip install --editable ./[dev]
+```
+
+Finally, inspect the list of testing environments in `tox.ini` and choose one or
+more that you are interested in. Here is an example, but the actual output might
+be different:
+
+```
+$ tox --listenvs
+py36
+py37
+lint
+```
+
+(This means you have three testing environments to choose from: `py36`, `py37`,
+and `lint`.)
+
+Finally, run your chosen test environment(s):
+
+```
+tox -e py36
+tox -e lint
+```
+
+If you don't know which testing environment to choose, the command `tox` will
+run *all* the testing environments.
+
+CAVEAT: environments like `py36` and `py37` will only run if that exact version
+of Python is installed on your system. So, if you've got Python 3.6 and you
+want to run all possible tests:
+
+```
+tox -e py36,lint
 ```
 
 ## Usage
@@ -482,3 +518,11 @@ done
 ```
 
 The script should be run as root on the libvirt server.
+
+## Contributing
+
+If you would like to submit a patch to sesdev, please read the file
+`CONTRIBUTING.rst` in the top-level directory of the source code distribution.
+It can be found on-line here:
+
+https://github.com/SUSE/sesdev/blob/master/CONTRIBUTING.rst
