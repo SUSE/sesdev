@@ -1270,7 +1270,8 @@ class Deployment():
             local_address = 'localhost'
 
         if service is not None:
-            if service not in ['dashboard', 'grafana', 'openattic', 'suma']:
+            if service not in ['dashboard', 'grafana', 'openattic', 'suma', 'prometheus',
+                               'alertmanager']:
                 raise ServicePortForwardingNotSupported(service)
 
             if service in ['openattic', 'grafana']:
@@ -1321,6 +1322,16 @@ class Deployment():
                 remote_port = 443
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
+            elif service == 'prometheus':
+                node = self._find_service_node(service)
+                remote_port = 9090
+                local_port = 9090
+                service_url = 'http://{}:{}'.format(local_address, local_port)
+            elif service == 'alertmanager':
+                node = self._find_service_node(service)
+                remote_port = 9093
+                local_port = 9093
+                service_url = 'http://{}:{}'.format(local_address, local_port)
 
         else:
             if node not in self.nodes:
