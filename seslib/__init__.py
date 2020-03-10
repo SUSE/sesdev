@@ -1423,6 +1423,9 @@ class Deployment():
         if not os.path.exists(GlobalSettings.WORKING_DIR):
             return deps
         for dep_id in os.listdir(GlobalSettings.WORKING_DIR):
+            if dep_id.startswith("config.yaml"):
+                logger.debug("Skipping %s (obviously not a deployment)", dep_id)
+                continue
             try:
                 deps.append(Deployment.load(dep_id, load_status))
             except DeploymentDoesNotExists:
