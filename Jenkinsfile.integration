@@ -48,7 +48,7 @@ def zypper_add_repos(repo_list) {
     }
 }
 
-def sesdev_create_cmd = "sesdev create octopus --non-interactive ${sesdev_create_ceph_salt_params()} --image-path ${params.SESDEV_CEPH_CONTAINER_IMAGE} --qa-test --single-node mini"
+def sesdev_create_cmd = "sesdev create octopus --non-interactive ${sesdev_create_ceph_salt_params()} --qa-test --single-node mini"
 
 pipeline {
     agent none
@@ -59,9 +59,6 @@ pipeline {
         /* first value in the list is the default */
         choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
         choice(name: 'OS', choices: ['openSUSE-Leap-15.2'], description: 'Operating system to use')
-        string(name: 'SESDEV_CEPH_CONTAINER_IMAGE',
-               defaultValue: "registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph",
-               description: 'Which Ceph container image should sesdev use?')
         string(name: 'SLEEP_WHEN_FAILING', defaultValue: '1',
                description: 'Keep the environment available for X minutes when job failed')
         booleanParam(name: 'CEPH_SALT_FROM_GIT_MASTER', defaultValue: true, description: 'Use ceph-salt from git (instead of using the RPM package)')
