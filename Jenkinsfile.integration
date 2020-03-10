@@ -34,21 +34,12 @@ def cloud_params = [
     ]
 ]
 
-def sesdev_create_ceph_salt_params() {
-    if (params.CEPH_SALT_FROM_GIT_MASTER == true) {
-        return "--ceph-salt-repo https://github.com/ceph/ceph-salt.git --ceph-salt-branch master"
-    } else {
-        return ""
-    }
-}
-
 def zypper_add_repos(repo_list) {
     for (int i = 0; i < repo_list.size(); i++) {
         sh "zypper -n ar --no-gpgcheck ${repo_list[i]} ${i}"
     }
 }
 
-def sesdev_create_cmd = "sesdev create octopus --non-interactive ${sesdev_create_ceph_salt_params()} --image-path ${params.SESDEV_CEPH_CONTAINER_IMAGE} --qa-test --single-node mini"
 
 pipeline {
     agent none
@@ -59,12 +50,8 @@ pipeline {
         /* first value in the list is the default */
         choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
         choice(name: 'OS', choices: ['openSUSE-Leap-15.2'], description: 'Operating system to use')
-        string(name: 'SESDEV_CEPH_CONTAINER_IMAGE',
-               defaultValue: "registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph",
-               description: 'Which Ceph container image should sesdev use?')
         string(name: 'SLEEP_WHEN_FAILING', defaultValue: '1',
                description: 'Keep the environment available for X minutes when job failed')
-        booleanParam(name: 'CEPH_SALT_FROM_GIT_MASTER', defaultValue: true, description: 'Use ceph-salt from git (instead of using the RPM package)')
     }
 
     environment {
@@ -127,7 +114,7 @@ pipeline {
                 pip install --editable .
                 """
                 sh "source venv/bin/activate; sesdev --help"
-                sh "source venv/bin/activate; ${sesdev_create_cmd}; echo \$?"
+                sh "source venv/bin/activate; sesdev create octopus --non-interactive --ceph-salt-repo https://github.com/ceph/ceph-salt.git --ceph-salt-branch master --qa-test --single-node mini"
             }
         }
     }
