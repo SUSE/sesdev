@@ -1150,11 +1150,8 @@ class Deployment():
             result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
             if v.storage_disks:
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
-                dev_letter = ord('b')
-                for disk in v.storage_disks:
-                    result += "       - /dev/vd{}        {}G\n".format(str(chr(dev_letter)),
-                                                                       disk.size)
-                    dev_letter += 1
+                result += ("                         "
+                           "(device names will be assigned by vagrant-libvirt)\n")
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test_opt)
             if self.settings.version in ['octopus', 'ses7'] \
