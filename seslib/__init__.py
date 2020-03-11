@@ -578,7 +578,21 @@ class Settings():
 
     @staticmethod
     def _load_config_file():
+
         config_tree = {}
+
+        def __fill_in_config_tree(config_param, global_param):
+            """
+            fill in missing parts of config_tree[config_param]
+            from global_param
+            """
+            if config_param in config_tree:
+                for k, v in global_param.items():
+                    if k in config_tree[config_param]:
+                        pass
+                    else:
+                        config_tree[config_param][k] = v
+
         if not os.path.exists(GlobalSettings.CONFIG_FILE) \
                 or not os.path.isfile(GlobalSettings.CONFIG_FILE):
             return config_tree
@@ -588,24 +602,9 @@ class Settings():
             except AttributeError:  # older versions of pyyaml does not have FullLoader
                 config_tree = yaml.load(file)
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
-        if 'os_repos' in config_tree:
-            for k, v in OS_REPOS.items():
-                if k in config_tree['os_repos']:
-                    pass
-                else:
-                    config_tree['os_repos'][k] = v
-        if 'version_os_repo_mapping' in config_tree:
-            for k, v in VERSION_OS_REPO_MAPPING.items():
-                if k in config_tree['version_os_repo_mapping']:
-                    pass
-                else:
-                    config_tree['version_os_repo_mapping'][k] = v
-        if 'image_paths' in config_tree:
-            for k, v in IMAGE_PATHS.items():
-                if k in config_tree['image_paths']:
-                    pass
-                else:
-                    config_tree['image_paths'][k] = v
+        __fill_in_config_tree('os_repos', OS_REPOS)
+        __fill_in_config_tree('version_os_repo_mapping', VERSION_OS_REPO_MAPPING)
+        __fill_in_config_tree('image_paths', IMAGE_PATHS)
         return config_tree
 
 
