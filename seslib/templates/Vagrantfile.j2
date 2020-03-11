@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
 
 {% if node == admin %}
     node.vm.provision "file", source: "bin/", destination: "/home/vagrant/"
-    node.vm.provision "file", source: "{{ sesdev_path_to_qa }}", destination: "/home/vagrant/sesdev-qa"
+    node.vm.provision "file", source: "{{ sesdev_path_to_qa }}", destination: "/home/vagrant/sesdev-qa/"
 {% endif %}
 
     node.vm.synced_folder ".", "/vagrant", disabled: true
