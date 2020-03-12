@@ -169,10 +169,13 @@ def _abort_if_false(ctx, _, value):
 @click.option('-c', '--config-file', required=False,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Configuration file location')
-@click.option('--debug/--no-debug', default=False)
+@click.option('--debug/--no-debug', default=False,
+              help='Whether to emit DEBUG-level log messages')
 @click.option('--log-file', type=str, default=None)
+@click.option('--vagrant-debug/--no-vagrant-debug', default=False,
+              help='Whether to run vagrant with --debug option')
 @click.version_option(pkg_resources.get_distribution('sesdev'), message="%(version)s")
-def cli(work_path=None, config_file=None, debug=False, log_file=None):
+def cli(work_path=None, config_file=None, debug=False, log_file=None, vagrant_debug=False):
     """
     Welcome to the sesdev tool.
 
@@ -194,6 +197,10 @@ $ sesdev create octopus --roles="[admin, mon, mgr], \\
     if debug:
         logger.info("Debug mode: ON")
         seslib.GlobalSettings.DEBUG = debug
+
+    if vagrant_debug:
+        logger.info("vagrant will be run with --debug option")
+        seslib.GlobalSettings.VAGRANT_DEBUG = vagrant_debug
 
     if log_file:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',

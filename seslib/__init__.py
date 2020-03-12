@@ -30,6 +30,7 @@ class GlobalSettings():
     WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
     DEBUG = False
+    VAGRANT_DEBUG = False
 
     @classmethod
     def init_path_to_qa(cls, full_path_to_sesdev_executable):
@@ -1070,7 +1071,7 @@ class Deployment():
         cmd = ["vagrant", "up"]
         if node is not None:
             cmd.append(node)
-        if GlobalSettings.DEBUG:
+        if GlobalSettings.VAGRANT_DEBUG:
             cmd.append('--debug')
         tools.run_async(cmd, log_handler, self.dep_dir)
 
@@ -1089,7 +1090,7 @@ class Deployment():
             if node.status == 'not deployed':
                 continue
             cmd = ["vagrant", "destroy", node.name, "--force"]
-            if GlobalSettings.DEBUG:
+            if GlobalSettings.VAGRANT_DEBUG:
                 cmd.append('--debug')
             tools.run_async(cmd, log_handler, self.dep_dir)
 
