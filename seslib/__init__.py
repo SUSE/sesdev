@@ -118,9 +118,9 @@ VERSION_PREFERRED_OS = {
 VERSION_PREFERRED_DEPLOYMENT_TOOL = {
     'ses5': 'deepsea',
     'ses6': 'deepsea',
-    'ses7': 'orchestrator',
+    'ses7': 'cephadm',
     'nautilus': 'deepsea',
-    'octopus': 'orchestrator'
+    'octopus': 'cephadm'
 }
 
 VERSION_OS_REPO_MAPPING = {
@@ -715,7 +715,7 @@ class Deployment():
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.image_path is None:
-            if self.settings.deployment_tool == 'orchestrator':
+            if self.settings.deployment_tool == 'cephadm':
                 self.settings.image_path = self.settings.image_paths[self.settings.version]
 
         if not self.settings.libvirt_networks:
@@ -1192,7 +1192,7 @@ class Deployment():
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test_opt)
             if self.settings.version in ['octopus', 'ses7'] \
-                    and self.settings.deployment_tool == 'orchestrator':
+                    and self.settings.deployment_tool == 'cephadm':
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             if v.repos:
                 result += "     - custom_repos:\n"

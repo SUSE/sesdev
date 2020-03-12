@@ -615,8 +615,8 @@ def ses6(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-orchestrator", default=False,
-              help="Use deepsea to deploy SES7 instead of SSH orchestrator")
+@click.option("--use-deepsea/--use-cephadm", default=False,
+              help="Use deepsea to deploy SES7 instead of cephadm")
 def ses7(deployment_id, deploy, use_deepsea, **kwargs):
     """
     Creates a SES7 cluster using SLES-15-SP2
@@ -647,8 +647,8 @@ def nautilus(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-orchestrator", default=False,
-              help="Use deepsea to deploy Ceph Octopus instead of SSH orchestrator")
+@click.option("--use-deepsea/--use-cephadm", default=False,
+              help="Use deepsea to deploy Ceph Octopus instead of cephadm")
 def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     """
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages

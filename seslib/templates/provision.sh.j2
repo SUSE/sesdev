@@ -167,7 +167,7 @@ set -ex
 {% include "suma/suma_deployment.sh.j2" %}
 {% endif %}
 
-{% if node == admin and deployment_tool == "orchestrator" %}
+{% if node == admin and deployment_tool == "cephadm" %}
 {% include "ceph-salt/ceph_salt_deployment.sh.j2" %}
 {% endif %}
 
