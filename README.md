@@ -284,6 +284,15 @@ $ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], \
   [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 ```
 
+The following is another example to generate a 4-node Octopus cluster. Note
+since Octopus/SES7, to bootstrap a Ceph cluster, at least one node should
+have ADMIN, MON, and MGR roles simultaneously
+
+```
+$ sesdev create octopus --roles="[admin, mon, mgr], [mon, mgr], \
+  [mon, mgr, storage], [mgr, storage]" another_big_cluster
+```
+
 #### Custom zypper repo (to be added together with the default repos)
 
 Each deployment version (e.g. "octopus", "nautilus") is associated with
