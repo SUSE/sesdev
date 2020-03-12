@@ -101,6 +101,11 @@ OS_REPOS = {
     },
 }
 
+IMAGE_PATHS = {
+    'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
+    'octopus': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
+}
+
 VERSION_PREFERRED_OS = {
     'ses5': 'sles-12-sp3',
     'ses6': 'sles-15-sp1',
@@ -184,6 +189,21 @@ SETTINGS = {
         'type': str,
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
         'default': None
+    },
+    'os_repos': {
+        'type': dict,
+        'help': 'repos to add on all VMs of a given operating system (os)',
+        'default': OS_REPOS,
+    },
+    'version_os_repo_mapping': {
+        'type': dict,
+        'help': 'additional repos to be added on particular VERSION:OS combinations',
+        'default': VERSION_OS_REPO_MAPPING,
+    },
+    'image_paths': {
+        'type': dict,
+        'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
+        'default': IMAGE_PATHS,
     },
     'vagrant_box': {
         'type': str,
@@ -558,15 +578,34 @@ class Settings():
 
     @staticmethod
     def _load_config_file():
+
+        config_tree = {}
+
+        def __fill_in_config_tree(config_param, global_param):
+            """
+            fill in missing parts of config_tree[config_param]
+            from global_param
+            """
+            if config_param in config_tree:
+                for k, v in global_param.items():
+                    if k in config_tree[config_param]:
+                        pass
+                    else:
+                        config_tree[config_param][k] = v
+
         if not os.path.exists(GlobalSettings.CONFIG_FILE) \
                 or not os.path.isfile(GlobalSettings.CONFIG_FILE):
-            return {}
-
+            return config_tree
         with open(GlobalSettings.CONFIG_FILE, 'r') as file:
             try:
-                return yaml.load(file, Loader=yaml.FullLoader)
+                config_tree = yaml.load(file, Loader=yaml.FullLoader)
             except AttributeError:  # older versions of pyyaml does not have FullLoader
-                return yaml.load(file)
+                config_tree = yaml.load(file)
+        assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
+        __fill_in_config_tree('os_repos', OS_REPOS)
+        __fill_in_config_tree('version_os_repo_mapping', VERSION_OS_REPO_MAPPING)
+        __fill_in_config_tree('image_paths', IMAGE_PATHS)
+        return config_tree
 
 
 class SettingsEncoder(json.JSONEncoder):
@@ -676,12 +715,8 @@ class Deployment():
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.image_path is None:
-            if self.settings.version == 'ses7':
-                self.settings.image_path = \
-                    'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
-            else:
-                self.settings.image_path = \
-                    'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph'
+            if self.settings.deployment_tool == 'orchestrator':
+                self.settings.image_path = self.settings.image_paths[self.settings.version]
 
         if not self.settings.libvirt_networks:
             self._generate_static_networks()
@@ -884,12 +919,14 @@ class Deployment():
         vagrant_box = self.settings.os
 
         try:
-            version_repos = VERSION_OS_REPO_MAPPING[self.settings.version][self.settings.os]
+            version = self.settings.version
+            os_setting = self.settings.os
+            version_repos = self.settings.version_os_repo_mapping[version][os_setting]
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
-        if self.settings.os in OS_REPOS:
-            os_base_repos = list(OS_REPOS[self.settings.os].items())
+        if self.settings.os in self.settings.os_repos:
+            os_base_repos = list(self.settings.os_repos[self.settings.os].items())
         else:
             os_base_repos = []
 
@@ -1385,6 +1422,9 @@ class Deployment():
         if not os.path.exists(GlobalSettings.WORKING_DIR):
             return deps
         for dep_id in os.listdir(GlobalSettings.WORKING_DIR):
+            if dep_id.startswith("config.yaml"):
+                logger.debug("Skipping %s (obviously not a deployment)", dep_id)
+                continue
             try:
                 deps.append(Deployment.load(dep_id, load_status))
             except DeploymentDoesNotExists:
