@@ -51,6 +51,9 @@ exit 0
 
 {% for node in nodes %}
 ceph-salt config /Cluster/Minions add {{ node.fqdn }}
+{% if node.has_role('admin') %}
+ceph-salt config /Cluster/Roles/Admin add {{ node.fqdn }}
+{% endif %}
 {% if node.has_role('mon') %}
 ceph-salt config /Cluster/Roles/Mon add {{ node.fqdn }}
 {% endif %}
