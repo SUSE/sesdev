@@ -90,6 +90,12 @@ class RoleNotSupported(SesDevException):
             "Role '{}' is not supported in version '{}'".format(role, version))
 
 
+class TooManyMasters(SesDevException):
+    def __init__(self, number):
+        super(TooManyMasters, self).__init__(
+            "There can only be one 'master' role (you gave {})'".format(number))
+
+
 class VagrantSshConfigNoHostName(SesDevException):
     def __init__(self, name):
         super(VagrantSshConfigNoHostName, self).__init__(
@@ -101,3 +107,9 @@ class ScpInvalidSourceOrDestination(SesDevException):
     def __init__(self):
         super(ScpInvalidSourceOrDestination, self).__init__(
             "Either source or destination must contain a ':' - not both or neither")
+
+
+class SettingNotKnown(SesDevException):
+    def __init__(self, setting):
+        super(SettingNotKnown, self).__init__(
+            "Setting '{}' is not known - please open a bug report!".format(setting))
