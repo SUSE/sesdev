@@ -1,6 +1,7 @@
 cluster-ceph/cluster/*.sls
 config/stack/default/global.yml
 config/stack/default/ceph/cluster.yml
+role-admin/cluster/*.sls
 
 {% for node in nodes: %}
 {% if node.has_role('storage') %}
@@ -11,8 +12,7 @@ role-storage/cluster/{{ node.name }}*.sls
 role-mon/cluster/{{ node.name }}*.sls
 {% endif %}
 
-{% if node.has_role('admin') %}
-role-admin/cluster/{{ node.name }}*.sls
+{% if node.has_role('master') %}
 role-master/cluster/{{ node.name }}*.sls
 {% endif %}
 

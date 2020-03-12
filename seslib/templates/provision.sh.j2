@@ -93,7 +93,7 @@ hostnamectl set-hostname {{ node.name }}
 
 {% if not suma %}
 zypper -n install salt-minion
-sed -i 's/^#master:.*/master: {{ admin.name }}/g' /etc/salt/minion
+sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
 
 # change salt log level to info
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
@@ -108,8 +108,8 @@ zypper -n rm ntp
 
 touch /tmp/ready
 
-{% if node == admin or node == suma %}
-{% if node == admin %}
+{% if node == master or node == suma %}
+{% if node == master %}
 zypper -n install salt-master
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
 systemctl enable salt-master
@@ -128,7 +128,7 @@ while : ; do
 {% endfor %}
 done
 
-{% if node == admin %}
+{% if node == master %}
 while true; do
   sleep 1
   salt-key -L
@@ -167,10 +167,10 @@ set -ex
 {% include "suma/suma_deployment.sh.j2" %}
 {% endif %}
 
-{% if node == admin and deployment_tool == "orchestrator" %}
+{% if node == master and deployment_tool == "cephadm" %}
 {% include "ceph-salt/ceph_salt_deployment.sh.j2" %}
 {% endif %}
 
-{% endif %} {# node == admin or node == suma #}
+{% endif %} {# node == master or node == suma #}
 
 {% endif %} {# version != caasp4 #}

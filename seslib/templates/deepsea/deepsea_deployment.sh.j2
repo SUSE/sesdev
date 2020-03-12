@@ -117,7 +117,7 @@ ceph osd crush rule rm replicated_rule
 ceph osd crush rule create-replicated replicated_rule default osd
 {% endif %}
 
-{% if num_osds < 6 %}
+{% if total_osds < 6 %}
 {% if version != 'ses5' %}
 # we need to increase the number of max pg per osd for deepsea to work
 # correctly with this number of OSDs

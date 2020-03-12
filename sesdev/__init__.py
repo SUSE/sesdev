@@ -169,10 +169,13 @@ def _abort_if_false(ctx, _, value):
 @click.option('-c', '--config-file', required=False,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Configuration file location')
-@click.option('--debug/--no-debug', default=False)
+@click.option('--debug/--no-debug', default=False,
+              help='Whether to emit DEBUG-level log messages')
 @click.option('--log-file', type=str, default=None)
+@click.option('--vagrant-debug/--no-vagrant-debug', default=False,
+              help='Whether to run vagrant with --debug option')
 @click.version_option(pkg_resources.get_distribution('sesdev'), message="%(version)s")
-def cli(work_path=None, config_file=None, debug=False, log_file=None):
+def cli(work_path=None, config_file=None, debug=False, log_file=None, vagrant_debug=False):
     """
     Welcome to the sesdev tool.
 
@@ -194,6 +197,10 @@ $ sesdev create octopus --roles="[admin, mon, mgr], \\
     if debug:
         logger.info("Debug mode: ON")
         seslib.GlobalSettings.DEBUG = debug
+
+    if vagrant_debug:
+        logger.info("vagrant will be run with --debug option")
+        seslib.GlobalSettings.VAGRANT_DEBUG = vagrant_debug
 
     if log_file:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
@@ -218,6 +225,9 @@ def list_deps():
     Lists all the available deployments.
     """
     deps = seslib.Deployment.list(True)
+    log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
+    logger.debug(log_msg)
+
     click.echo("| {:^11} | {:^10} | {:^15} | {:^60} |".format("Deployments", "Version", "Status",
                                                               "VMs"))
     click.echo("{}".format('-' * 109))
@@ -240,9 +250,16 @@ def list_deps():
         return status
 
     for dep in deps:
-        status = _status(dep.nodes)
+        logger.debug("Looping over deployments: %s", dep.dep_id)
+        status = str(_status(dep.nodes))
+        logger.debug("-> status: %s", status)
+        version = getattr(dep.settings, 'version', None)
+        logger.debug("-> version: %s", version)
+        nodes = getattr(dep, 'nodes', None)
+        node_names = '(unknown)' if nodes is None else ', '.join(nodes)
+        logger.debug("-> node_names: %s", node_names)
         click.echo("| {:<11} | {:<10} | {:<15} | {:<60} |"
-                   .format(dep.dep_id, dep.settings.version, status, ", ".join(dep.nodes)))
+                   .format(dep.dep_id, version, status, node_names))
     click.echo()
 
 
@@ -340,10 +357,6 @@ def create():
     """
 
 
-def _count_storage_nodes(roles):
-    return len([node for node in roles if 'storage' in node])
-
-
 def _gen_box_settings_dict(libvirt_host,
                            libvirt_user,
                            libvirt_private_key_file,
@@ -403,45 +416,36 @@ def _gen_settings_dict(version,
                        deploy_mons=True,
                        deploy_mgrs=True,
                        deploy_osds=True,
-                       ceph_salt_deploy=True):
+                       ceph_salt_deploy=True,
+                       ):
 
     settings_dict = {}
     if not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
         settings_dict['roles'] = _parse_roles("["
-                                              "   admin, storage, mon, mgr, prometheus,"
+                                              "   master, storage, mon, mgr, prometheus,"
                                               "   grafana, mds, igw, rgw, ganesha"
                                               "]"
                                               )
 
-    storage_nodes = None
-    if 'roles' in settings_dict and settings_dict['roles']:
-        storage_nodes = _count_storage_nodes(settings_dict['roles'])
+    if single_node:
+        settings_dict['single_node'] = single_node
 
     if os:
         settings_dict['os'] = os
-
-    # if num_disks not given explicitly, the default value of 2 might not be enough
-    # NOTE: num_disks is guaranteed to be initialized by the
-    # "click.option('--num-disks', default=None, ...)" call, above
-    if num_disks is None:
-        if storage_nodes:
-            if storage_nodes == 1:
-                settings_dict['num_disks'] = 4
-            elif storage_nodes == 2:
-                settings_dict['num_disks'] = 3
-            else:
-                # go with the default
-                pass
-    else:
-        settings_dict['num_disks'] = num_disks
 
     if cpus:
         settings_dict['cpus'] = cpus
 
     if ram:
         settings_dict['ram'] = ram
+
+    if num_disks:
+        settings_dict['num_disks'] = num_disks
+        settings_dict['explicit_num_disks'] = True
+    else:
+        settings_dict['explicit_num_disks'] = False
 
     if disk_size:
         settings_dict['disk_size'] = disk_size
@@ -483,7 +487,7 @@ def _gen_settings_dict(version,
         settings_dict['repo_priority'] = repo_priority
 
     if qa_test_opt is not None:
-        settings_dict['qa_test_opt'] = qa_test_opt
+        settings_dict['qa_test'] = qa_test_opt
 
     if vagrant_box:
         settings_dict['vagrant_box'] = vagrant_box
@@ -591,8 +595,6 @@ def ses5(deployment_id, deploy, **kwargs):
     Creates a SES5 cluster using SLES-12-SP3
     """
     settings_dict = _gen_settings_dict('ses5', **kwargs)
-    if 'roles' in settings_dict and 'single_node' in kwargs and kwargs['single_node']:
-        settings_dict['roles'][0].append("openattic")
     _create_command(deployment_id, deploy, settings_dict)
 
 
@@ -615,8 +617,8 @@ def ses6(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-orchestrator", default=False,
-              help="Use deepsea to deploy SES7 instead of SSH orchestrator")
+@click.option("--use-deepsea/--use-cephadm", default=False,
+              help="Use deepsea to deploy SES7 instead of cephadm")
 def ses7(deployment_id, deploy, use_deepsea, **kwargs):
     """
     Creates a SES7 cluster using SLES-15-SP2
@@ -647,8 +649,8 @@ def nautilus(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-orchestrator", default=False,
-              help="Use deepsea to deploy Ceph Octopus instead of SSH orchestrator")
+@click.option("--use-deepsea/--use-cephadm", default=False,
+              help="Use deepsea to deploy Ceph Octopus instead of cephadm")
 def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     """
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages
@@ -673,8 +675,6 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
     if kwargs['num_disks'] is None:
         kwargs['num_disks'] = 2 if deploy_ses else 0
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
-    if 'roles' not in settings_dict:
-        settings_dict['roles'] = _parse_roles("[master],[worker],[loadbalancer],[storage]")
     if deploy_ses:
         settings_dict['caasp_deploy_ses'] = True
     _create_command(deployment_id, deploy, settings_dict)
@@ -711,12 +711,7 @@ def ssh(deployment_id, node=None):
     "sesdev show <deployment_id>"
     """
     dep = seslib.Deployment.load(deployment_id)
-    _node = node
-    if node is None:
-        if dep.settings.version == 'caasp4':
-            _node = 'master1'
-        else:
-            _node = 'admin'
+    _node = 'master' if node is None else node
     dep.ssh(_node)
 
 

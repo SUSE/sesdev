@@ -17,7 +17,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
                         ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException, \
-                        VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination
+                        VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
+                        TooManyMasters, SettingNotKnown
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -30,6 +31,7 @@ class GlobalSettings():
     WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
     DEBUG = False
+    VAGRANT_DEBUG = False
 
     @classmethod
     def init_path_to_qa(cls, full_path_to_sesdev_executable):
@@ -118,9 +120,33 @@ VERSION_PREFERRED_OS = {
 VERSION_PREFERRED_DEPLOYMENT_TOOL = {
     'ses5': 'deepsea',
     'ses6': 'deepsea',
-    'ses7': 'orchestrator',
+    'ses7': 'cephadm',
     'nautilus': 'deepsea',
-    'octopus': 'orchestrator'
+    'octopus': 'cephadm'
+}
+
+LUMINOUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana", "openattic"],
+                          ["storage", "mon", "mgr", "rgw", "igw"],
+                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
+                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+
+NAUTILUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
+                          ["storage", "mon", "mgr", "rgw", "igw"],
+                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
+                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+
+OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
+                         ["storage", "mon", "mgr", "rgw", "igw"],
+                         ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
+                         ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+
+VERSION_DEFAULT_ROLES = {
+    'ses5': LUMINOUS_DEFAULT_ROLES,
+    'ses6': NAUTILUS_DEFAULT_ROLES,
+    'ses7': OCTOPUS_DEFAULT_ROLES,
+    'nautilus': NAUTILUS_DEFAULT_ROLES,
+    'octopus': OCTOPUS_DEFAULT_ROLES,
+    'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]]
 }
 
 VERSION_OS_REPO_MAPPING = {
@@ -180,6 +206,7 @@ VERSION_OS_REPO_MAPPING = {
 
 
 SETTINGS = {
+    # RESERVED KEY, DO NOT USE: 'strict'
     'version': {
         'type': str,
         'help': 'SES version to install (nautilus, octopus, ses5, ses6, ses7)',
@@ -255,24 +282,35 @@ SETTINGS = {
         'help': 'Number of virtual CPUs in each node',
         'default': 2
     },
+    'single_node': {
+        'type': bool,
+        'help': 'Whether --single-node was given on the command line',
+        'default': False,
+    },
     'num_disks': {
         'type': int,
         'help': 'Number of additional disks in storage nodes',
         'default': 2
+    },
+    'explicit_num_disks': {
+        'type': bool,
+        'help': 'Whether --num-disks was given on the command line',
+        'default': False,
     },
     'disk_size': {
         'type': int,
         'help': 'Storage disk size in gigabytes',
         'default': 8
     },
+    'version_default_roles': {
+        'type': dict,
+        'help': 'Default roles for each node - one set of default roles per deployment version',
+        'default': VERSION_DEFAULT_ROLES,
+    },
     'roles': {
         'type': list,
-        'help': 'List of roles for each node. Example for two nodes: '
-                '[["admin", "client", "prometheus"], ["storage", "mon", "mgr"]]',
-        'default': [["admin", "client", "prometheus", "grafana", "openattic"],
-                    ["storage", "mon", "mgr", "rgw", "igw"],
-                    ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
-                    ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+        'help': 'Roles to apply to the current deployment',
+        'default': [],
     },
     'public_network': {
         'type': str,
@@ -329,7 +367,7 @@ SETTINGS = {
         'help': 'Automatically set priority on custom zypper repos',
         'default': True
     },
-    'qa_test_opt': {
+    'qa_test': {
         'type': bool,
         'help': 'Automatically run integration tests on the deployed cluster',
         'default': False
@@ -555,7 +593,8 @@ class Box():
 
 class Settings():
     # pylint: disable=no-member
-    def __init__(self, **kwargs):
+    def __init__(self, strict=True, **kwargs):
+        self.strict = strict
         config = self._load_config_file()
 
         self._apply_settings(config)
@@ -565,10 +604,20 @@ class Settings():
             if k not in kwargs and k not in config:
                 setattr(self, k, v['default'])
 
+    def override(self, setting, new_value):
+        if setting not in SETTINGS:
+            raise SettingNotKnown(setting)
+        log_msg = "Overriding setting '{}', old value: {}".format(setting, getattr(self, setting))
+        logger.info(log_msg)
+        log_msg = "Overriding setting '{}', new value: {}".format(setting, new_value)
+        setattr(self, setting, new_value)
+
     def _apply_settings(self, settings_dict):
         for k, v in settings_dict.items():
             if k not in SETTINGS:
-                logger.warning("Setting '%s' is not known", k)
+                if self.strict:
+                    raise SettingNotKnown(k)
+                logger.warning("Setting '%s' is not known - listing a legacy cluster?", k)
                 continue
             if v is not None and not isinstance(v, SETTINGS[k]['type']):
                 logger.error("Setting '%s' value has wrong type: expected %s but got %s", k,
@@ -601,10 +650,15 @@ class Settings():
                 config_tree = yaml.load(file, Loader=yaml.FullLoader)
             except AttributeError:  # older versions of pyyaml does not have FullLoader
                 config_tree = yaml.load(file)
+        if not config_tree:
+            config_tree = {}
+        log_msg = "_load_config_file: config_tree: {}".format(config_tree)
+        logger.debug(log_msg)
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
         __fill_in_config_tree('os_repos', OS_REPOS)
         __fill_in_config_tree('version_os_repo_mapping', VERSION_OS_REPO_MAPPING)
         __fill_in_config_tree('image_paths', IMAGE_PATHS)
+        __fill_in_config_tree('version_default_roles', VERSION_DEFAULT_ROLES)
         return config_tree
 
 
@@ -696,6 +750,8 @@ class Deployment():
         self.settings = settings
         self.nodes = {}
         self.node_counts = {
+            "admin": 0,
+            "master": 0,
             "ganesha": 0,
             "igw": 0,
             "mds": 0,
@@ -703,10 +759,25 @@ class Deployment():
             "mon": 0,
             "rgw": 0,
             "storage": 0,
+            "suma": 0,
+            "openattic": 0,
+            "worker": 0,
+            "loadbalancer": 0,
         }
-        self.admin = None
+        self.master = None
         self.suma = None
         self.box = Box(settings)
+
+        if self.settings.version == 'ses5' and self.settings.roles and self.settings.single_node:
+            new_roles = self.settings.roles
+            new_roles[0].append("openattic")
+            self.settings.override('roles', new_roles)
+        if self.settings.roles:
+            pass
+        else:
+            self.settings.override('roles',
+                                   self.settings.version_default_roles[self.settings.version]
+                                   )
 
         if self.settings.os is None:
             self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
@@ -715,7 +786,7 @@ class Deployment():
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.image_path is None:
-            if self.settings.deployment_tool == 'orchestrator':
+            if self.settings.deployment_tool == 'cephadm':
                 self.settings.image_path = self.settings.image_paths[self.settings.version]
 
         if not self.settings.libvirt_networks:
@@ -781,50 +852,76 @@ class Deployment():
         storage_id = 0
         loadbl_id = 0
         storage_id = 0
-        for node_roles in self.settings.roles:
-            for role_type in ["ganesha", "igw", "mds", "mgr", "mon", "rgw", "storage"]:
+        for node_roles in self.settings.roles:  # loop once for every node in cluster
+            for role_type in ["admin", "master", "ganesha", "igw", "mds", "mgr", "mon", "rgw",
+                              "storage"]:
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
-
+            # if 'openattic' in node_roles and self.settings.version != 'ses5':
+            #     raise RoleNotSupported('openattic', self.settings.version)
             if 'suma' in node_roles and self.settings.version not in ['octopus']:
                 raise RoleNotSupported('suma', self.settings.version)
+            if self.settings.version != 'caasp4':
+                if 'worker' in node_roles:
+                    raise RoleNotSupported('worker', self.settings.version)
+                if 'loadbalancer' in node_roles:
+                    raise RoleNotSupported('loadbalancer', self.settings.version)
 
-            if 'master' in node_roles and self.settings.version != 'caasp4':
-                raise RoleNotSupported('master', self.settings.version)
+        storage_nodes = self.node_counts["storage"]
+        if not self.settings.explicit_num_disks:
+            if storage_nodes:
+                if storage_nodes == 1:
+                    self.settings.override('num_disks', 4)
+                elif storage_nodes == 2:
+                    self.settings.override('num_disks', 3)
+                else:
+                    # go with the default
+                    pass
+        logger.debug("_generate_nodes: storage_nodes == %s", str(storage_nodes))
 
-            if 'worker' in node_roles and self.settings.version != 'caasp4':
-                raise RoleNotSupported('master', self.settings.version)
-
-            if 'loadbalancer' in node_roles and self.settings.version != 'caasp4':
-                raise RoleNotSupported('master', self.settings.version)
-
-            if 'admin' in node_roles or 'suma' in node_roles:
-                name = 'admin'
-                fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
-            elif 'master' in node_roles:
-                master_id += 1
-                node_id += 1
-                name = 'master{}'.format(master_id)
-                fqdn = 'master{}.{}'.format(master_id, self.settings.domain.format(self.dep_id))
-            elif 'worker' in node_roles:
-                worker_id += 1
-                node_id += 1
-                name = 'worker{}'.format(worker_id)
-                fqdn = 'worker{}.{}'.format(worker_id, self.settings.domain.format(self.dep_id))
-            elif 'loadbalancer' in node_roles:
-                loadbl_id += 1
-                node_id += 1
-                name = 'loadbl{}'.format(loadbl_id)
-                fqdn = 'loadbl{}.{}'.format(loadbl_id, self.settings.domain.format(self.dep_id))
-            elif 'storage' in node_roles and self.settings.version == 'caasp4':
-                storage_id += 1
-                node_id += 1
-                name = 'storage{}'.format(storage_id)
-                fqdn = 'storage{}.{}'.format(storage_id, self.settings.domain.format(self.dep_id))
+        for node_roles in self.settings.roles:  # loop once for every node in cluster
+            if self.settings.version == 'caasp4':
+                if 'master' in node_roles:
+                    node_id += 1
+                    name = 'master'
+                    fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
+                elif 'worker' in node_roles:
+                    worker_id += 1
+                    node_id += 1
+                    name = 'worker{}'.format(worker_id)
+                    fqdn = 'worker{}.{}'.format(worker_id,
+                                                self.settings.domain.format(self.dep_id))
+                elif 'loadbalancer' in node_roles:
+                    loadbl_id += 1
+                    node_id += 1
+                    name = 'loadbl{}'.format(loadbl_id)
+                    fqdn = 'loadbl{}.{}'.format(loadbl_id,
+                                                self.settings.domain.format(self.dep_id))
+                elif 'storage' in node_roles and self.settings.version == 'caasp4':
+                    storage_id += 1
+                    node_id += 1
+                    name = 'storage{}'.format(storage_id)
+                    fqdn = 'storage{}.{}'.format(storage_id,
+                                                 self.settings.domain.format(self.dep_id))
+                else:
+                    node_id += 1
+                    name = 'node{}'.format(node_id)
+                    fqdn = 'node{}.{}'.format(node_id,
+                                              self.settings.domain.format(self.dep_id))
             else:
-                node_id += 1
-                name = 'node{}'.format(node_id)
-                fqdn = 'node{}.{}'.format(node_id, self.settings.domain.format(self.dep_id))
+                admin_node_processed = False
+                if 'admin' in node_roles and not admin_node_processed:
+                    admin_node_processed = True  # only do this once, for backwards compatibility
+                    name = 'admin'
+                    fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
+                elif 'master' in node_roles or 'suma' in node_roles:
+                    name = 'master'
+                    fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
+                else:
+                    node_id += 1
+                    name = 'node{}'.format(node_id)
+                    fqdn = 'node{}.{}'.format(node_id,
+                                              self.settings.domain.format(self.dep_id))
 
             networks = ''
             public_address = None
@@ -835,7 +932,7 @@ class Deployment():
                         ':forward_mode => "route", :libvirt__network_name'
                         '=> "{}"\n').format(network)
             else:
-                if 'admin' in node_roles or 'suma' in node_roles:
+                if 'master' in node_roles or 'suma' in node_roles:
                     public_address = '{}{}'.format(self.settings.public_network, 200)
                     networks = ('node.vm.network :private_network, autostart: true, ip:'
                                 '"{}"').format(public_address)
@@ -858,18 +955,27 @@ class Deployment():
                         cpus=self.settings.cpus,
                         repo_priority=self.settings.repo_priority)
 
-            if 'admin' in node_roles:
-                self.admin = node
+            if 'master' in node_roles:
+                self.master = node
 
-            if 'suma' in node_roles:
-                self.suma = node
-
-            if 'storage' in node_roles and self.settings.version != 'caasp4':
-                if self.settings.cluster_network:
-                    node.cluster_address = '{}{}'.format(self.settings.cluster_network,
-                                                         200 + node_id)
-                for _ in range(self.settings.num_disks):
-                    node.storage_disks.append(Disk(self.settings.disk_size))
+            if self.settings.version == 'caasp4':
+                if 'master' in node_roles or 'worker' in node_roles:
+                    if node.cpus < 2:
+                        node.cpus = 2
+                    if self.settings.ram < 2:
+                        node.ram = 2 * 2**10
+                if 'worker' in node_roles:
+                    for _ in range(self.settings.num_disks):
+                        node.storage_disks.append(Disk(self.settings.disk_size))
+            else:
+                if 'suma' in node_roles:
+                    self.suma = node
+                if 'storage' in node_roles:
+                    if self.settings.cluster_network:
+                        node.cluster_address = '{}{}'.format(self.settings.cluster_network,
+                                                             200 + node_id)
+                    for _ in range(self.settings.num_disks):
+                        node.storage_disks.append(Disk(self.settings.disk_size))
 
             if self.has_suma():  # if suma is deployed, we need to add client-tools to all nodes
                 node.add_repo(ZypperRepo(
@@ -897,25 +1003,15 @@ class Deployment():
             for idx, repo_url in enumerate(self.settings.repos):
                 node.add_repo(ZypperRepo(r_name.format(idx+1), repo_url))
 
-            if 'master' in node_roles or 'worker' in node_roles:
-                if node.cpus < 2:
-                    node.cpus = 2
-                if self.settings.ram < 2:
-                    node.ram = 2 * 2**10
-
-            if 'worker' in node_roles:
-                for _ in range(self.settings.num_disks):
-                    node.storage_disks.append(Disk(self.settings.disk_size))
-
             self.nodes[node.name] = node
 
-        if self.admin and self.suma:
-            raise ExclusiveRoles('admin', 'suma')
+        if self.node_counts['master'] > 1:
+            raise TooManyMasters(self.node_counts['master'])
+
+        if self.master and self.suma:
+            raise ExclusiveRoles('master', 'suma')
 
     def generate_vagrantfile(self):
-        num_osds = len([n for n in self.nodes.values() if 'storage' in n.roles]) \
-                   * self.settings.num_disks
-
         vagrant_box = self.settings.os
 
         try:
@@ -942,7 +1038,7 @@ class Deployment():
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'vagrant_box': vagrant_box,
             'nodes': list(self.nodes.values()),
-            'admin': self.admin,
+            'master': self.master,
             'suma': self.suma,
             'domain': self.settings.domain.format(self.dep_id),
             'deepsea_git_repo': self.settings.deepsea_git_repo,
@@ -950,12 +1046,11 @@ class Deployment():
             'version': self.settings.version,
             'use_deepsea_cli': self.settings.use_deepsea_cli,
             'stop_before_stage': self.settings.stop_before_stage,
-            'num_osds': num_osds,
             'deployment_tool': self.settings.deployment_tool,
             'version_repos': version_repos,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
-            'qa_test': self.settings.qa_test_opt,
+            'qa_test': self.settings.qa_test,
             'ganesha_nodes': self.node_counts["ganesha"],
             'igw_nodes': self.node_counts["igw"],
             'mds_nodes': self.node_counts["mds"],
@@ -1070,7 +1165,7 @@ class Deployment():
         cmd = ["vagrant", "up"]
         if node is not None:
             cmd.append(node)
-        if GlobalSettings.DEBUG:
+        if GlobalSettings.VAGRANT_DEBUG:
             cmd.append('--debug')
         tools.run_async(cmd, log_handler, self.dep_dir)
 
@@ -1089,7 +1184,7 @@ class Deployment():
             if node.status == 'not deployed':
                 continue
             cmd = ["vagrant", "destroy", node.name, "--force"]
-            if GlobalSettings.DEBUG:
+            if GlobalSettings.VAGRANT_DEBUG:
                 cmd.append('--debug')
             tools.run_async(cmd, log_handler, self.dep_dir)
 
@@ -1173,9 +1268,15 @@ class Deployment():
                 result += "     - status:           {}\n".format(v.status)
             result += "     - OS:               {}\n".format(self.settings.os)
             result += "     - ses_version:      {}\n".format(self.settings.version)
-            if k == 'admin':
+            if k == 'master':
                 result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
             result += "     - roles:            {}\n".format(v.roles)
+            if self.settings.version in ["octopus", "ses7"]:
+                if 'admin' not in v.roles:
+                    result += (
+                        "                         (CAVEAT: the 'admin' role is assumed"
+                        " even though not explicitly given!)\n"
+                        )
             if self.settings.vagrant_box:
                 result += "     - vagrant_box       {}\n".format(self.settings.vagrant_box)
             result += "     - fqdn:             {}\n".format(v.fqdn)
@@ -1190,9 +1291,9 @@ class Deployment():
                 result += ("                         "
                            "(device names will be assigned by vagrant-libvirt)\n")
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
-            result += "     - qa_test:          {}\n".format(self.settings.qa_test_opt)
+            result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7'] \
-                    and self.settings.deployment_tool == 'orchestrator':
+                    and self.settings.deployment_tool == 'cephadm':
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             if v.repos:
                 result += "     - custom_repos:\n"
@@ -1297,7 +1398,7 @@ class Deployment():
 
     def _find_service_node(self, service):
         if service == 'grafana' and self.settings.version == 'ses5':
-            return 'admin'
+            return 'master'
         nodes = [name for name, node in self.nodes.items() if service in node.roles]
         return nodes[0] if nodes else None
 
@@ -1339,7 +1440,7 @@ class Deployment():
                             ceph_client_node = _node.name
                             break
                 else:
-                    ceph_client_node = 'admin'
+                    ceph_client_node = 'master'
                 # we need to find which node has the active mgr
                 ssh_cmd = self._ssh_cmd(ceph_client_node)
                 ssh_cmd.append("ceph mgr services | jq -r .dashboard "
@@ -1355,7 +1456,7 @@ class Deployment():
 
                 logger.info("dashboard is running on node %s", node)
             elif service == 'suma':
-                node = 'admin'
+                node = 'master'
                 remote_port = 443
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
@@ -1411,7 +1512,7 @@ class Deployment():
         with open(metadata_file, 'r') as file:
             metadata = json.load(file)
 
-        dep = cls(metadata['id'], Settings(**metadata['settings']))
+        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']))
         if load_status:
             dep.load_status()
         return dep

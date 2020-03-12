@@ -51,9 +51,7 @@ exit 0
 
 {% for node in nodes %}
 ceph-salt config /Cluster/Minions add {{ node.fqdn }}
-{% if node.has_role('admin') %}
 ceph-salt config /Cluster/Roles/Admin add {{ node.fqdn }}
-{% endif %}
 {% if node.has_role('mon') %}
 ceph-salt config /Cluster/Roles/Mon add {{ node.fqdn }}
 {% endif %}
@@ -68,7 +66,7 @@ ceph-salt config /SSH/ generate
 {% if image_path %}
 ceph-salt config /Containers/Images/ceph set {{ image_path }}
 {% endif %}
-ceph-salt config /Time_Server/Server_Hostname set {{ admin.fqdn }}
+ceph-salt config /Time_Server/Server_Hostname set {{ master.fqdn }}
 ceph-salt config /Time_Server/External_Servers add 0.pt.pool.ntp.org
 {% if not ceph_salt_cephadm_bootstrap %}
 ceph-salt config /Deployment/Bootstrap disable
@@ -128,7 +126,7 @@ salt -G 'ceph-salt:member' state.apply ceph-salt
 cat > {{ qa_test_script }} << EOF
 #!/bin/bash
 set -x
-if [[ $(hostname) == admin* ]] ; then
+if [[ $(hostname) == master* ]] ; then
     {{ qa_test_cmd }}
 fi
 EOF

@@ -29,6 +29,7 @@ the VMs and run the deployment scripts.
       * [Custom zypper repo (to be added together with the default repos)](#custom-zypper-repo-to-be-added-together-with-the-default-repos)
       * [Custom zypper repos (completely replace the default repos)](#custom-zypper-repos-completely-replace-the-default-repos)
       * [Custom image paths](#custom-image-paths)
+      * [Custom default roles](#custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
          * [octopus from filesystems:ceph:master:upstream](#octopus-from-filesystemscephmasterupstream)
@@ -271,8 +272,7 @@ nodes are separated by commas, too.
 
 The following roles can be assigned:
 
-* `admin` - The admin node, running management components like the Salt master
-  or openATTIC (SES5 only)
+* `master` - The master node, running management components like the Salt master
 * `client` - Various Ceph client utilities
 * `ganesha` - NFS Ganesha service
 * `grafana` - Grafana metrics visualization (requires Prometheus)
@@ -285,24 +285,18 @@ The following roles can be assigned:
 * `storage` - OSD storage daemon
 * `suma` - SUSE Manager (octopus only)
 
-The following example will generate a cluster with 4 nodes: the admin node that
-is running the salt-master and one MON, two storage nodes that will also run a
-MON, a MGR and an MDS, and another node that will run an iSCSI gateway,
-nfs-ganesha gateway, and an RGW gateway.
+The following example will generate a cluster with four nodes: the master (Salt
+Master) node that is also running a MON daemon, two storage (OSD) nodes that
+will also run a MON, a MGR and an MDS, and another node that will run an iSCSI
+gateway, an NFS-Ganesha gateway, and an RGW gateway.
 
 ```
-$ sesdev create nautilus --roles="[admin, mon], [storage, mon, mgr, mds], \
+$ sesdev create nautilus --roles="[master, mon], [storage, mon, mgr, mds], \
   [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 ```
 
-The following is another example to generate a 4-node Octopus cluster. Note
-since Octopus/SES7, to bootstrap a Ceph cluster, at least one node should
-have ADMIN, MON, and MGR roles simultaneously
-
-```
-$ sesdev create octopus --roles="[admin, mon, mgr], [mon, mgr], \
-  [mon, mgr, storage], [mgr, storage]" another_big_cluster
-```
+CAVEAT: sesdev applies the "admin" role to all nodes, regardless of whether or
+not the user specified it explicitly on the command line or in `config.yaml`.
 
 #### Custom zypper repo (to be added together with the default repos)
 
@@ -369,6 +363,21 @@ image_paths:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 ```
 
+#### Custom default roles
+
+When the user does not give the `--roles` option on the command line, `sesdev`
+will use the default roles for the given deployment version. These defaults can
+be changed by adding a `version_default_roles` stanza to your `~/.sesdev/config.yaml`:
+
+
+```
+version_default_roles:
+    octopus:
+        - [master, mon, mgr, storage]
+        - [mon, mgr, storage]
+        - [mon, mgr, storage]
+```
+
 #### config.yaml examples
 
 ##### octopus from filesystems:ceph:octopus
@@ -413,7 +422,7 @@ $ sesdev list
 $ sesdev ssh <deployment_id> [NODE]
 ```
 
-Spawns an SSH shell to the admin node, or to node `NODE` if explicitly
+Spawns an SSH shell to the master node, or to node `NODE` if explicitly
 specified. You can check the existing node names with the following command:
 
 ```

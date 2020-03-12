@@ -19,7 +19,7 @@ cat > /root/mds-get-name.patch <<EOF
      with "mds.".
      """
 -    if host[0].isdigit():
-+    if host[0].isdigit() or host == 'admin':
++    if host[0].isdigit() or host == 'master':
          return 'mds.{}'.format(host)
      return host
 EOF
