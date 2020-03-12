@@ -650,6 +650,10 @@ class Settings():
                 config_tree = yaml.load(file, Loader=yaml.FullLoader)
             except AttributeError:  # older versions of pyyaml does not have FullLoader
                 config_tree = yaml.load(file)
+        if not config_tree:
+            config_tree = {}
+        log_msg = "_load_config_file: config_tree: {}".format(config_tree)
+        logger.debug(log_msg)
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
         __fill_in_config_tree('os_repos', OS_REPOS)
         __fill_in_config_tree('version_os_repo_mapping', VERSION_OS_REPO_MAPPING)
