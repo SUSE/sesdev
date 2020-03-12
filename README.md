@@ -13,30 +13,30 @@ the VMs and run the deployment scripts.
 [//]: # (the new TOC will appear on stdout: the expectation is that the maintainer will do the rest.)
 
 * [Installation](#installation)
-   * [Installation on openSUSE](#installation-on-opensuse)
+   * [Install sesdev on openSUSE](#install-sesdev-on-opensuse)
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt)
       * [Add user to libvirt group](#add-user-to-libvirt-group)
       * [Install Vagrant](#install-vagrant)
       * [Install sesdev from package](#install-sesdev-from-package)
-   * [Installation on Fedora Linux](#installation-on-fedora-linux)
+   * [Install sesdev on Fedora Linux](#install-sesdev-on-fedora-linux)
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt-1)
       * [Install sesdev from package](#install-sesdev-from-package-1)
    * [Install sesdev from source](#install-sesdev-from-source)
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
-   * [Create/Deploy cluster](#createdeploy-cluster)
+   * [Create/deploy a cluster](#createdeploy-a-cluster)
       * [Custom zypper repo (to be added together with the default repos)](#custom-zypper-repo-to-be-added-together-with-the-default-repos)
       * [Custom zypper repos (completely replace the default repos)](#custom-zypper-repos-completely-replace-the-default-repos)
       * [Custom image paths](#custom-image-paths)
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
          * [octopus from filesystems:ceph:master:upstream](#octopus-from-filesystemscephmasterupstream)
-   * [Listing deployments](#listing-deployments)
-   * [SSH access to the cluster](#ssh-access-to-the-cluster)
-   * [Copy files into and out of the cluster](#copy-files-into-and-out-of-the-cluster)
+   * [List existing deployments](#list-existing-deployments)
+   * [SSH access to a cluster](#ssh-access-to-a-cluster)
+   * [Copy files into and out of a cluster](#copy-files-into-and-out-of-a-cluster)
    * [Services port-forwarding](#services-port-forwarding)
-   * [Stopping a cluster](#stopping-a-cluster)
-   * [Destroying a cluster](#destroying-a-cluster)
+   * [Temporarily stop a cluster](#temporarily-stop-a-cluster)
+   * [Destroy a cluster](#destroy-a-cluster)
 * [Common pitfalls](#common-pitfalls)
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
@@ -54,7 +54,7 @@ Installable packages for various Linux distributions like Fedora or openSUSE can
 be found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=filesystems%3Aceph&package=sesdev)
 (OBS).
 
-### Installation on openSUSE
+### Install sesdev on openSUSE
 
 #### Install KVM/QEMU and Libvirt
 
@@ -112,7 +112,7 @@ the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/pa
 At this point, sesdev should be installed and ready to use: refer to the "Usage"
 chapter, below, for further information.
 
-### Installation on Fedora Linux
+### Install sesdev on Fedora Linux
 
 #### Install KVM/QEMU and Libvirt
 
@@ -226,7 +226,7 @@ tox -e py36,lint
 Run `sesdev --help` or `sesdev <command> --help` to get the available
 options and description of the commands.
 
-### Create/Deploy cluster
+### Create/deploy a cluster
 
 To create a single node Ceph cluster based on nautilus/leap-15.1 on your local
 system, run the following command:
@@ -253,7 +253,7 @@ Note that passwordless SSH access to this user@host combination needs to be
 configured and enabled.
 
 To create a multi-node Ceph cluster, you can specify the nodes and their roles
-using the ``--roles`` option.
+using the `--roles` option.
 
 The roles of each node are grouped in square brackets, separated by commas. The
 nodes are separated by commas, too.
@@ -381,13 +381,13 @@ No config.yaml changes are needed, because this is the default configuration.
 
 sesdev command is the same as for `filesystems:ceph:octopus`.
 
-### Listing deployments
+### List existing deployments
 
 ```
 $ sesdev list
 ```
 
-### SSH access to the cluster
+### SSH access to a cluster
 
 ```
 $ sesdev ssh <deployment_id> [NODE]
@@ -400,7 +400,7 @@ specified. You can check the existing node names with the following command:
 $ sesdev show <deployment_id>
 ```
 
-### Copy files into and out of the cluster
+### Copy files into and out of a cluster
 
 `sesdev` provides a subset of `scp` functionality. For details, see:
 
@@ -424,7 +424,7 @@ $ sesdev tunnel <deployment_id> dashboard
 
 The command will output the URL that you can use to access the dashboard.
 
-### Stopping a cluster
+### Temporarily stop a cluster
 
 A running cluster can be stopped by running the following command:
 
@@ -432,7 +432,7 @@ A running cluster can be stopped by running the following command:
 $ sesdev stop <deployment_id>
 ```
 
-### Destroying a cluster
+### Destroy a cluster
 
 To remove a cluster (both the deployed VMs and the configuration), use the
 following command:
