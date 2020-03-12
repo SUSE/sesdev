@@ -3,6 +3,7 @@ import logging
 import os
 from pathlib import Path
 import random
+import re
 import shutil
 from xml.dom import minidom
 import yaml
@@ -1021,6 +1022,26 @@ class Deployment():
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 
+        # version_repos might contain URLs with a "magic priority prefix" -- see
+        # https://github.com/SUSE/sesdev/issues/162
+        version_repos_prio = []
+        for repo in version_repos:
+            version_repos_dict = {}
+            prio_match = re.match(r'^(\d.+)!(http.*)', repo)
+            if prio_match:
+                version_repos_dict = {
+                    "url": prio_match[2],
+                    "priority": prio_match[1],
+                }
+            else:
+                version_repos_dict = {
+                    "url": repo,
+                    "priority": 0,
+                }
+            version_repos_prio.append(version_repos_dict)
+        log_msg = "generate_vagrantfile: version_repos_prio: {}".format(version_repos_prio)
+        logger.debug(log_msg)
+
         if self.settings.os in self.settings.os_repos:
             os_base_repos = list(self.settings.os_repos[self.settings.os].items())
         else:
@@ -1047,7 +1068,7 @@ class Deployment():
             'use_deepsea_cli': self.settings.use_deepsea_cli,
             'stop_before_stage': self.settings.stop_before_stage,
             'deployment_tool': self.settings.deployment_tool,
-            'version_repos': version_repos,
+            'version_repos_prio': version_repos_prio,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
             'qa_test': self.settings.qa_test,

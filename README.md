@@ -33,6 +33,8 @@ the VMs and run the deployment scripts.
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
          * [octopus from filesystems:ceph:master:upstream](#octopus-from-filesystemscephmasterupstream)
+         * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
+         * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
    * [List existing deployments](#list-existing-deployments)
    * [SSH access to a cluster](#ssh-access-to-a-cluster)
    * [Copy files into and out of a cluster](#copy-files-into-and-out-of-a-cluster)
@@ -346,6 +348,20 @@ version_os_repo_mapping:
             - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
 ```
 
+If you need a higher priority on one or more of the repos,
+`version_os_repo_mapping` supports a "magic priority prefix" on the repo URL,
+like so:
+
+```
+version_os_repo_mapping:
+    octopus:
+        leap-15.2:
+            - '96!https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
+```
+
+This would cause the zypper repo to be added at priority 96.
+
+
 #### Custom image paths
 
 In Ceph versions "octopus" and newer, the Ceph daemons run inside containers.
@@ -409,6 +425,46 @@ sesdev create octopus \
 No config.yaml changes are needed, because this is the default configuration.
 
 sesdev command is the same as for `filesystems:ceph:octopus`.
+
+##### ses7 from Devel:Storage:7.0
+
+This is the default, so no tweaking of config.yaml is necessary. Just:
+
+```
+sesdev create ses7 \
+    --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
+    --ceph-salt-branch master \
+    --qa-test \
+    --single-node \
+    ses7
+```
+
+Note that this will work even if there is no ceph package visible at
+https://build.suse.de/project/show/Devel:Storage:7.0 since it uses the
+installation media repo, not the "SLE_15_SP2" repo.
+
+##### ses7 from Devel:Storage:7.0:CR
+
+Since `Devel:Storage:7.0:CR/ceph` has the same version as
+`filesystems:ceph:master:upstream/ceph`, this is an unadulterated upstream
+build which requires special zypper priority to get it to install correctly in
+SLE-15-SP2.
+
+config.yaml:
+
+```
+version_os_repo_mapping:
+    ses7:
+        sles-15-sp2
+            - 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
+            - 'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
+            - '96!http://download.suse.de/ibs/Devel:/Storage:/7.0:/CR/SLE_15_SP2/'
+image_paths:
+    ses7: 'registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph'
+```
+
+Thanks to the `config.yaml` shown above, the sesdev command line is the same as
+in [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70).
 
 ### List existing deployments
 
