@@ -21,6 +21,7 @@ the VMs and run the deployment scripts.
    * [Install sesdev on Fedora Linux](#install-sesdev-on-fedora-linux)
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt-1)
       * [Install sesdev from package](#install-sesdev-from-package-1)
+   * [Install sesdev on Debian/Ubuntu](#install-sesdev-on-debianubuntu)
    * [Install sesdev from source](#install-sesdev-from-source)
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
@@ -136,6 +137,16 @@ the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/pa
 
 At this point, sesdev should be installed and ready to use: refer to the "Usage"
 chapter, below, for further information.
+
+### Install sesdev on Debian/Ubuntu
+
+sesdev is known to work on recent Ubuntus, but there is no package for it: you
+have to install from source. Follow the instructions given in
+[Install sesdev from source](#install-sesdev-from-source) with the following
+changes:
+
+* use `apt install` instead of `zypper install`
+* install `libvirt-dev` invstead of `libvirt-devel`
 
 ### Install sesdev from source
 
