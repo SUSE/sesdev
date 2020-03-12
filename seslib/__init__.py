@@ -206,6 +206,7 @@ VERSION_OS_REPO_MAPPING = {
 
 
 SETTINGS = {
+    # RESERVED KEY, DO NOT USE: 'strict'
     'version': {
         'type': str,
         'help': 'SES version to install (nautilus, octopus, ses5, ses6, ses7)',
@@ -366,7 +367,7 @@ SETTINGS = {
         'help': 'Automatically set priority on custom zypper repos',
         'default': True
     },
-    'qa_test_opt': {
+    'qa_test': {
         'type': bool,
         'help': 'Automatically run integration tests on the deployed cluster',
         'default': False
@@ -592,7 +593,8 @@ class Box():
 
 class Settings():
     # pylint: disable=no-member
-    def __init__(self, **kwargs):
+    def __init__(self, strict=True, **kwargs):
+        self.strict = strict
         config = self._load_config_file()
 
         self._apply_settings(config)
@@ -613,7 +615,10 @@ class Settings():
     def _apply_settings(self, settings_dict):
         for k, v in settings_dict.items():
             if k not in SETTINGS:
-                raise SettingNotKnown(k)
+                if self.strict:
+                    raise SettingNotKnown(k)
+                logger.warning("Setting '%s' is not known - listing a legacy cluster?", k)
+                continue
             if v is not None and not isinstance(v, SETTINGS[k]['type']):
                 logger.error("Setting '%s' value has wrong type: expected %s but got %s", k,
                              SETTINGS[k]['type'], type(v))
@@ -1041,7 +1046,7 @@ class Deployment():
             'version_repos': version_repos,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
-            'qa_test': self.settings.qa_test_opt,
+            'qa_test': self.settings.qa_test,
             'ganesha_nodes': self.node_counts["ganesha"],
             'igw_nodes': self.node_counts["igw"],
             'mds_nodes': self.node_counts["mds"],
@@ -1282,7 +1287,7 @@ class Deployment():
                 result += ("                         "
                            "(device names will be assigned by vagrant-libvirt)\n")
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
-            result += "     - qa_test:          {}\n".format(self.settings.qa_test_opt)
+            result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7'] \
                     and self.settings.deployment_tool == 'cephadm':
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
@@ -1503,7 +1508,7 @@ class Deployment():
         with open(metadata_file, 'r') as file:
             metadata = json.load(file)
 
-        dep = cls(metadata['id'], Settings(**metadata['settings']))
+        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']))
         if load_status:
             dep.load_status()
         return dep

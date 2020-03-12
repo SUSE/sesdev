@@ -487,7 +487,7 @@ def _gen_settings_dict(version,
         settings_dict['repo_priority'] = repo_priority
 
     if qa_test_opt is not None:
-        settings_dict['qa_test_opt'] = qa_test_opt
+        settings_dict['qa_test'] = qa_test_opt
 
     if vagrant_box:
         settings_dict['vagrant_box'] = vagrant_box
