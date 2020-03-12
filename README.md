@@ -28,6 +28,9 @@ the VMs and run the deployment scripts.
       * [Custom zypper repo (to be added together with the default repos)](#custom-zypper-repo-to-be-added-together-with-the-default-repos)
       * [Custom zypper repos (completely replace the default repos)](#custom-zypper-repos-completely-replace-the-default-repos)
       * [Custom image paths](#custom-image-paths)
+      * [config.yaml examples](#configyaml-examples)
+         * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
+         * [octopus from filesystems:ceph:master:upstream](#octopus-from-filesystemscephmasterupstream)
    * [Listing deployments](#listing-deployments)
    * [SSH access to the cluster](#ssh-access-to-the-cluster)
    * [Copy files into and out of the cluster](#copy-files-into-and-out-of-the-cluster)
@@ -345,6 +348,38 @@ following to your `~/.sesdev/config.yaml`:
 image_paths:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 ```
+
+#### config.yaml examples
+
+##### octopus from filesystems:ceph:octopus
+
+config.yaml:
+
+```
+version_os_repo_mapping:
+    octopus:
+        leap-15.2:
+            - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
+image_paths:
+    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
+```
+
+sesdev command line:
+
+```
+sesdev create octopus \
+    --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
+    --ceph-salt-branch master \
+    --qa-test \
+    --single-node \
+    octopus
+```
+
+##### octopus from filesystems:ceph:master:upstream
+
+No config.yaml changes are needed, because this is the default configuration.
+
+sesdev command is the same as for `filesystems:ceph:octopus`.
 
 ### Listing deployments
 
