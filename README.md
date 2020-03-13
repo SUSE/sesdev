@@ -111,8 +111,8 @@ $ sudo zypper install sesdev
 Where `<repo>` can be any of the openSUSE build targets currently enabled for
 the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/package/show/filesystems:ceph/sesdev).
 
-At this point, sesdev should be installed and ready to use: refer to the "Usage"
-chapter, below, for further information.
+At this point, sesdev should be installed and ready to use: refer to the
+[Usage](#usage) chapter, below, for further information.
 
 ### Install sesdev on Fedora Linux
 
@@ -136,8 +136,8 @@ dnf install sesdev
 Where `<distro>` can be any of the Fedora build targets currently enabled for
 the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/package/show/filesystems:ceph/sesdev).
 
-At this point, sesdev should be installed and ready to use: refer to the "Usage"
-chapter, below, for further information.
+At this point, sesdev should be installed and ready to use: refer to the
+[Usage](#usage) chapter, below, for further information.
 
 ### Install sesdev on Debian/Ubuntu
 
@@ -166,21 +166,32 @@ are installed in the system:
 $ sudo zypper -n install gcc git-core libvirt-devel python3-devel
 ```
 
-Now you can proceed to clone the sesdev source code repo, create and activate
-a virtualenv, and install sesdev's Python dependencies in it:
+Now you can proceed to clone the sesdev source code repo and bootstrap it:
 
 ```
 $ git clone https://github.com/SUSE/sesdev.git
 $ cd sesdev
-$ virtualenv venv
-$ source venv/bin/activate
-$ pip install --editable .
+$ ./bootstrap.sh
 ```
 
-Remember to re-run `pip install --editable .` after each git pull.
+Before you can use `sesdev`, you need to activate the Python virtual environment
+created by the `bootstrap.sh` script. The script tells you how to do this, but
+we'll give the command here, anyway:
 
-At this point, sesdev should be installed and ready to use: refer to the "Usage"
-chapter, below, for further information.
+```
+source venv/bin/activate
+```
+
+At this point, sesdev should be installed and ready to use: refer to the
+[Usage](#usage) chapter, below, for further information.
+
+To leave the virtual environment, simply run:
+
+```
+deactivate
+```
+
+CAVEAT: Remember to re-run `./bootstrap.sh` after each git pull.
 
 #### Running the unit tests
 
@@ -198,6 +209,7 @@ Then, execute the following commands in the top-level of your local git clone
 to install the dependencies, including test dependencies:
 
 ```
+source venv/bin/activate
 pip install --editable ./[dev]
 ```
 
