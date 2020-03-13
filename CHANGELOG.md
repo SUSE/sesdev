@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.8] - 2020-03-13
+
+### Added
+- seslib: remove host's virtual networks on destroy (PR #102)
+- Jenkinsfile.integration for PR testing (PR #118, PR #154) 
+- prometheus and alertmanager tunnels (PR #148)
+- tests: enable unit testing via tox (PR #151)
+
+### Fixed
+- seslib: stop printing misleading device names (PR #150)
+
+### Changed
+- seslib: Set admin roles for octopus (PR #158)
+- Change "admin" role semantics and make roles configurable (PR #161)
+- Allow user to override parts of OS_REPOS, VERSION_OS_REPO_MAPPING, and IMAGE_PATHS (PR #146)
+
 ## [1.1.7] - 2020-03-09
 
 ### Added
@@ -228,7 +244,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.7...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.8...HEAD
+[1.1.8]: https://github.com/SUSE/sesdev/releases/tag/v1.1.8
 [1.1.7]: https://github.com/SUSE/sesdev/releases/tag/v1.1.7
 [1.1.6]: https://github.com/SUSE/sesdev/releases/tag/v1.1.6
 [1.1.5]: https://github.com/SUSE/sesdev/releases/tag/v1.1.5
