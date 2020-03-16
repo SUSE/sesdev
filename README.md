@@ -1,4 +1,4 @@
-# sesdev - deploy and manage SES/Ceph clusters<br/> [![Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev)
+# sesdev - deploy and manage SES/Ceph clusters<br/> [![Travis Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev) [![Jenkins Build Status](https://ceph-ci.suse.de/job/sesdev-integration/job/master/badge/icon)](https://ceph-ci.suse.de/job/sesdev-integration/job/master/)
 
 `sesdev` is a CLI tool to deploy Ceph clusters (both the upstream and SUSE
 downstream versions).
