@@ -114,7 +114,9 @@ pipeline {
                 pip install --editable .
                 """
                 sh "source venv/bin/activate; sesdev --help"
-                sh "source venv/bin/activate; sesdev create octopus --non-interactive --ceph-salt-repo https://github.com/ceph/ceph-salt.git --ceph-salt-branch master --qa-test --single-node mini"
+                timeout(time: 90, unit: 'MINUTES') {
+                    sh "source venv/bin/activate; sesdev create octopus --non-interactive --ceph-salt-repo https://github.com/ceph/ceph-salt.git --ceph-salt-branch master --qa-test --single-node mini"
+                }
             }
         }
     }
