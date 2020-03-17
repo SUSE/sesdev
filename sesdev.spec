@@ -46,7 +46,7 @@ Requires:       python3-pyyaml >= 3.13
 Requires:       python3-click >= 6.7
 Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-setuptools
-Requires:       vagrant
+Requires:       vagrant > 2.2.2
 Requires:       vagrant-libvirt
 Requires:       sesdev-qa
 
