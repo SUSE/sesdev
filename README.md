@@ -420,7 +420,7 @@ sesdev create octopus \
     octopus
 ```
 
-##### octopus from filesystems:ceph:master:upstream
+##### octopus from filesystems:ceph:octopus:upstream
 
 No config.yaml changes are needed, because this is the default configuration.
 
