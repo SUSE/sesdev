@@ -106,7 +106,7 @@ OS_REPOS = {
 
 IMAGE_PATHS = {
     'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
-    'octopus': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
+    'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph',
 }
 
 VERSION_PREFERRED_OS = {
@@ -179,11 +179,11 @@ VERSION_OS_REPO_MAPPING = {
             'openSUSE_Leap_15.1'
         ],
         'leap-15.2': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/'
             'openSUSE_Leap_15.2'
         ],
         'tumbleweed': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/'
             'openSUSE_Tumbleweed'
         ],
     },
