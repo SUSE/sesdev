@@ -1355,7 +1355,7 @@ class Deployment():
         if proxycmd is not None:
             _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
         if command:
-            _cmd_extend(command)
+            _cmd.extend(command)
         return _cmd
 
     def ssh(self, name, command):
