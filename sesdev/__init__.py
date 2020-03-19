@@ -702,7 +702,8 @@ def destroy(deployment_id, destroy_networks):
 @cli.command()
 @click.argument('deployment_id')
 @click.argument('node', required=False)
-def ssh(deployment_id, node=None):
+@click.argument('command', required=False, nargs=-1)
+def ssh(deployment_id, node=None, command=None):
     """
     Opens an SSH shell to node NODE in deployment DEPLOYMENT_ID.
     If the node is not specified, an SSH shell is opened on the "admin" node.
@@ -712,7 +713,10 @@ def ssh(deployment_id, node=None):
     """
     dep = seslib.Deployment.load(deployment_id)
     _node = 'master' if node is None else node
-    dep.ssh(_node)
+    if command:
+        log_msg = "SSH command: {}".format(command)
+        logger.info(log_msg)
+    dep.ssh(_node, command)
 
 
 @cli.command()
