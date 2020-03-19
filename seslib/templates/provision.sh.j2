@@ -1,7 +1,6 @@
 {% include "engine/" + vm_engine + "/vagrant.provision.sh.j2" ignore missing %}
 
-# show the user what we are doing
-set -x
+set -ex
 
 ls -lR /home/vagrant
 
@@ -39,12 +38,15 @@ zypper addrepo
  {{ _repo.url }} {{ version }}-repo{{ loop.index }}
 {% endfor %}
 
-{% if version == 'ses7' %}
-zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
+{% if os.startswith("sle") %}
+zypper addrepo --refresh
+{%- if version == 'ses7' %}
+ http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
+{%- elif version == 'ses6' or version == 'caasp4' %}
+ http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
+{%- elif version == 'ses5' %}
+ http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
 {% endif %}
-
-{% if version == 'ses6' or version == 'caasp4' %}
-zypper ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
 {% endif %}
 
 zypper --gpg-auto-import-keys ref
