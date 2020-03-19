@@ -108,7 +108,7 @@ systemctl start salt-minion
 {% endif %}
 
 {% if version == 'ses5' %}
-zypper -n rm ntp
+zypper -n rm ntp || true
 {% endif %}
 
 touch /tmp/ready
