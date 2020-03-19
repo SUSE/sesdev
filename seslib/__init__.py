@@ -1345,7 +1345,7 @@ class Deployment():
 
         return (address, proxycmd, dep_private_key)
 
-    def _ssh_cmd(self, name):
+    def _ssh_cmd(self, name, command=None):
         (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
 
         _cmd = ["ssh", "root@{}".format(address),
@@ -1354,10 +1354,12 @@ class Deployment():
                 "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no"]
         if proxycmd is not None:
             _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
+        if command:
+            _cmd.extend(command)
         return _cmd
 
-    def ssh(self, name):
-        tools.run_interactive(self._ssh_cmd(name))
+    def ssh(self, name, command):
+        tools.run_interactive(self._ssh_cmd(name, command))
 
     def _scp_cmd(self, recursive, source, destination):
         host_is_source = False

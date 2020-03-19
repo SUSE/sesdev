@@ -85,7 +85,7 @@ def common_create_options(func):
     click_options = [
         click.option('--roles', type=str, default=None,
                      help='List of roles for each node. Example for two nodes: '
-                          '[admin, client, prometheus],[storage, mon, mgr]'),
+                          '[master, client, prometheus],[storage, mon, mgr]'),
         click.option('--os', type=click.Choice(['leap-15.1', 'leap-15.2', 'tumbleweed',
                                                 'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2']),
                      default=None, help='OS (open)SUSE distro'),
@@ -189,7 +189,7 @@ def cli(work_path=None, config_file=None, debug=False, log_file=None, vagrant_de
 OSDs:
 
         \b
-$ sesdev create octopus --roles="[admin, mon, mgr], \\
+$ sesdev create octopus --roles="[master, mon, mgr], \\
        [storage, mon, mgr, mds], [storage, mon, mds]" \\
        --num-disks=4 --disk-size=10 my_octopus_cluster
 
@@ -702,17 +702,23 @@ def destroy(deployment_id, destroy_networks):
 @cli.command()
 @click.argument('deployment_id')
 @click.argument('node', required=False)
-def ssh(deployment_id, node=None):
+@click.argument('command', required=False, nargs=-1)
+def ssh(deployment_id, node=None, command=None):
     """
-    Opens an SSH shell to node NODE in deployment DEPLOYMENT_ID.
-    If the node is not specified, an SSH shell is opened on the "admin" node.
+    Opens an SSH shell to, or runs optional COMMAND on, node NODE in deployment
+    DEPLOYMENT_ID.
+
+    If the node is not specified, it defaults to "master".
 
     Note: You can check the existing node names with the command
     "sesdev show <deployment_id>"
     """
     dep = seslib.Deployment.load(deployment_id)
     _node = 'master' if node is None else node
-    dep.ssh(_node)
+    if command:
+        log_msg = "SSH command: {}".format(command)
+        logger.info(log_msg)
+    dep.ssh(_node, command)
 
 
 @cli.command()
@@ -734,10 +740,10 @@ def scp(recursive, deployment_id, source, destination):
     Note: You can check the existing node names with the command
     "sesdev show <deployment_id>"
 
-    For example, to copy the file /etc/os-release from the node 'admin'
+    For example, to copy the file /etc/os-release from the node 'master'
     on cluster (deployment_id) 'foo' to the current directory on the host:
 
-        sesdev scp foo admin:/etc/os-release .
+        sesdev scp foo master:/etc/os-release .
 
     To recursively copy the entire directory "/bar" from the host to "/root/bar"
     on node1 in deployment foo:
@@ -821,7 +827,7 @@ def redeploy(deployment_id):
 @click.argument('deployment_id')
 @click.argument('service', type=click.Choice(['dashboard', 'grafana', 'openattic', 'suma',
                                               'prometheus', 'alertmanager']), required=False)
-@click.option('--node', default='admin', type=str, show_default=True,
+@click.option('--node', default='master', type=str, show_default=True,
               help='The node where we want to create the tunnel to')
 @click.option('--remote-port', default=None, type=int,
               help='The service port in the remote machine')
