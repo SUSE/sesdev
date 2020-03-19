@@ -113,3 +113,11 @@ class SettingNotKnown(SesDevException):
     def __init__(self, setting):
         super(SettingNotKnown, self).__init__(
             "Setting '{}' is not known - please open a bug report!".format(setting))
+
+
+class SupportconfigOnlyOnSLE(SesDevException):
+    def __init__(self):
+        super(SupportconfigOnlyOnSLE, self).__init__(
+            "sesdev supportconfig depends on the 'supportconfig' RPM, which is "
+            "available only on SUSE Linux Enterprise"
+            )
