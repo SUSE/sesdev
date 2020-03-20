@@ -100,7 +100,14 @@ hostnamectl set-hostname {{ node.name }}
 
 {% if not suma %}
 zypper -n install salt-minion
-sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
+sed -i -e 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
+{% if version == 'octopus' or version == 'ses7' %}
+#
+# FIXME: work around bsc#1167218 - remove this if block once that bug is resolved
+#
+sed -i -e 's/^Type=notify/#Type=notify/' /usr/lib/systemd/system/salt-minion.service
+sed -i -e 's/^NotifyAccess=all/#NotifyAccess=all/' /usr/lib/systemd/system/salt-minion.service
+{% endif %}
 
 # change salt log level to info
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
