@@ -19,7 +19,7 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
                         ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException, \
                         VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
-                        TooManyMasters, SettingNotKnown
+                        TooManyMasters, SettingNotKnown, SupportconfigOnlyOnSLE
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1361,7 +1361,7 @@ class Deployment():
     def ssh(self, name, command):
         tools.run_interactive(self._ssh_cmd(name, command))
 
-    def _scp_cmd(self, recursive, source, destination):
+    def _scp_cmd(self, source, destination, recurse=False):
         host_is_source = False
         host_is_destination = False
         name = None
@@ -1393,7 +1393,7 @@ class Deployment():
         # build up scp command
         (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
         _cmd = ['scp']
-        if recursive:
+        if recurse:
             _cmd.extend(['-r'])
         _cmd.extend(["-i", dep_private_key,
                      "-o", "IdentitiesOnly yes",
@@ -1409,8 +1409,25 @@ class Deployment():
 
         return _cmd
 
-    def scp(self, recursive, source, destination):
-        tools.run_interactive(self._scp_cmd(recursive, source, destination))
+    def scp(self, source, destination, recurse=False):
+        tools.run_interactive(self._scp_cmd(source, destination, recurse=recurse))
+
+    def supportconfig(self, log_handler, name):
+        if self.settings.os.startswith("sle"):
+            log_msg = ("The OS ->{}<- is SLE, where supportconfig is available"
+                       .format(self.settings.os))
+            logger.debug(log_msg)
+        else:
+            raise SupportconfigOnlyOnSLE()
+        log_handler("=> Running supportconfig on deployment ID: {} (OS: {})\n".format(
+            self.dep_id,
+            self.settings.os
+            ))
+        self.ssh(name, ('supportconfig',))
+        log_handler("=> Grabbing the resulting tarball from the cluster node\n")
+        self.scp(str(name) + ':/var/log/nts*', '.')
+        log_handler("=> Deleting the tarball from the cluster node\n")
+        self.ssh(name, ('rm', '/var/log/nts*'))
 
     def qa_test(self, log_handler):
         tools.run_async(

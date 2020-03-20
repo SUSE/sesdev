@@ -759,7 +759,7 @@ def scp(recursive, deployment_id, source, destination):
         sesdev scp foo -r /bar node1:
     """
     dep = seslib.Deployment.load(deployment_id)
-    dep.scp(recursive, source, destination)
+    dep.scp(source, destination, recurse=recursive)
 
 
 @cli.command()
@@ -770,6 +770,24 @@ def qa_test(deployment_id):
     """
     dep = seslib.Deployment.load(deployment_id)
     dep.qa_test(_print_log)
+
+
+@cli.command()
+@click.argument('deployment_id')
+@click.argument('node', required=False)
+def supportconfig(deployment_id, node):
+    """
+    Runs supportconfig on a node within an already-deployed cluster. Dumps the
+    resulting tarball in the current working directory.
+
+    If the node is not specified, it defaults to "master".
+
+    NOTE: supportconfig is only available in deployments running on SUSE Linux
+    Enterprise.
+    """
+    dep = seslib.Deployment.load(deployment_id)
+    _node = 'master' if node is None else node
+    dep.supportconfig(_print_log, _node)
 
 
 @cli.command()
