@@ -146,6 +146,7 @@ function ceph_rpm_version_test {
 }
 
 function ceph_daemon_versions_test {
+    local strict_versions="$1"
     local version_host=""
     local version_daemon=""
     echo
@@ -156,8 +157,10 @@ function ceph_daemon_versions_test {
     set +x
     version_host="$(_extract_ceph_version "$(ceph --version)")"
     version_daemon="$(_extract_ceph_version "$(ceph versions | jq -r '.overall | keys[]')")"
-    set -x
-    test "$version_host" = "$version_daemon"
+    if [ "$strict_versions" ] ; then
+        set -x
+        test "$version_host" = "$version_daemon"
+    fi
     set +x
     echo "ceph_daemon_versions_test: OK"
     echo

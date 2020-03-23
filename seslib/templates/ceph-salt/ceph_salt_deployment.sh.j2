@@ -84,7 +84,8 @@ ceph-salt config /Deployment/OSD enable
 # OSDs drive groups spec for each node
 {% for node in nodes %}
 {% if node.has_role('storage') %}
-ceph-salt config /Storage/Drive_Groups add value="{\"testing_dg_{{ node.name }}\": {\"host_pattern\": \"{{ node.name }}*\", \"data_devices\": {\"all\": true}}}"
+ceph-salt config /Storage/Drive_Groups add value="{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}"
+
 {% endif %}
 {% endfor %}
 {% endif %} {# if ceph_salt_deploy_osds #}
