@@ -40,6 +40,17 @@ def zypper_add_repos(repo_list) {
     }
 }
 
+def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch) {
+    cmd = "source venv/bin/activate; sesdev create octopus --non-interactive"
+    if (!ceph_salt_git_repo.isEmpty()) {
+        if (ceph_salt_git_branch.isEmpty()) {
+            error('ceph-salt git repo set, but no ceph-salt git branch given')
+        }
+        cmd += " --ceph-salt-repo ${ceph_salt_git_repo} --ceph-salt-branch ${ceph_salt_git_branch}"
+    }
+    cmd += " --qa-test --single-node mini"
+    return cmd
+}
 
 pipeline {
     agent none
@@ -50,6 +61,10 @@ pipeline {
         /* first value in the list is the default */
         choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
         choice(name: 'OS', choices: ['openSUSE-Leap-15.2'], description: 'Operating system to use')
+        string(name: 'CEPH_SALT_GIT_REPO', defaultValue: 'https://github.com/ceph/ceph-salt.git',
+               description: 'ceph-salt git repository to use for installation. If empty, the RPM package is used')
+        string(name: 'CEPH_SALT_GIT_BRANCH', defaultValue: 'master',
+               description: 'ceph-salt git branch to use for installation. This parameter is only used when CEPH_SALT_GIT_REPO is set')
         string(name: 'SLEEP_WHEN_FAILING', defaultValue: '1',
                description: 'Keep the environment available for X minutes when job failed')
     }
@@ -115,7 +130,7 @@ pipeline {
                 """
                 sh "source venv/bin/activate; sesdev --help"
                 timeout(time: 90, unit: 'MINUTES') {
-                    sh "source venv/bin/activate; sesdev create octopus --non-interactive --ceph-salt-repo https://github.com/ceph/ceph-salt.git --ceph-salt-branch master --qa-test --single-node mini"
+                    sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH)
                 }
             }
         }
