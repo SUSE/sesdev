@@ -202,6 +202,34 @@ function ceph_health_test {
     echo
 }
 
+function maybe_wait_for_osd_nodes_test {
+    local expected_osd_nodes="$1"
+    local actual_osd_nodes=""
+    local minutes_to_wait="5"
+    echo
+    echo "WWWW: maybe_wait_for_osd_nodes_test"
+    if [ "$expected_osd_nodes" ] ; then
+        echo "Waiting up to $minutes_to_wait minutes for OSD nodes to show up..."
+        for minute in $(seq 1 "$minutes_to_wait") ; do
+            for i in $(seq 1 4) ; do
+                set -x
+                actual_osd_nodes="$(json_osd_nodes)"
+                set +x
+                if [ "$actual_osd_nodes" = "$expected_osd_nodes" ] ; then
+                    break 2
+                else
+                    _grace_period 15
+                fi
+            done
+            echo "Minutes left to wait: $((minutes_to_wait - minute))"
+        done
+    else
+        echo "No OSD nodes expected: nothing to wait for."
+    fi
+    echo "maybe_wait_for_osd_nodes_test: OK"
+    echo
+}
+
 function number_of_nodes_actual_vs_expected_test {
     echo
     echo "WWWW: number_of_nodes_actual_vs_expected_test"
