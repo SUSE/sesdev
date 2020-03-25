@@ -77,6 +77,10 @@ pipeline {
                description: 'Extra zypper repo url(s) that will be added to all nodes. Multiple repos must be separated by space')
         string(name: 'SLEEP_WHEN_FAILING', defaultValue: '1',
                description: 'Keep the environment available for X minutes when job failed')
+        string(name: 'CUSTOM_JOB_NAME', defaultValue: '',
+               description: 'If set, a custom job name will be set')
+        string(name: 'CUSTOM_JOB_DESC', defaultValue: '',
+               description: 'If set, a custom job description will be set')
     }
 
     environment {
@@ -92,6 +96,14 @@ pipeline {
                 label "${jenkins_slave_base}"
             }
             steps {
+                script {
+                    if (!params.CUSTOM_JOB_NAME.isEmpty()) {
+                        currentBuild.displayName = "${params.CUSTOM_JOB_NAME}"
+                    }
+                    if (!params.CUSTOM_JOB_DESC.isEmpty()) {
+                        currentBuild.description = "${params.CUSTOM_JOB_DESC}"
+                    }
+                }
                 sh 'git clone https://github.com/toabctl/jcs.git'
                 sh 'virtualenv venv'
                 sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
