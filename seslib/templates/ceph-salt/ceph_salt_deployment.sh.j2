@@ -90,15 +90,6 @@ ceph-salt config /Deployment/Mgr enable
 {% endif %}
 
 {% if ceph_salt_deploy_osds %}
-ceph-salt config /Deployment/OSD enable
-
-# OSDs drive groups spec for each node
-{% for node in nodes %}
-{% if node.has_role('storage') %}
-ceph-salt config /Storage/Drive_Groups add value="{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}"
-
-{% endif %}
-{% endfor %}
 {% if storage_nodes < 3 %}
 ceph-salt config /Deployment/Bootstrap_Ceph_Conf add global
 ceph-salt config /Deployment/Bootstrap_Ceph_Conf/global set osd crush chooseleaf type = 0
@@ -125,6 +116,15 @@ stdbuf -o0 ceph-salt -ldebug deploy --non-interactive
 {% else %}
 salt -G 'ceph-salt:member' state.apply ceph-salt
 {% endif %}
+
+{% if ceph_salt_deploy_osds %}
+ceph orch device ls --refresh
+{% for node in nodes %}
+{% if node.has_role('storage') %}
+echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}" | ceph orch apply osd -i -
+{% endif %}
+{% endfor %}
+{% endif %} {# if ceph_salt_deploy_osds #}
 
 {% set qa_test_script = "/home/vagrant/qa-test.sh" %}
 {%- set qa_test_cmd = "/home/vagrant/sesdev-qa/health-ok.sh"
