@@ -117,6 +117,8 @@ def common_create_options(func):
                      help='Domain name to use'),
         click.option('-n', '--non-interactive', is_flag=True, default=False,
                      help='Do not ask the user if they really want to'),
+        click.option('--encrypted-osds', is_flag=True, default=False,
+                     help='Deploy OSDs encrypted'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -403,6 +405,7 @@ def _gen_settings_dict(version,
                        scc_pass,
                        domain,
                        non_interactive,
+                       encrypted_osds,
                        deepsea_cli=None,
                        stop_before_deepsea_stage=None,
                        deepsea_repo=None,
@@ -503,6 +506,9 @@ def _gen_settings_dict(version,
 
     if non_interactive:
         settings_dict['non_interactive'] = non_interactive
+
+    if encrypted_osds:
+        settings_dict['encrypted_osds'] = encrypted_osds
 
     if ceph_salt_repo:
         settings_dict['ceph_salt_git_repo'] = ceph_salt_repo

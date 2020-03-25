@@ -101,6 +101,11 @@ sleep 5
 exit 0
 {% endif %}
 
+{% if encrypted_osds %}
+echo "  encryption: True" >> /srv/salt/ceph/configuration/files/drive_groups.yml
+{% endif %}
+cat /srv/salt/ceph/configuration/files/drive_groups.yml
+
 echo ""
 echo "***** RUNNING stage.3 *******"
 {% if use_deepsea_cli %}
