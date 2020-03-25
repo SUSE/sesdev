@@ -393,14 +393,19 @@ SETTINGS = {
         'help': 'ceph-salt git branch to use',
         'default': 'master'
     },
+    'ceph_salt_fetch_github_prs': {
+        'type': bool,
+        'help': 'Fetch all GitHub PRs when installing ceph-salt from source',
+        'default': False
+    },
     'stop_before_ceph_salt_config': {
         'type': bool,
-        'help': 'Stops deployment before ceph-salt config',
+        'help': 'Stop deployment just prior to "ceph-salt config"',
         'default': False
     },
     'stop_before_ceph_salt_deploy': {
         'type': bool,
-        'help': 'Stops deployment before ceph-salt deploy',
+        'help': 'Stop deployment just prior to "ceph-salt deploy"',
         'default': False
     },
     'image_path': {
@@ -1084,6 +1089,7 @@ class Deployment():
             'scc_password': self.settings.scc_password,
             'ceph_salt_git_repo': self.settings.ceph_salt_git_repo,
             'ceph_salt_git_branch': self.settings.ceph_salt_git_branch,
+            'ceph_salt_fetch_github_prs': self.settings.ceph_salt_fetch_github_prs,
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
             'image_path': self.settings.image_path,

@@ -67,6 +67,8 @@ def ceph_salt_options(func):
                      help='ceph-salt Git repo URL'),
         click.option('--ceph-salt-branch', type=str, default=None,
                      help='ceph-salt Git branch'),
+        click.option('--fetch-github-prs/--no-fetch-github-prs', default=False,
+                     help="Fetch all GitHub PRs when installing ceph-salt from source")
         click.option('--image-path', type=str, default=None,
                      help='registry path from which to download Ceph container image'),
         click.option('--cephadm-bootstrap/--no-cephadm-bootstrap', default=True,
@@ -409,6 +411,7 @@ def _gen_settings_dict(version,
                        deepsea_branch=None,
                        ceph_salt_repo=None,
                        ceph_salt_branch=None,
+                       fetch_github_prs=None,
                        stop_before_ceph_salt_config=False,
                        stop_before_ceph_salt_deploy=False,
                        image_path=None,
@@ -509,6 +512,9 @@ def _gen_settings_dict(version,
 
     if ceph_salt_branch:
         settings_dict['ceph_salt_git_branch'] = ceph_salt_branch
+
+    if fetch_github_prs:
+        settings_dict['ceph_salt_fetch_github_prs'] = fetch_github_prs
 
     if stop_before_ceph_salt_config:
         settings_dict['stop_before_ceph_salt_config'] = stop_before_ceph_salt_config
