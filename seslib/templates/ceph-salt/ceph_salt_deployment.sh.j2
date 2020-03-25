@@ -88,6 +88,10 @@ ceph-salt config /Storage/Drive_Groups add value="{\"service_type\": \"osd\", \"
 
 {% endif %}
 {% endfor %}
+{% if storage_nodes < 3 %}
+ceph-salt config /Deployment/Bootstrap_Ceph_Conf add global
+ceph-salt config /Deployment/Bootstrap_Ceph_Conf/global set osd crush chooseleaf type = 0
+{% endif %}
 {% endif %} {# if ceph_salt_deploy_osds #}
 
 ceph-salt config /Deployment/Dashboard/username set admin
