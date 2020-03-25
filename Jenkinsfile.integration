@@ -40,7 +40,7 @@ def zypper_add_repos(repo_list) {
     }
 }
 
-def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch) {
+def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls) {
     cmd = "source venv/bin/activate; sesdev create octopus --non-interactive"
     if (!ceph_salt_git_repo.isEmpty()) {
         if (ceph_salt_git_branch.isEmpty()) {
@@ -48,6 +48,14 @@ def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch) {
         }
         cmd += " --ceph-salt-repo ${ceph_salt_git_repo} --ceph-salt-branch ${ceph_salt_git_branch}"
     }
+
+    if (!extra_repo_urls.isEmpty()) {
+        repos = extra_repo_urls.split(' ')
+        for (int i = 0; i < repos.size(); i++) {
+            cmd += " --repo ${repos[i]}"
+        }
+    }
+
     cmd += " --qa-test --single-node mini"
     return cmd
 }
@@ -65,6 +73,8 @@ pipeline {
                description: 'ceph-salt git repository to use for installation. If empty, the RPM package is used')
         string(name: 'CEPH_SALT_GIT_BRANCH', defaultValue: 'master',
                description: 'ceph-salt git branch to use for installation. This parameter is only used when CEPH_SALT_GIT_REPO is set')
+        string(name: 'EXTRA_REPO_URLS', defaultValue: '',
+               description: 'Extra zypper repo url(s) that will be added to all nodes. Multiple repos must be separated by space')
         string(name: 'SLEEP_WHEN_FAILING', defaultValue: '1',
                description: 'Keep the environment available for X minutes when job failed')
     }
@@ -123,14 +133,10 @@ pipeline {
         stage('Install sesdev from source and create cluster') {
             agent { label "${jenkins_slave_name}" }
             steps {
-                sh """
-                virtualenv venv
-                source venv/bin/activate
-                pip install --editable .
-                """
+                sh "./bootstrap.sh"
                 sh "source venv/bin/activate; sesdev --help"
                 timeout(time: 90, unit: 'MINUTES') {
-                    sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH)
+                    sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH, params.EXTRA_REPO_URLS)
                 }
             }
         }
