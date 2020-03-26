@@ -7,8 +7,8 @@ cd /root
 git clone {{ ceph_salt_git_repo }}
 cd ceph-salt
 zypper -n in autoconf gcc python3-devel python3-pip python3-curses
-# fetch the available PRs from github. With that, "ceph_salt_git_branch" can be something like "origin/pr/127" to checkout a github PR
-git fetch origin "+refs/pull/*/head:refs/remotes/origin/pr/*"
+# fetch the available PRs from github. With that, "ceph_salt_git_branch" can be something like "origin/pr-merged/127" to checkout a github PR
+git fetch origin "+refs/pull/*/merge:refs/remotes/origin/pr-merged/*"
 git checkout {{ ceph_salt_git_branch }}
 pip install .
 # install ceph-salt-formula
