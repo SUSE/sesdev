@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function abort_missing_dep {
+    local executable="$1"
+    local provided_by="$2"
+    if type $executable > /dev/null 2>&1 ; then
+        true
+    else
+        >&2 echo "ERROR: $executable not available"
+        >&2 echo "Please install the $provided_by package for your OS, and try again."
+        exit 1
+    fi
+}
+
 if [ -d ./sesdev ] ; then
     true
 else
@@ -8,20 +20,15 @@ else
     exit 1
 fi
 
-if type virtualenv > /dev/null 2>&1 ; then
-    true
-else
-    >&2 echo "ERROR: virtualenv not available"
-    >&2 echo "Please install the python3-virtualenv package for your OS, and try again."
-    exit 1
-fi
+abort_missing_dep python3 python3-base
+abort_missing_dep virtualenv python3-virtualenv
 
 if [ -d ./venv ] ; then
     >&2 echo "Detected an existing virtual environment - blowing it away!"
     rm -rf ./venv
 fi
 
-virtualenv venv
+virtualenv --python=python3 venv
 source venv/bin/activate
 pip install --editable .
 
