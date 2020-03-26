@@ -107,6 +107,7 @@ OS_REPOS = {
 IMAGE_PATHS = {
     'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
     'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph',
+    'master': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
 }
 
 VERSION_PREFERRED_OS = {
@@ -115,6 +116,7 @@ VERSION_PREFERRED_OS = {
     'ses7': 'sles-15-sp2',
     'nautilus': 'leap-15.1',
     'octopus': 'leap-15.2',
+    'master': 'leap-15.2',
     'caasp4': 'sles-15-sp1',
 }
 
@@ -123,7 +125,8 @@ VERSION_PREFERRED_DEPLOYMENT_TOOL = {
     'ses6': 'deepsea',
     'ses7': 'cephadm',
     'nautilus': 'deepsea',
-    'octopus': 'cephadm'
+    'octopus': 'cephadm',
+    'master': 'cephadm'
 }
 
 LUMINOUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana", "openattic"],
@@ -141,12 +144,18 @@ OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
 
+MASTER_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
+                         ["storage", "mon", "mgr", "rgw", "igw"],
+                         ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
+                         ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+
 VERSION_DEFAULT_ROLES = {
     'ses5': LUMINOUS_DEFAULT_ROLES,
     'ses6': NAUTILUS_DEFAULT_ROLES,
     'ses7': OCTOPUS_DEFAULT_ROLES,
     'nautilus': NAUTILUS_DEFAULT_ROLES,
     'octopus': OCTOPUS_DEFAULT_ROLES,
+    'master': MASTER_DEFAULT_ROLES,
     'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]]
 }
 
@@ -187,6 +196,16 @@ VERSION_OS_REPO_MAPPING = {
             'openSUSE_Tumbleweed'
         ],
     },
+    'master': {
+        'leap-15.2': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'openSUSE_Leap_15.2'
+        ],
+        'tumbleweed': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'openSUSE_Tumbleweed'
+        ],
+    },
     'ses7': {
         'sles-15-sp2': [
             'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/'
@@ -210,7 +229,7 @@ SETTINGS = {
     # RESERVED KEY, DO NOT USE: 'strict'
     'version': {
         'type': str,
-        'help': 'SES version to install (nautilus, octopus, ses5, ses6, ses7)',
+        'help': 'SES version to install (nautilus, octopus, master, ses5, ses6, ses7)',
         'default': 'nautilus'
     },
     'os': {
@@ -1322,7 +1341,7 @@ class Deployment():
             if k == 'master':
                 result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
             result += "     - roles:            {}\n".format(v.roles)
-            if self.settings.version in ["octopus", "ses7"]:
+            if self.settings.version in ["octopus", "ses7", "master"]:
                 if 'admin' not in v.roles:
                     result += (
                         "                         (CAVEAT: the 'admin' role is assumed"
@@ -1344,7 +1363,7 @@ class Deployment():
                 result += "     - encrypted OSDs:   {}\n".format(self.settings.encrypted_osds)
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test)
-            if self.settings.version in ['octopus', 'ses7'] \
+            if self.settings.version in ['octopus', 'ses7', 'master'] \
                     and self.settings.deployment_tool == 'cephadm':
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             if v.repos:

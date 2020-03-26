@@ -680,6 +680,24 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
 @create.command()
 @click.argument('deployment_id')
 @common_create_options
+@deepsea_options
+@ceph_salt_options
+@libvirt_options
+@click.option("--use-deepsea/--use-cephadm", default=False,
+              help="Use deepsea to deploy Ceph Master Branch instead of cephadm")
+def master(deployment_id, deploy, use_deepsea, **kwargs):
+    """
+    Creates a Ceph Master Branch cluster using openSUSE Leap 15.2 and packages
+    from filesystems:ceph:master OBS project.
+    """
+    settings_dict = _gen_settings_dict('master', **kwargs)
+    if use_deepsea:
+        settings_dict['deployment_tool'] = 'deepsea'
+    _create_command(deployment_id, deploy, settings_dict)
+
+@create.command()
+@click.argument('deployment_id')
+@common_create_options
 @libvirt_options
 @click.option("--deploy-ses", is_flag=True, default=False,
               help="Deploy SES using rook in CaasP")
