@@ -333,6 +333,11 @@ SETTINGS = {
         'help': 'Whether the user wants to be asked',
         'default': False
     },
+    'encrypted_osds': {
+        'type': bool,
+        'help': 'Whether OSDs should be deployed encrypted',
+        'default': False
+    },
     'deployment_tool': {
         'type': str,
         'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',
@@ -1080,6 +1085,7 @@ class Deployment():
             'rgw_nodes': self.node_counts["rgw"],
             'storage_nodes': self.node_counts["storage"],
             'total_osds': self.settings.num_disks * self.node_counts["storage"],
+            'encrypted_osds': self.settings.encrypted_osds,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
             'ceph_salt_git_repo': self.settings.ceph_salt_git_repo,
@@ -1311,6 +1317,7 @@ class Deployment():
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
                 result += ("                         "
                            "(device names will be assigned by vagrant-libvirt)\n")
+                result += "     - encrypted OSDs:   {}\n".format(self.settings.encrypted_osds)
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7'] \
