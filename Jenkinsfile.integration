@@ -148,7 +148,9 @@ pipeline {
                 sh "./bootstrap.sh"
                 sh "source venv/bin/activate; sesdev --help"
                 timeout(time: 90, unit: 'MINUTES') {
-                    sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH, params.EXTRA_REPO_URLS)
+                    ansiColor('xterm') {
+                        sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH, params.EXTRA_REPO_URLS)
+                    }
                 }
             }
         }
