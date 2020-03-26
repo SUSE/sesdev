@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.9] - 2020-03-26
+
+### Added
+- config.yaml: enable setting of repo priority in version_os_repo_mapping (PR #163)
+- Add a bootstrap.sh script and document how to use it (PR #165)
+- provision.sh: add SUSE:CA repo on ses5 (PR #166)
+- Implement feature: "sesdev ssh DEP_ID NODE_ID COMMAND" (PR #175)
+- Implement feature: "sesdev supportconfig DEPLOYMENT_ID NODE_ID" (PR #176)
+- Implement feature: --encrypted-osds (PR #192)
+
+### Fixed
+- provision.sh: do not fail ses5 deployment if ntp not installed (PR #173)
+- ceph_salt_deployment.sh: adapt Drive Group string to new syntax (PR #178)
+- qa/health-ok.sh: wait for OSD nodes to show up (PR #180)
+- bootstrap.sh: explicitly use Python 3 (PR #195)
+
+### Changed
+- Vagrantfile,sesdev.spec: require vagrant > 2.2.2 (PR #167)
+- Jenkinsfile.integration:
+    - Add timeout for "sesdev create" (PR #169)
+    - Parametrize ceph-salt repo and branch (PR #179)
+    - use bootstrap script and and parameter for extra repo URLs (PR #182)
+    - Be able to set custom job name/desc (PR #184)
+    - Add colorful output when running sesdev (PR #196)
+- Use "filesystems:ceph:octopus:upstream" for default cephadm/container build (PR #170)
+- Set "osd crush chooseleaf type = 0" via bootstrap ceph.conf in very small clusters (PR #183)
+- ceph_salt_deployment.sh: Fetch github PRs when installing from src (PR #190)
+
 ## [1.1.8] - 2020-03-13
 
 ### Added
@@ -244,7 +272,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.8...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.9...HEAD
+[1.1.9]: https://github.com/SUSE/sesdev/releases/tag/v1.1.9
 [1.1.8]: https://github.com/SUSE/sesdev/releases/tag/v1.1.8
 [1.1.7]: https://github.com/SUSE/sesdev/releases/tag/v1.1.7
 [1.1.6]: https://github.com/SUSE/sesdev/releases/tag/v1.1.6
