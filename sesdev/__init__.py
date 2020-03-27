@@ -4,7 +4,7 @@ import sys
 import click
 import pkg_resources
 import seslib
-from seslib.exceptions import SesDevException
+from seslib.exceptions import SesDevException, NoMasterRoleInRoles
 
 
 logger = logging.getLogger(__name__)
@@ -124,9 +124,13 @@ def common_create_options(func):
 
 
 def _parse_roles(roles):
+    log_msg = "Parsing role string ->{}<-".format(roles)
     roles = [r.strip() for r in roles.split(",")]
+    logger.info("_parse_roles: " + log_msg)
+    click.echo(log_msg)
     _roles = []
     _node = None
+    master_present = False
     for role in roles:
         role = role.strip()
         if role.startswith('['):
@@ -147,6 +151,12 @@ def _parse_roles(roles):
         else:
             role = role.strip()
             _node.append(role)
+        if role == 'master':
+            master_present = True
+    if master_present:
+        logger.debug("_parse_roles: master role detected - good!")
+    else:
+        raise NoMasterRoleInRoles()
     return _roles
 
 
