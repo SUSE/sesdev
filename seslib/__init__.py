@@ -19,7 +19,7 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
                         ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException, \
                         VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
-                        TooManyMasters, SettingNotKnown, SupportconfigOnlyOnSLE
+                        UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -751,8 +751,10 @@ class NodeManager:
 
 
 class Deployment():
-    def __init__(self, dep_id, settings):
+
+    def __init__(self, dep_id, settings, load=False):
         self.dep_id = dep_id
+        self.from_load = load
         self.settings = settings
         self.nodes = {}
         self.node_counts = {
@@ -1012,8 +1014,11 @@ class Deployment():
 
             self.nodes[node.name] = node
 
-        if self.node_counts['master'] > 1:
-            raise TooManyMasters(self.node_counts['master'])
+        if not self.from_load:
+            if self.node_counts['master'] != 1:
+                raise UniqueRoleViolation('master', self.node_counts['master'])
+            if self.node_counts['bootstrap'] != 1:
+                raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
 
         if self.master and self.suma:
             raise ExclusiveRoles('master', 'suma')
@@ -1578,7 +1583,7 @@ class Deployment():
         with open(metadata_file, 'r') as file:
             metadata = json.load(file)
 
-        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']))
+        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']), load=True)
         if load_status:
             dep.load_status()
         return dep
