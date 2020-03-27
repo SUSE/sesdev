@@ -115,7 +115,7 @@ def common_create_options(func):
                      help='SCC organization password'),
         click.option('--domain', type=str, default='{}.com',
                      help='Domain name to use'),
-        click.option('-n', '--non-interactive', is_flag=True, default=False,
+        click.option('--non-interactive', '-n', '--force', '-f', is_flag=True, default=False,
                      help='Do not ask the user if they really want to'),
         click.option('--encrypted-osds', is_flag=True, default=False,
                      help='Deploy OSDs encrypted'),
@@ -289,9 +289,13 @@ def list_boxes(**kwargs):
 @box.command(name='remove')
 @click.argument('box_name')
 @libvirt_options
-@click.option('--force', is_flag=True, callback=_abort_if_false, expose_value=False,
+@click.option('--non-interactive', '-n', '--force', '-f',
+              is_flag=True,
+              callback=_abort_if_false,
+              expose_value=False,
               help='Allow to remove Vagrant Box without user confirmation',
-              prompt='Are you sure you want to remove the Vagrant Box?')
+              prompt='Are you sure you want to remove the Vagrant Box?',
+              )
 def remove_box(box_name, **kwargs):
     """
     Remove a Vagrant Box installed in the system by sesdev.
@@ -688,9 +692,13 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
 
 @cli.command()
 @click.argument('deployment_id')
-@click.option('--force', is_flag=True, callback=_abort_if_false, expose_value=False,
+@click.option('--non-interactive', '-n', '--force', '-f',
+              is_flag=True,
+              callback=_abort_if_false,
+              expose_value=False,
               help='Allow to destroy the deployment without user confirmation',
-              prompt='Are you sure you want to destroy the cluster?')
+              prompt='Are you sure you want to destroy the cluster?',
+              )
 @click.option('--destroy-networks', is_flag=True, default=False,
               help='Allow to destroy networks associated with the deployment')
 def destroy(deployment_id, destroy_networks):
@@ -833,7 +841,10 @@ def show(deployment_id):
 
 @cli.command()
 @click.argument('deployment_id')
-@click.option('--force', is_flag=True, callback=_abort_if_false, expose_value=False,
+@click.option('--non-interactive', '-n', '--force', '-f',
+              is_flag=True,
+              callback=_abort_if_false,
+              expose_value=False,
               help='Allow to redeploy the cluster without user confirmation',
               prompt='Are you sure you want to redeploy the cluster?')
 def redeploy(deployment_id):
