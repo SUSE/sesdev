@@ -121,3 +121,11 @@ class SupportconfigOnlyOnSLE(SesDevException):
             "sesdev supportconfig depends on the 'supportconfig' RPM, which is "
             "available only on SUSE Linux Enterprise"
             )
+
+
+class NoMasterRoleInRoles(SesDevException):
+    def __init__(self):
+        super(NoMasterRoleInRoles, self).__init__(
+            "No 'master' role specified - please check the roles and make sure one, "
+            "and only one, node has the 'master' role"
+            )
