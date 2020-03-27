@@ -1052,6 +1052,22 @@ class Deployment():
         else:
             os_base_repos = []
 
+        # detect whether we need to fetch github PRs
+        ceph_salt_fetch_github_pr_heads = False
+        ceph_salt_fetch_github_pr_merges = False
+        if self.settings.ceph_salt_git_branch.startswith('origin/pr/'):
+            log_msg = ("Detected special ceph-salt GitHub PR (HEAD) branch {}"
+                       .format(self.settings.ceph_salt_git_branch)
+                       )
+            logger.info(log_msg)
+            ceph_salt_fetch_github_pr_heads = True
+        elif self.settings.ceph_salt_git_branch.startswith('origin/pr-merged/'):
+            log_msg = ("Detected special ceph-salt GitHub PR (MERGE) branch {}"
+                       .format(self.settings.ceph_salt_git_branch)
+                       )
+            logger.info(log_msg)
+            ceph_salt_fetch_github_pr_merges = True
+
         context = {
             'sesdev_path_to_qa': GlobalSettings.PATH_TO_QA,
             'dep_id': self.dep_id,
@@ -1090,6 +1106,8 @@ class Deployment():
             'scc_password': self.settings.scc_password,
             'ceph_salt_git_repo': self.settings.ceph_salt_git_repo,
             'ceph_salt_git_branch': self.settings.ceph_salt_git_branch,
+            'ceph_salt_fetch_github_pr_heads': ceph_salt_fetch_github_pr_heads,
+            'ceph_salt_fetch_github_pr_merges': ceph_salt_fetch_github_pr_merges,
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
             'image_path': self.settings.image_path,
