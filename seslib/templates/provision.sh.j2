@@ -4,9 +4,6 @@ set -ex
 
 ls -lR /home/vagrant
 
-# remove the first line introduced by vagrant
-head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
-
 {% for _node in nodes %}
 {% if _node.public_address %}
 echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
