@@ -60,16 +60,23 @@ sleep 2
 exit 0
 {% endif %}
 
+MON_NODES_COMMA_SEPARATED_LIST=""
+MGR_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
-ceph-salt config /Cluster/Minions add {{ node.fqdn }}
-ceph-salt config /Cluster/Roles/Admin add {{ node.fqdn }}
+ceph-salt config /Ceph_Cluster/Minions add {{ node.fqdn }}
+ceph-salt config /Ceph_Cluster/Roles/Admin add {{ node.fqdn }}
+{% if node.has_role('bootstrap') %}
+ceph-salt config /Ceph_Cluster/Roles/Bootstrap set {{ node.fqdn }}
+{% endif %}
 {% if node.has_role('mon') %}
-ceph-salt config /Cluster/Roles/Mon add {{ node.fqdn }}
+MON_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 {% endif %}
 {% if node.has_role('mgr') %}
-ceph-salt config /Cluster/Roles/Mgr add {{ node.fqdn }}
+MGR_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 {% endif %}
 {% endfor %}
+MON_NODES_COMMA_SEPARATED_LIST="${MON_NODES_COMMA_SEPARATED_LIST%,*}"
+MGR_NODES_COMMA_SEPARATED_LIST="${MGR_NODES_COMMA_SEPARATED_LIST%,*}"
 
 ceph-salt config /System_Update/Packages disable
 ceph-salt config /System_Update/Reboot disable
@@ -82,22 +89,16 @@ ceph-salt config /Time_Server/External_Servers add 0.pt.pool.ntp.org
 {% if not ceph_salt_cephadm_bootstrap %}
 ceph-salt config /Deployment/Bootstrap disable
 {% endif %}
-{% if ceph_salt_deploy_mons %}
-ceph-salt config /Deployment/Mon enable
-{% endif %}
-{% if ceph_salt_deploy_mgrs %}
-ceph-salt config /Deployment/Mgr enable
-{% endif %}
 
 {% if ceph_salt_deploy_osds %}
 {% if storage_nodes < 3 %}
-ceph-salt config /Deployment/Bootstrap_Ceph_Conf add global
-ceph-salt config /Deployment/Bootstrap_Ceph_Conf/global set osd crush chooseleaf type = 0
+ceph-salt config /Cephadm_Bootstrap/Ceph_Conf add global
+ceph-salt config /Cephadm_Bootstrap/Ceph_Conf/global set osd crush chooseleaf type = 0
 {% endif %}
 {% endif %} {# if ceph_salt_deploy_osds #}
 
-ceph-salt config /Deployment/Dashboard/username set admin
-ceph-salt config /Deployment/Dashboard/password set admin
+ceph-salt config /Cephadm_Bootstrap/Dashboard/username set admin
+ceph-salt config /Cephadm_Bootstrap/Dashboard/password set admin
 
 ceph-salt config ls
 ceph-salt export --pretty
@@ -117,15 +118,7 @@ stdbuf -o0 ceph-salt -ldebug deploy --non-interactive
 salt -G 'ceph-salt:member' state.apply ceph-salt
 {% endif %}
 
-{% if ceph_salt_deploy_osds %}
-ceph orch device ls --refresh
-{% for node in nodes %}
-{% if node.has_role('storage') %}
-echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}" | ceph orch apply osd -i -
-{% endif %}
-{% endfor %}
-{% endif %} {# if ceph_salt_deploy_osds #}
-
+{% if ceph_salt_deploy_mons %}
 {% if mon_nodes > 1 %}
 TIME_SERVER="$(ceph-salt export | jq -r .time_server.server_host)"
 salt "$TIME_SERVER" cmd.run 'bash -c "chronyc makestep && chronyc waitsync"'
@@ -134,7 +127,24 @@ if [ "{{ node.fqdn }}" != "$TIME_SERVER" ] ; then
     salt "{{ node.fqdn }}" cmd.run 'bash -c "chronyc makestep && chronyc waitsync"'
 fi
 {% endfor %}
+ceph orch apply mon "$MON_NODES_COMMA_SEPARATED_LIST"
 {% endif %} {# mon_nodes > 1 #}
+{% endif %} {# ceph_salt_deploy_mons #}
+
+{% if ceph_salt_deploy_mgrs %}
+{% if mgr_nodes > 1 %}
+ceph orch apply mgr "$MGR_NODES_COMMA_SEPARATED_LIST"
+{% endif %} {# mgr_nodes > 1 #}
+{% endif %} {# ceph_salt_deploy_mgrs #}
+
+{% if ceph_salt_deploy_osds %}
+ceph orch device ls --refresh
+{% for node in nodes %}
+{% if node.has_role('storage') %}
+echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}" | ceph orch apply osd -i -
+{% endif %}
+{% endfor %}
+{% endif %} {# if ceph_salt_deploy_osds #}
 
 {% set qa_test_script = "/home/vagrant/qa-test.sh" %}
 {%- set qa_test_cmd = "/home/vagrant/sesdev-qa/health-ok.sh"

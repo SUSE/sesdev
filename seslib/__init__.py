@@ -137,7 +137,7 @@ NAUTILUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
                           ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
 
 OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
-                         ["storage", "mon", "mgr", "rgw", "igw"],
+                         ["bootstrap", "storage", "mon", "mgr", "rgw", "igw"],
                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
 
@@ -758,6 +758,7 @@ class Deployment():
         self.node_counts = {
             "admin": 0,
             "master": 0,
+            "bootstrap": 0,
             "ganesha": 0,
             "igw": 0,
             "mds": 0,
@@ -859,8 +860,8 @@ class Deployment():
         loadbl_id = 0
         storage_id = 0
         for node_roles in self.settings.roles:  # loop once for every node in cluster
-            for role_type in ["admin", "master", "ganesha", "igw", "mds", "mgr", "mon", "rgw",
-                              "storage"]:
+            for role_type in ["admin", "master", "bootstrap", "ganesha", "igw", "mds",
+                              "mgr", "mon", "rgw", "storage"]:
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
             # if 'openattic' in node_roles and self.settings.version != 'ses5':
