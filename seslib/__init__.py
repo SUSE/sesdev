@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 class GlobalSettings():
-    WORKING_DIR = os.path.join(Path.home(), '.sesdev')
-    CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
+    A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
+    CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
     DEBUG = False
     VAGRANT_DEBUG = False
 
@@ -804,7 +804,7 @@ class Deployment():
 
     @property
     def dep_dir(self):
-        return os.path.join(GlobalSettings.WORKING_DIR, self.dep_id)
+        return os.path.join(GlobalSettings.A_WORKING_DIR, self.dep_id)
 
     def _needs_cluster_network(self):
         if len(self.settings.roles) == 1:  # there is only 1 node
@@ -1560,7 +1560,7 @@ class Deployment():
 
     @classmethod
     def create(cls, dep_id, settings):
-        dep_dir = os.path.join(GlobalSettings.WORKING_DIR, dep_id)
+        dep_dir = os.path.join(GlobalSettings.A_WORKING_DIR, dep_id)
         if os.path.exists(dep_dir):
             raise DeploymentAlreadyExists(dep_id)
 
@@ -1571,7 +1571,7 @@ class Deployment():
 
     @classmethod
     def load(cls, dep_id, load_status=True):
-        dep_dir = os.path.join(GlobalSettings.WORKING_DIR, dep_id)
+        dep_dir = os.path.join(GlobalSettings.A_WORKING_DIR, dep_id)
         if not os.path.exists(dep_dir) or not os.path.isdir(dep_dir):
             logger.debug("%s does not exist or is not a directory", dep_dir)
             raise DeploymentDoesNotExists(dep_id)
@@ -1591,9 +1591,9 @@ class Deployment():
     @classmethod
     def list(cls, load_status=False):
         deps = []
-        if not os.path.exists(GlobalSettings.WORKING_DIR):
+        if not os.path.exists(GlobalSettings.A_WORKING_DIR):
             return deps
-        for dep_id in os.listdir(GlobalSettings.WORKING_DIR):
+        for dep_id in os.listdir(GlobalSettings.A_WORKING_DIR):
             if dep_id.startswith("config.yaml"):
                 logger.debug("Skipping %s (obviously not a deployment)", dep_id)
                 continue
