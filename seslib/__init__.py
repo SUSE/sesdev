@@ -32,6 +32,7 @@ class GlobalSettings():
     A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
     DEBUG = False
+    SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
     VAGRANT_DEBUG = False
 
     @classmethod
@@ -1075,6 +1076,7 @@ class Deployment():
             ceph_salt_fetch_github_pr_merges = True
 
         context = {
+            'ssh_key_name': GlobalSettings.SSH_KEY_NAME,
             'sesdev_path_to_qa': GlobalSettings.PATH_TO_QA,
             'dep_id': self.dep_id,
             'os': self.settings.os,
@@ -1161,13 +1163,13 @@ class Deployment():
         keys_dir = os.path.join(self.dep_dir, 'keys')
         os.makedirs(keys_dir)
 
-        with open(os.path.join(keys_dir, 'id_rsa'), 'w') as file:
+        with open(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 'w') as file:
             file.write(private_key.decode('utf-8'))
-        os.chmod(os.path.join(keys_dir, 'id_rsa'), 0o600)
+        os.chmod(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 0o600)
 
-        with open(os.path.join(keys_dir, 'id_rsa.pub'), 'w') as file:
-            file.write(public_key.decode('utf-8'))
-        os.chmod(os.path.join(keys_dir, 'id_rsa.pub'), 0o600)
+        with open(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 'w') as file:
+            file.write(str(public_key.decode('utf-8') + " sesdev\n"))
+        os.chmod(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 0o600)
 
         # bin dir with helper scripts
         bin_dir = os.path.join(self.dep_dir, 'bin')
@@ -1372,7 +1374,7 @@ class Deployment():
         if address is None:
             raise VagrantSshConfigNoHostName(name)
 
-        dep_private_key = os.path.join(self.dep_dir, "keys/id_rsa")
+        dep_private_key = os.path.join(self.dep_dir, str("keys/" + GlobalSettings.SSH_KEY_NAME))
 
         return (address, proxycmd, dep_private_key)
 
