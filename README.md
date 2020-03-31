@@ -287,6 +287,7 @@ nodes are separated by commas, too.
 The following roles can be assigned:
 
 * `master` - The master node, running management components like the Salt master
+* `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
 * `ganesha` - NFS Ganesha service
 * `grafana` - Grafana metrics visualization (requires Prometheus)
@@ -300,12 +301,13 @@ The following roles can be assigned:
 * `suma` - SUSE Manager (octopus only)
 
 The following example will generate a cluster with four nodes: the master (Salt
-Master) node that is also running a MON daemon, two storage (OSD) nodes that
-will also run a MON, a MGR and an MDS, and another node that will run an iSCSI
+Master) node that is also running a MON daemon; a storage (OSD) node that
+will also run a MON, a MGR and an MDS and serve as the bootstrap node; another
+storage (OSD) node with MON, MGR, and MDS; and a fourth node that will run an iSCSI
 gateway, an NFS-Ganesha gateway, and an RGW gateway.
 
 ```
-$ sesdev create nautilus --roles="[master, mon], [storage, mon, mgr, mds], \
+$ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, mds], \
   [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 ```
 

@@ -90,10 +90,12 @@ class RoleNotSupported(SesDevException):
             "Role '{}' is not supported in version '{}'".format(role, version))
 
 
-class TooManyMasters(SesDevException):
-    def __init__(self, number):
-        super(TooManyMasters, self).__init__(
-            "There can only be one 'master' role (you gave {})'".format(number))
+class UniqueRoleViolation(SesDevException):
+    def __init__(self, role, number):
+        super(UniqueRoleViolation, self).__init__(
+            "There must be one, and only one, '{role}' role "
+            "(you gave {number} '{role}' roles)".format(role=role, number=number)
+            )
 
 
 class VagrantSshConfigNoHostName(SesDevException):
@@ -120,12 +122,4 @@ class SupportconfigOnlyOnSLE(SesDevException):
         super(SupportconfigOnlyOnSLE, self).__init__(
             "sesdev supportconfig depends on the 'supportconfig' RPM, which is "
             "available only on SUSE Linux Enterprise"
-            )
-
-
-class NoMasterRoleInRoles(SesDevException):
-    def __init__(self):
-        super(NoMasterRoleInRoles, self).__init__(
-            "No 'master' role specified - please check the roles and make sure one, "
-            "and only one, node has the 'master' role"
             )
