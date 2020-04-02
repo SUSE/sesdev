@@ -587,6 +587,7 @@ def _create_command(deployment_id, deploy, settings_dict):
                 )
         try:
             if really_want_to:
+                dep.vet_configuration()
                 dep.start(_print_log)
                 click.echo("=== Deployment Finished ===")
                 click.echo()
