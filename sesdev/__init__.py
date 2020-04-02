@@ -430,7 +430,7 @@ def _gen_settings_dict(version,
     if not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
-        if version in ('ses7', 'octopus'):
+        if version in ('ses7', 'octopus', 'pacific'):
             settings_dict['roles'] = _parse_roles(
                 "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
                 "igw, rgw, ganesha ]"
@@ -672,6 +672,25 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     from filesystems:ceph:octopus OBS project.
     """
     settings_dict = _gen_settings_dict('octopus', **kwargs)
+    if use_deepsea:
+        settings_dict['deployment_tool'] = 'deepsea'
+    _create_command(deployment_id, deploy, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id')
+@common_create_options
+@deepsea_options
+@ceph_salt_options
+@libvirt_options
+@click.option("--use-deepsea/--use-cephadm", default=False,
+              help="Use deepsea to deploy Ceph Master Branch instead of cephadm")
+def pacific(deployment_id, deploy, use_deepsea, **kwargs):
+    """
+    Creates a Ceph Pacific cluster using openSUSE Leap 15.2 and packages
+    from filesystems:ceph:master:upstream OBS project.
+    """
+    settings_dict = _gen_settings_dict('pacific', **kwargs)
     if use_deepsea:
         settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)

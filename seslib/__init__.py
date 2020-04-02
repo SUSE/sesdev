@@ -107,6 +107,7 @@ OS_REPOS = {
 IMAGE_PATHS = {
     'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
     'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph',
+    'pacific': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
 }
 
 VERSION_PREFERRED_OS = {
@@ -115,6 +116,7 @@ VERSION_PREFERRED_OS = {
     'ses7': 'sles-15-sp2',
     'nautilus': 'leap-15.1',
     'octopus': 'leap-15.2',
+    'pacific': 'leap-15.2',
     'caasp4': 'sles-15-sp1',
 }
 
@@ -123,7 +125,8 @@ VERSION_PREFERRED_DEPLOYMENT_TOOL = {
     'ses6': 'deepsea',
     'ses7': 'cephadm',
     'nautilus': 'deepsea',
-    'octopus': 'cephadm'
+    'octopus': 'cephadm',
+    'pacific': 'cephadm'
 }
 
 LUMINOUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana", "openattic"],
@@ -147,6 +150,7 @@ VERSION_DEFAULT_ROLES = {
     'ses7': OCTOPUS_DEFAULT_ROLES,
     'nautilus': NAUTILUS_DEFAULT_ROLES,
     'octopus': OCTOPUS_DEFAULT_ROLES,
+    'pacific': OCTOPUS_DEFAULT_ROLES,
     'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]]
 }
 
@@ -187,6 +191,16 @@ VERSION_OS_REPO_MAPPING = {
             'openSUSE_Tumbleweed'
         ],
     },
+    'pacific': {
+        'leap-15.2': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'openSUSE_Leap_15.2'
+        ],
+        'tumbleweed': [
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+            'openSUSE_Tumbleweed'
+        ],
+    },
     'ses7': {
         'sles-15-sp2': [
             'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/'
@@ -210,13 +224,13 @@ SETTINGS = {
     # RESERVED KEY, DO NOT USE: 'strict'
     'version': {
         'type': str,
-        'help': 'SES version to install (nautilus, octopus, ses5, ses6, ses7)',
-        'default': 'nautilus'
+        'help': 'Deployment version to install ("nautilus", "ses6", "caasp4", etc.)',
+        'default': 'nautilus',
     },
     'os': {
         'type': str,
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
-        'default': None
+        'default': None,
     },
     'os_repos': {
         'type': dict,
@@ -236,52 +250,52 @@ SETTINGS = {
     'vagrant_box': {
         'type': str,
         'help': 'Vagrant box to use in deployment',
-        'default': None
+        'default': None,
     },
     'vm_engine': {
         'type': str,
         'help': 'VM engine to use for VM deployment. Current options [libvirt]',
-        'default': 'libvirt'
+        'default': 'libvirt',
     },
     'libvirt_host': {
         'type': str,
         'help': 'Hostname/IP address of the libvirt host',
-        'default': None
+        'default': None,
     },
     'libvirt_user': {
         'type': str,
         'help': 'Username to use to login into the libvirt host',
-        'default': None
+        'default': None,
     },
     'libvirt_use_ssh': {
         'type': bool,
         'help': 'Flag to control the use of SSH when connecting to the libvirt host',
-        'default': None
+        'default': None,
     },
     'libvirt_private_key_file': {
         'type': str,
         'help': 'Path to SSH private key file to use when connecting to the libvirt host',
-        'default': None
+        'default': None,
     },
     'libvirt_storage_pool': {
         'type': str,
         'help': 'The libvirt storage pool to use for creating VMs',
-        'default': None
+        'default': None,
     },
     'libvirt_networks': {
         'type': str,
         'help': 'Existing libvirt networks to use (single or comma separated list)',
-        'default': None
+        'default': None,
     },
     'ram': {
         'type': int,
         'help': 'RAM size in gigabytes for each node',
-        'default': 4
+        'default': 4,
     },
     'cpus': {
         'type': int,
         'help': 'Number of virtual CPUs in each node',
-        'default': 2
+        'default': 2,
     },
     'single_node': {
         'type': bool,
@@ -291,7 +305,7 @@ SETTINGS = {
     'num_disks': {
         'type': int,
         'help': 'Number of additional disks in storage nodes',
-        'default': 2
+        'default': 2,
     },
     'explicit_num_disks': {
         'type': bool,
@@ -301,7 +315,7 @@ SETTINGS = {
     'disk_size': {
         'type': int,
         'help': 'Storage disk size in gigabytes',
-        'default': 8
+        'default': 8,
     },
     'version_default_roles': {
         'type': dict,
@@ -316,132 +330,132 @@ SETTINGS = {
     'public_network': {
         'type': str,
         'help': 'The network address prefix for the public network',
-        'default': None
+        'default': None,
     },
     'cluster_network': {
         'type': str,
         'help': 'The network address prefix for the cluster network',
-        'default': None
+        'default': None,
     },
     'domain': {
         'type': str,
         'help': 'The domain name for nodes',
-        'default': '{}.com'
+        'default': '{}.com',
     },
     'non_interactive': {
         'type': bool,
         'help': 'Whether the user wants to be asked',
-        'default': False
+        'default': False,
     },
     'encrypted_osds': {
         'type': bool,
         'help': 'Whether OSDs should be deployed encrypted',
-        'default': False
+        'default': False,
     },
     'deployment_tool': {
         'type': str,
         'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',
-        'default': None
+        'default': None,
     },
     'deepsea_git_repo': {
         'type': str,
         'help': 'If set, it will install DeepSea from this git repo',
-        'default': None
+        'default': None,
     },
     'deepsea_git_branch': {
         'type': str,
         'help': 'Git branch to use',
-        'default': 'master'
+        'default': 'master',
     },
     'use_deepsea_cli': {
         'type': bool,
         'help': 'Use deepsea-cli to run deepsea stages',
-        'default': True
+        'default': True,
     },
     'stop_before_stage': {
         'type': int,
         'help': 'Stop deployment before running the specified DeepSea stage',
-        'default': None
+        'default': None,
     },
     'repos': {
         'type': list,
         'help': 'Custom repos dictionary to apply to all nodes',
-        'default': []
+        'default': [],
     },
     'repo_priority': {
         'type': bool,
         'help': 'Automatically set priority on custom zypper repos',
-        'default': True
+        'default': True,
     },
     'qa_test': {
         'type': bool,
         'help': 'Automatically run integration tests on the deployed cluster',
-        'default': False
+        'default': False,
     },
     'scc_username': {
         'type': str,
         'help': 'SCC organization username',
-        'default': None
+        'default': None,
     },
     'scc_password': {
         'type': str,
         'help': 'SCC organization password',
-        'default': None
+        'default': None,
     },
     'ceph_salt_git_repo': {
         'type': str,
         'help': 'If set, it will install ceph-salt from this git repo',
-        'default': None
+        'default': None,
     },
     'ceph_salt_git_branch': {
         'type': str,
         'help': 'ceph-salt git branch to use',
-        'default': 'master'
+        'default': 'master',
     },
     'stop_before_ceph_salt_config': {
         'type': bool,
         'help': 'Stops deployment before ceph-salt config',
-        'default': False
+        'default': False,
     },
     'stop_before_ceph_salt_deploy': {
         'type': bool,
         'help': 'Stops deployment before ceph-salt deploy',
-        'default': False
+        'default': False,
     },
     'image_path': {
         'type': str,
         'help': 'Container image path for Ceph daemons',
-        'default': None
+        'default': None,
     },
     'ceph_salt_cephadm_bootstrap': {
         'type': bool,
         'help': 'Tell ceph-salt to run "cephadm bootstrap" during deployment',
-        'default': True
+        'default': True,
     },
     'ceph_salt_deploy_mons': {
         'type': bool,
         'help': 'Tell ceph-salt to deploy Ceph MONs',
-        'default': True
+        'default': True,
     },
     'ceph_salt_deploy_mgrs': {
         'type': bool,
         'help': 'Tell ceph-salt to deploy Ceph MGRs',
-        'default': True
+        'default': True,
     },
     'ceph_salt_deploy_osds': {
         'type': bool,
         'help': 'Tell ceph-salt to deploy Ceph OSDs',
-        'default': True
+        'default': True,
     },
     'ceph_salt_deploy': {
         'type': bool,
         'help': 'Use "ceph-salt deploy" instead of applying the ceph-salt highstate directly',
-        'default': True
+        'default': True,
     },
     'caasp_deploy_ses': {
         'type': bool,
         'help': 'Deploy SES using rook in CaasP',
-        'default': False
+        'default': False,
     },
 }
 
@@ -1017,8 +1031,9 @@ class Deployment():
         if not self.from_load:
             if self.node_counts['master'] != 1:
                 raise UniqueRoleViolation('master', self.node_counts['master'])
-            if self.settings.version in ('ses7', 'octopus') and self.node_counts['bootstrap'] != 1:
-                raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
+            if self.settings.version in ('ses7', 'octopus', 'pacific'):
+                if self.node_counts['bootstrap'] != 1:
+                    raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
 
         if self.master and self.suma:
             raise ExclusiveRoles('master', 'suma')
@@ -1322,7 +1337,7 @@ class Deployment():
             if k == 'master':
                 result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
             result += "     - roles:            {}\n".format(v.roles)
-            if self.settings.version in ["octopus", "ses7"]:
+            if self.settings.version in ["octopus", "ses7", "master"]:
                 if 'admin' not in v.roles:
                     result += (
                         "                         (CAVEAT: the 'admin' role is assumed"
@@ -1344,7 +1359,7 @@ class Deployment():
                 result += "     - encrypted OSDs:   {}\n".format(self.settings.encrypted_osds)
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test)
-            if self.settings.version in ['octopus', 'ses7'] \
+            if self.settings.version in ['octopus', 'ses7', 'master'] \
                     and self.settings.deployment_tool == 'cephadm':
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             if v.repos:
