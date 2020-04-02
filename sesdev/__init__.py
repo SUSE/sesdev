@@ -520,6 +520,22 @@ def _gen_settings_dict(version,
         settings_dict['encrypted_osds'] = encrypted_osds
 
     if ceph_salt_repo:
+        if not ceph_salt_branch:
+            logger.debug(
+                "User explicitly specified only --ceph-salt-repo; assuming --ceph-salt-branch %s",
+                seslib.GlobalSettings.CEPH_SALT_BRANCH
+                )
+            ceph_salt_branch = seslib.GlobalSettings.CEPH_SALT_BRANCH
+
+    if ceph_salt_branch:
+        if not ceph_salt_repo:
+            logger.debug(
+                "User explicitly specified only --ceph-salt-branch; assuming --ceph-salt-repo %s",
+                seslib.GlobalSettings.CEPH_SALT_REPO
+                )
+            ceph_salt_repo = seslib.GlobalSettings.CEPH_SALT_REPO
+
+    if ceph_salt_repo:
         settings_dict['ceph_salt_git_repo'] = ceph_salt_repo
 
     if ceph_salt_branch:

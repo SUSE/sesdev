@@ -1,7 +1,7 @@
 
 set -ex
 
-{% if ceph_salt_git_repo %}
+{% if ceph_salt_git_repo and ceph_salt_git_branch %}
 # install ceph-salt
 cd /root
 git clone {{ ceph_salt_git_repo }}
