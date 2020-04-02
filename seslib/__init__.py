@@ -1036,8 +1036,9 @@ class Deployment():
         if not self.from_load:
             if self.node_counts['master'] != 1:
                 raise UniqueRoleViolation('master', self.node_counts['master'])
-            if self.settings.version in ('ses7', 'octopus') and self.node_counts['bootstrap'] != 1:
-                raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
+            if self.settings.version in ('ses7', 'octopus', 'master'):
+                if self.node_counts['bootstrap'] != 1:
+                    raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
 
         if self.master and self.suma:
             raise ExclusiveRoles('master', 'suma')
