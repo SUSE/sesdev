@@ -695,6 +695,7 @@ def master(deployment_id, deploy, use_deepsea, **kwargs):
         settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
+
 @create.command()
 @click.argument('deployment_id')
 @common_create_options
