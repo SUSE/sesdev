@@ -167,7 +167,10 @@ pipeline {
             node("${jenkins_slave_base}") {
                 sh "virtualenv venv"
                 sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
-                sh "source venv/bin/activate; jcs delete --cloud openstack ${jenkins_slave_name}"
+                retry(10) {
+                    sh "source venv/bin/activate; jcs delete --cloud openstack ${jenkins_slave_name}"
+                    sleep 10
+                }
             }
         }
     }
