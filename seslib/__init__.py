@@ -144,18 +144,13 @@ OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
 
-MASTER_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
-                         ["storage", "mon", "mgr", "rgw", "igw"],
-                         ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
-                         ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
-
 VERSION_DEFAULT_ROLES = {
     'ses5': LUMINOUS_DEFAULT_ROLES,
     'ses6': NAUTILUS_DEFAULT_ROLES,
     'ses7': OCTOPUS_DEFAULT_ROLES,
     'nautilus': NAUTILUS_DEFAULT_ROLES,
     'octopus': OCTOPUS_DEFAULT_ROLES,
-    'master': MASTER_DEFAULT_ROLES,
+    'master': OCTOPUS_DEFAULT_ROLES,
     'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]]
 }
 
