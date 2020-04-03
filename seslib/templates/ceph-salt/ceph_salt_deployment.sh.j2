@@ -19,7 +19,7 @@ git fetch origin "+refs/pull/*/merge:refs/remotes/origin/pr-merged/*"
 
 git checkout {{ ceph_salt_git_branch }}
 
-pip install .
+pip install --prefix /usr .
 # install ceph-salt-formula
 cp -r ceph-salt-formula/salt/* /srv/salt/
 chown -R salt:salt /srv
@@ -59,6 +59,9 @@ sleep 2
 {% if stop_before_ceph_salt_config %}
 exit 0
 {% endif %}
+
+echo "PATH is $PATH"
+type ceph-salt
 
 MON_NODES_COMMA_SEPARATED_LIST=""
 MGR_NODES_COMMA_SEPARATED_LIST=""
