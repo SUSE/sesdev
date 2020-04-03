@@ -111,10 +111,18 @@ pipeline {
                         currentBuild.description = "${params.CUSTOM_JOB_DESC}"
                     }
                 }
-                sh 'git clone https://github.com/toabctl/jcs.git'
-                sh 'virtualenv venv'
-                sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
-                sh "source venv/bin/activate; jcs --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} create --cloud openstack --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} --jenkins-credential storage-automation-for-root-user ${testbed_image[params.OS]} ${testbed_node}"
+                sh """# create node in openstack
+                    git clone https://github.com/toabctl/jcs.git
+                    virtualenv venv
+                    source venv/bin/activate
+                    pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]
+                    jcs \
+                        --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} \
+                        create \
+                        --cloud openstack \
+                        --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} \
+                        --jenkins-credential storage-automation-for-root-user \
+                        ${testbed_image[params.OS]} ${testbed_node}"""
             }
         }
 
@@ -187,8 +195,10 @@ pipeline {
         }
         cleanup {
             node("${compute_node}") {
-                sh "virtualenv venv"
-                sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
+                sh """
+                    virtualenv venv
+                    source venv/bin/activate
+                    pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"""
                 retry(10) {
                     sh "source venv/bin/activate; jcs delete --cloud openstack ${testbed_node}"
                     sleep 10
