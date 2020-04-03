@@ -143,13 +143,9 @@ At this point, sesdev should be installed and ready to use: refer to the
 
 ### Install sesdev on Debian/Ubuntu
 
-sesdev is known to work on recent Ubuntus, but there is no package for it: you
-have to install from source. Follow the instructions given in
-[Install sesdev from source](#install-sesdev-from-source) with the following
-changes:
-
-* use `apt install` instead of `zypper install`
-* install `libvirt-dev` invstead of `libvirt-devel`
+sesdev is known to work on recent Ubuntu versions, but there is no package
+for it: you have to install from source. Follow the instructions given in
+[Install sesdev from source](#install-sesdev-from-source).
 
 ### Install sesdev from source
 
@@ -164,8 +160,25 @@ installed, first. Also, in order to clone the sesdev git repo, the "git-core"
 package is needed. So, before proceeding, make sure that all of these packages
 are installed in the system:
 
+#### openSUSE Leap 15.1 & Leap 15.2
+
 ```
-$ sudo zypper -n install gcc git-core libvirt-devel python3-devel
+zypper -n install gcc git-core libvirt-devel \
+python3-devel python3-virtualenv
+```
+
+#### Debian / Ubuntu
+
+```
+apt-get install -y git gcc libvirt-dev \
+virtualenv python3-dev python3-venv python3-virtualenv
+```
+
+#### Fedora
+
+```
+dnf install -y git-core gcc libvirt-devel \
+python3-devel python3-virtualenv
 ```
 
 Now you can proceed to clone the sesdev source code repo and bootstrap it:
@@ -203,8 +216,22 @@ above, and the virtualenv is active. Then, follow the instructions below.
 
 First, install the "tox" package in your system:
 
+#### openSUSE Leap 15.1 & Leap 15.2
+
 ```
 zypper -n install python3-tox
+```
+
+#### Debian / Ubuntu
+
+```
+apt-get install -y tox
+```
+
+#### Fedora
+
+```
+dnf install -y python3-tox
 ```
 
 Then, execute the following commands in the top-level of your local git clone
