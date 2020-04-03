@@ -233,7 +233,7 @@ SETTINGS = {
     'os': {
         'type': str,
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
-        'default': None,
+        'default': '',
     },
     'os_repos': {
         'type': dict,
@@ -253,7 +253,7 @@ SETTINGS = {
     'vagrant_box': {
         'type': str,
         'help': 'Vagrant box to use in deployment',
-        'default': None,
+        'default': '',
     },
     'vm_engine': {
         'type': str,
@@ -263,12 +263,12 @@ SETTINGS = {
     'libvirt_host': {
         'type': str,
         'help': 'Hostname/IP address of the libvirt host',
-        'default': None,
+        'default': '',
     },
     'libvirt_user': {
         'type': str,
         'help': 'Username to use to login into the libvirt host',
-        'default': None,
+        'default': '',
     },
     'libvirt_use_ssh': {
         'type': bool,
@@ -278,17 +278,17 @@ SETTINGS = {
     'libvirt_private_key_file': {
         'type': str,
         'help': 'Path to SSH private key file to use when connecting to the libvirt host',
-        'default': None,
+        'default': '',
     },
     'libvirt_storage_pool': {
         'type': str,
         'help': 'The libvirt storage pool to use for creating VMs',
-        'default': None,
+        'default': '',
     },
     'libvirt_networks': {
         'type': str,
         'help': 'Existing libvirt networks to use (single or comma separated list)',
-        'default': None,
+        'default': '',
     },
     'ram': {
         'type': int,
@@ -333,12 +333,12 @@ SETTINGS = {
     'public_network': {
         'type': str,
         'help': 'The network address prefix for the public network',
-        'default': None,
+        'default': '',
     },
     'cluster_network': {
         'type': str,
         'help': 'The network address prefix for the cluster network',
-        'default': None,
+        'default': '',
     },
     'domain': {
         'type': str,
@@ -358,12 +358,12 @@ SETTINGS = {
     'deployment_tool': {
         'type': str,
         'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',
-        'default': None,
+        'default': '',
     },
     'deepsea_git_repo': {
         'type': str,
         'help': 'If set, it will install DeepSea from this git repo',
-        'default': None,
+        'default': '',
     },
     'deepsea_git_branch': {
         'type': str,
@@ -398,22 +398,22 @@ SETTINGS = {
     'scc_username': {
         'type': str,
         'help': 'SCC organization username',
-        'default': None,
+        'default': '',
     },
     'scc_password': {
         'type': str,
         'help': 'SCC organization password',
-        'default': None,
+        'default': '',
     },
     'ceph_salt_git_repo': {
         'type': str,
         'help': 'If set, it will install ceph-salt from this git repo',
-        'default': None,
+        'default': '',
     },
     'ceph_salt_git_branch': {
         'type': str,
         'help': 'ceph-salt git branch to use',
-        'default': None,
+        'default': '',
     },
     'stop_before_ceph_salt_config': {
         'type': bool,
@@ -428,7 +428,7 @@ SETTINGS = {
     'image_path': {
         'type': str,
         'help': 'Container image path for Ceph daemons',
-        'default': None,
+        'default': '',
     },
     'ceph_salt_cephadm_bootstrap': {
         'type': bool,
@@ -805,14 +805,14 @@ class Deployment():
                                    self.settings.version_default_roles[self.settings.version]
                                    )
 
-        if self.settings.os is None:
+        if not self.settings.os:
             self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
 
-        if self.settings.deployment_tool is None and self.settings.version != 'caasp4':
+        if not self.settings.deployment_tool and self.settings.version != 'caasp4':
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
-        if self.settings.image_path is None:
-            if self.settings.deployment_tool == 'cephadm':
+        if self.settings.deployment_tool == 'cephadm':
+            if not self.settings.image_path:
                 self.settings.image_path = self.settings.image_paths[self.settings.version]
 
         if not self.settings.libvirt_networks:
@@ -841,10 +841,10 @@ class Deployment():
         return False
 
     def _generate_static_networks(self):
-        if self._needs_cluster_network() and self.settings.public_network is not None \
-                and self.settings.cluster_network is not None:
+        if self._needs_cluster_network() and self.settings.public_network \
+                and self.settings.cluster_network:
             return
-        if not self._needs_cluster_network() and self.settings.public_network is not None:
+        if not self._needs_cluster_network() and self.settings.public_network:
             return
 
         deps = self.list()
@@ -853,7 +853,7 @@ class Deployment():
 
         public_network = self.settings.public_network
         while True:
-            if public_network is None or public_network in existing_networks:
+            if not public_network or public_network in existing_networks:
                 public_network = "10.20.{}.".format(random.randint(2, 200))
             else:
                 break
@@ -865,7 +865,7 @@ class Deployment():
 
             cluster_network = self.settings.cluster_network
             while True:
-                if cluster_network is None or cluster_network in existing_networks:
+                if not cluster_network or cluster_network in existing_networks:
                     cluster_network = "10.21.{}.".format(random.randint(2, 200))
                 else:
                     break
