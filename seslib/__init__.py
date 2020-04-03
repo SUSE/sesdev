@@ -29,9 +29,10 @@ logger = logging.getLogger(__name__)
 
 
 class GlobalSettings():
-    WORKING_DIR = os.path.join(Path.home(), '.sesdev')
-    CONFIG_FILE = os.path.join(WORKING_DIR, 'config.yaml')
+    A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
+    CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
     DEBUG = False
+    SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
     VAGRANT_DEBUG = False
 
     @classmethod
@@ -818,7 +819,7 @@ class Deployment():
 
     @property
     def dep_dir(self):
-        return os.path.join(GlobalSettings.WORKING_DIR, self.dep_id)
+        return os.path.join(GlobalSettings.A_WORKING_DIR, self.dep_id)
 
     def _needs_cluster_network(self):
         if len(self.settings.roles) == 1:  # there is only 1 node
@@ -1090,6 +1091,7 @@ class Deployment():
             ceph_salt_fetch_github_pr_merges = True
 
         context = {
+            'ssh_key_name': GlobalSettings.SSH_KEY_NAME,
             'sesdev_path_to_qa': GlobalSettings.PATH_TO_QA,
             'dep_id': self.dep_id,
             'os': self.settings.os,
@@ -1176,13 +1178,13 @@ class Deployment():
         keys_dir = os.path.join(self.dep_dir, 'keys')
         os.makedirs(keys_dir)
 
-        with open(os.path.join(keys_dir, 'id_rsa'), 'w') as file:
+        with open(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 'w') as file:
             file.write(private_key.decode('utf-8'))
-        os.chmod(os.path.join(keys_dir, 'id_rsa'), 0o600)
+        os.chmod(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 0o600)
 
-        with open(os.path.join(keys_dir, 'id_rsa.pub'), 'w') as file:
-            file.write(public_key.decode('utf-8'))
-        os.chmod(os.path.join(keys_dir, 'id_rsa.pub'), 0o600)
+        with open(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 'w') as file:
+            file.write(str(public_key.decode('utf-8') + " sesdev\n"))
+        os.chmod(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 0o600)
 
         # bin dir with helper scripts
         bin_dir = os.path.join(self.dep_dir, 'bin')
@@ -1387,7 +1389,7 @@ class Deployment():
         if address is None:
             raise VagrantSshConfigNoHostName(name)
 
-        dep_private_key = os.path.join(self.dep_dir, "keys/id_rsa")
+        dep_private_key = os.path.join(self.dep_dir, str("keys/" + GlobalSettings.SSH_KEY_NAME))
 
         return (address, proxycmd, dep_private_key)
 
@@ -1575,7 +1577,7 @@ class Deployment():
 
     @classmethod
     def create(cls, dep_id, settings):
-        dep_dir = os.path.join(GlobalSettings.WORKING_DIR, dep_id)
+        dep_dir = os.path.join(GlobalSettings.A_WORKING_DIR, dep_id)
         if os.path.exists(dep_dir):
             raise DeploymentAlreadyExists(dep_id)
 
@@ -1586,7 +1588,7 @@ class Deployment():
 
     @classmethod
     def load(cls, dep_id, load_status=True):
-        dep_dir = os.path.join(GlobalSettings.WORKING_DIR, dep_id)
+        dep_dir = os.path.join(GlobalSettings.A_WORKING_DIR, dep_id)
         if not os.path.exists(dep_dir) or not os.path.isdir(dep_dir):
             logger.debug("%s does not exist or is not a directory", dep_dir)
             raise DeploymentDoesNotExists(dep_id)
@@ -1606,9 +1608,9 @@ class Deployment():
     @classmethod
     def list(cls, load_status=False):
         deps = []
-        if not os.path.exists(GlobalSettings.WORKING_DIR):
+        if not os.path.exists(GlobalSettings.A_WORKING_DIR):
             return deps
-        for dep_id in os.listdir(GlobalSettings.WORKING_DIR):
+        for dep_id in os.listdir(GlobalSettings.A_WORKING_DIR):
             if dep_id.startswith("config.yaml"):
                 logger.debug("Skipping %s (obviously not a deployment)", dep_id)
                 continue

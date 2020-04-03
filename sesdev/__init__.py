@@ -214,7 +214,7 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
 
     if work_path:
         logger.info("Working path: %s", work_path)
-        seslib.GlobalSettings.WORKING_DIR = work_path
+        seslib.GlobalSettings.A_WORKING_DIR = work_path
 
     if config_file:
         logger.info("Config file: %s", config_file)

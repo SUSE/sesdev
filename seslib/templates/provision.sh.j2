@@ -87,11 +87,13 @@ zypper mr -p {{ repo.priority }} {{ repo.name }}
 zypper --gpg-auto-import-keys ref
 {% endif %}
 
-cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
+cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
 [ ! -e "/root/.ssh" ] && mkdir /root/.ssh
-chmod 600 /home/vagrant/.ssh/id_rsa
-cp /home/vagrant/.ssh/id_rsa* /root/.ssh/
-cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+chmod 600 /home/vagrant/.ssh/{{ ssh_key_name }}
+cp /home/vagrant/.ssh/{{ ssh_key_name }}* /root/.ssh/
+ln -s /root/.ssh/{{ ssh_key_name }} /root/.ssh/id_rsa
+ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
+cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
 hostnamectl set-hostname {{ node.name }}
 
 {% if version == 'caasp4' %}
