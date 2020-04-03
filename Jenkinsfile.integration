@@ -18,6 +18,20 @@ def repos = [
     ]
 ]
 
+def sesdev_deps = [
+    'bridge-utils',
+    'gcc',
+    'git-core',
+    'libvirt',
+    'libvirt-devel',
+    'patterns-openSUSE-kvm_server',
+    'patterns-server-kvm_tools',
+    'python3-devel',
+    'python3-virtualenv',
+    'vagrant',
+    'vagrant-libvirt',
+]
+
 // parameters depending on the selected cloud
 def cloud_params = [
     'ovh': [
@@ -119,8 +133,7 @@ pipeline {
         stage('Install sesdev dependencies') {
             agent { label "${testbed_node}" }
             steps {
-                sh 'zypper -n install patterns-openSUSE-kvm_server patterns-server-kvm_tools bridge-utils'
-                sh 'zypper -n in vagrant vagrant-libvirt libvirt gcc git-core libvirt-devel python3-devel python3-virtualenv'
+                sh 'zypper -n install ' + sesdev_deps.join(' ')
             }
         }
 
