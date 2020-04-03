@@ -33,12 +33,6 @@ def cloud_params = [
     ]
 ]
 
-def zypper_add_repos(repo_list) {
-    for (int i = 0; i < repo_list.size(); i++) {
-        sh "zypper -n ar --no-gpgcheck ${repo_list[i]} ${i}"
-    }
-}
-
 def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls) {
     cmd = "source venv/bin/activate; sesdev create octopus --non-interactive"
     if (!ceph_salt_git_repo.isEmpty()) {
@@ -113,9 +107,12 @@ pipeline {
         stage('zypper add repos and refresh') {
             agent { label "${testbed_node}" }
             steps {
-                zypper_add_repos(repos[params.OS])
-                sh 'zypper -n refresh'
-                sh 'zypper -n repos -d'
+                sh ((repos[params.OS].indexed().collect { i, url ->
+                    "zypper -n ar --no-gpgcheck $url $i"
+                } + [
+                    'zypper -n refresh',
+                    'zypper -n repos -d',
+                ]).join("\n"))
             }
         }
 
