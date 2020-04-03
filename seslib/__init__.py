@@ -30,6 +30,8 @@ logger = logging.getLogger(__name__)
 
 class GlobalSettings():
     A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
+    CEPH_SALT_REPO = 'https://github.com/ceph/ceph-salt'
+    CEPH_SALT_BRANCH = 'master'
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
     DEBUG = False
     SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
@@ -411,7 +413,7 @@ SETTINGS = {
     'ceph_salt_git_branch': {
         'type': str,
         'help': 'ceph-salt git branch to use',
-        'default': 'master',
+        'default': None,
     },
     'stop_before_ceph_salt_config': {
         'type': bool,
