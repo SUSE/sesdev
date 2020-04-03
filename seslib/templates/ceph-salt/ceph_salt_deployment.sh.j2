@@ -60,6 +60,9 @@ sleep 2
 exit 0
 {% endif %}
 
+echo "$PATH"
+type ceph-salt
+
 MON_NODES_COMMA_SEPARATED_LIST=""
 MGR_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
