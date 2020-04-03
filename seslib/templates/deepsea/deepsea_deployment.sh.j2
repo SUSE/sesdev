@@ -56,6 +56,11 @@ sleep 5
 exit 0
 {% endif %}
 
+{% if use_deepsea_cli %}
+echo "PATH is $PATH"
+type deepsea
+{% endif %}
+
 echo ""
 echo "***** RUNNING stage.0 *******"
 {% if use_deepsea_cli %}
