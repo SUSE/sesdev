@@ -1079,15 +1079,16 @@ class Deployment():
         # detect whether we need to fetch github PRs
         ceph_salt_fetch_github_pr_heads = False
         ceph_salt_fetch_github_pr_merges = False
-        if self.settings.ceph_salt_git_branch.startswith('origin/pr/'):
+        ceph_salt_git_branch = self.settings.ceph_salt_git_branch
+        if ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr/'):
             log_msg = ("Detected special ceph-salt GitHub PR (HEAD) branch {}"
-                       .format(self.settings.ceph_salt_git_branch)
+                       .format(ceph_salt_git_branch)
                        )
             logger.info(log_msg)
             ceph_salt_fetch_github_pr_heads = True
-        elif self.settings.ceph_salt_git_branch.startswith('origin/pr-merged/'):
+        elif ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr-merged/'):
             log_msg = ("Detected special ceph-salt GitHub PR (MERGE) branch {}"
-                       .format(self.settings.ceph_salt_git_branch)
+                       .format(ceph_salt_git_branch)
                        )
             logger.info(log_msg)
             ceph_salt_fetch_github_pr_merges = True
