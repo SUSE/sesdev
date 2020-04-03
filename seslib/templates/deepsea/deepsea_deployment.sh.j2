@@ -136,6 +136,7 @@ ceph config set global mon_max_pg_per_osd 500
 exit 0
 {% endif %}
 
+{% if deepsea_need_stage_4 %}
 echo ""
 echo "***** RUNNING stage.4 *******"
 {% if use_deepsea_cli %}
@@ -144,6 +145,6 @@ deepsea stage run --simple-output ceph.stage.4
 salt-run state.orch ceph.stage.4
 {% endif %}
 sleep 5
+{% endif %} {# deepsea_need_stage_4 #}
 
 echo "deployment complete!"
-
