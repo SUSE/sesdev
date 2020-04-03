@@ -1,12 +1,11 @@
 #!groovy
 
-// base jenkins slave
-def jenkins_slave_base='storage-compute'
-// generated jenkins slave name
-def jenkins_slave_name="slave-${currentBuild.fullProjectName.replace('/', '_')}-${currentBuild.number}"
+
+def compute_node='storage-compute'
+def testbed_node="${currentBuild.fullProjectName.replace('/', '_')}-${currentBuild.number}"
 
 // images
-def images_openstack = [
+def testbed_image = [
     'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64'
 ]
 
@@ -91,9 +90,9 @@ pipeline {
         JENKINS_PASSWORD = credentials('storage-ci-suse-de-jenkins-password')
     }
     stages {
-        stage('Create jenkins slave') {
+        stage('Create jenkins agent') {
             agent {
-                label "${jenkins_slave_base}"
+                label "${compute_node}"
             }
             steps {
                 script {
@@ -107,12 +106,12 @@ pipeline {
                 sh 'git clone https://github.com/toabctl/jcs.git'
                 sh 'virtualenv venv'
                 sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
-                sh "source venv/bin/activate; jcs --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} create --cloud openstack --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} --jenkins-credential storage-automation-for-root-user ${images_openstack[params.OS]} ${jenkins_slave_name}"
+                sh "source venv/bin/activate; jcs --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} create --cloud openstack --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} --jenkins-credential storage-automation-for-root-user ${testbed_image[params.OS]} ${testbed_node}"
             }
         }
 
         stage('zypper add repos and refresh') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
                 zypper_add_repos(repos[params.OS])
                 sh 'zypper -n refresh'
@@ -121,7 +120,7 @@ pipeline {
         }
 
         stage('Install sesdev dependencies') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
                 sh 'zypper -n install patterns-openSUSE-kvm_server patterns-server-kvm_tools bridge-utils'
                 sh 'zypper -n in vagrant vagrant-libvirt libvirt gcc git-core libvirt-devel python3-devel python3-virtualenv'
@@ -129,7 +128,7 @@ pipeline {
         }
 
         stage('Setup libvirt') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
                 sh "usermod -a -G libvirt `whoami`"
                 sh 'systemctl enable libvirtd'
@@ -144,7 +143,7 @@ pipeline {
         }
 
         stage('Install sesdev from source and create cluster') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
                 sh "./bootstrap.sh"
                 sh "source venv/bin/activate; sesdev --help"
@@ -157,7 +156,7 @@ pipeline {
         }
 
         stage('Run QA tests on the cluster') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
                 sh "./bootstrap.sh"
                 sh "source venv/bin/activate; sesdev --version"
@@ -172,16 +171,16 @@ pipeline {
     post {
         // cleanup is executed after every other post step
         failure {
-            node("${jenkins_slave_base}") {
+            node("${compute_node}") {
                 sh "sleep ${params.SLEEP_WHEN_FAILING.toInteger() * 60}"
             }
         }
         cleanup {
-            node("${jenkins_slave_base}") {
+            node("${compute_node}") {
                 sh "virtualenv venv"
                 sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
                 retry(10) {
-                    sh "source venv/bin/activate; jcs delete --cloud openstack ${jenkins_slave_name}"
+                    sh "source venv/bin/activate; jcs delete --cloud openstack ${testbed_node}"
                     sleep 10
                 }
             }
