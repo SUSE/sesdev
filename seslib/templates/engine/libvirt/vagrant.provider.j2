@@ -15,6 +15,7 @@
 {% if libvirt_storage_pool %}
     lv.storage_pool_name = "{{ libvirt_storage_pool }}"
 {% endif %}
+    lv.video_vram = 2048
     lv.nic_model_type = "e1000"
     lv.cpu_mode = 'host-passthrough'
   end
