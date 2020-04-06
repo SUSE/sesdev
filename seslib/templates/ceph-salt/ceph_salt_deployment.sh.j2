@@ -66,10 +66,10 @@ type ceph-salt
 MON_NODES_COMMA_SEPARATED_LIST=""
 MGR_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
-ceph-salt config /Ceph_Cluster/Minions add {{ node.fqdn }}
-ceph-salt config /Ceph_Cluster/Roles/Admin add {{ node.fqdn }}
+ceph-salt config /ceph_cluster/minions add {{ node.fqdn }}
+ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
 {% if node.has_role('bootstrap') %}
-ceph-salt config /Ceph_Cluster/Roles/Bootstrap set {{ node.fqdn }}
+ceph-salt config /ceph_cluster/roles/bootstrap set {{ node.fqdn }}
 {% endif %}
 {% if node.has_role('mon') %}
 MON_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
@@ -81,27 +81,27 @@ MGR_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 MON_NODES_COMMA_SEPARATED_LIST="${MON_NODES_COMMA_SEPARATED_LIST%,*}"
 MGR_NODES_COMMA_SEPARATED_LIST="${MGR_NODES_COMMA_SEPARATED_LIST%,*}"
 
-ceph-salt config /System_Update/Packages disable
-ceph-salt config /System_Update/Reboot disable
-ceph-salt config /SSH/ generate
+ceph-salt config /system_update/packages disable
+ceph-salt config /system_update/reboot disable
+ceph-salt config /ssh/ generate
 {% if image_path %}
-ceph-salt config /Containers/Images/ceph set {{ image_path }}
+ceph-salt config /containers/images/ceph set {{ image_path }}
 {% endif %}
-ceph-salt config /Time_Server/Server_Hostname set {{ master.fqdn }}
-ceph-salt config /Time_Server/External_Servers add 0.pt.pool.ntp.org
+ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
+ceph-salt config /time_server/external_servers add 0.pt.pool.ntp.org
 {% if not ceph_salt_cephadm_bootstrap %}
-ceph-salt config /Deployment/Bootstrap disable
+ceph-salt config /deployment/bootstrap disable
 {% endif %}
 
 {% if ceph_salt_deploy_osds %}
 {% if storage_nodes < 3 %}
-ceph-salt config /Cephadm_Bootstrap/Ceph_Conf add global
-ceph-salt config /Cephadm_Bootstrap/Ceph_Conf/global set "osd crush chooseleaf type" 0
+ceph-salt config /cephadm_bootstrap/ceph_conf add global
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set "osd crush chooseleaf type" 0
 {% endif %}
 {% endif %} {# if ceph_salt_deploy_osds #}
 
-ceph-salt config /Cephadm_Bootstrap/Dashboard/username set admin
-ceph-salt config /Cephadm_Bootstrap/Dashboard/password set admin
+ceph-salt config /cephadm_bootstrap/dashboard/username set admin
+ceph-salt config /cephadm_bootstrap/dashboard/password set admin
 
 ceph-salt config ls
 ceph-salt export --pretty
