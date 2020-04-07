@@ -1490,7 +1490,7 @@ class Deployment():
             )
 
     def _find_service_node(self, service):
-        if service == 'grafana' and self.settings.version == 'ses5':
+        if service in ('prometheus', 'grafana') and self.settings.version == 'ses5':
             return 'master'
         nodes = [name for name, node in self.nodes.items() if service in node.roles]
         return nodes[0] if nodes else None
