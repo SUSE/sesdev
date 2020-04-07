@@ -288,8 +288,9 @@ system, run the following command:
 $ sesdev create nautilus --single-node mini
 ```
 
-The `mini` argument is the ID of the deployment. You can create many deployments
-by giving them different IDs.
+The `mini` argument is the ID of the deployment. It is optional: if you omit it,
+sesdev will assign an ID as it sees fit. You can create many deployments by
+giving them different IDs.
 
 If you would like to start the cluster VMs on a remote server via libvirt/SSH,
 create a configuration file `$HOME/.sesdev/config.yaml` with the following
@@ -344,7 +345,7 @@ gateway, an NFS-Ganesha gateway, and an RGW gateway.
 
 ```
 $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, mds], \
-  [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
+  [storage, mon, mgr, mds], [igw, ganesha, rgw]"
 ```
 
 #### Custom zypper repo (to be added together with the default repos)
@@ -357,7 +358,7 @@ to all the VMs prior to deployment. In such a case, add one or more `--repo`
 options to the command line, e.g.:
 
 ```
-$ sesdev create nautilus --single-node --repo [URL_OF_REPO] mini
+$ sesdev create nautilus --single-node --repo [URL_OF_REPO]
 ```
 
 By default, the custom repo(s) will be added with an elevated priority,
@@ -463,8 +464,7 @@ sesdev create octopus \
     --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
     --ceph-salt-branch master \
     --qa-test \
-    --single-node \
-    octopus
+    --single-node
 ```
 
 ##### octopus from filesystems:ceph:octopus:upstream
@@ -482,8 +482,7 @@ sesdev create ses7 \
     --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
     --ceph-salt-branch master \
     --qa-test \
-    --single-node \
-    ses7
+    --single-node
 ```
 
 Note that this will work even if there is no ceph package visible at
