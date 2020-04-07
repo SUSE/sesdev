@@ -424,16 +424,28 @@ def _gen_settings_dict(version,
                        deploy_mgrs=True,
                        deploy_osds=True,
                        ceph_salt_deploy=True,
+                       ceph_repo=None,
+                       ceph_branch=None,
+                       username=None,
+                       stop_before_git_clone=None,
+                       stop_before_install_deps=None,
+                       stop_before_run_make_check=None,
                        ):
 
     settings_dict = {}
-    if not single_node and roles:
+    if version == 'makecheck':
+        settings_dict['roles'] = _parse_roles("[ makecheck ]")
+    elif not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
         if version in ('ses7', 'octopus', 'pacific'):
             settings_dict['roles'] = _parse_roles(
                 "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
                 "igw, rgw, ganesha ]"
+                )
+        elif version in ('ses5'):
+            settings_dict['roles'] = _parse_roles(
+                "[ master, bootstrap, storage, mon, mgr, mds, igw, rgw, ganesha, openattic ]"
                 )
         else:
             settings_dict['roles'] = _parse_roles(
@@ -449,9 +461,15 @@ def _gen_settings_dict(version,
 
     if cpus:
         settings_dict['cpus'] = cpus
+        settings_dict['explicit_cpus'] = True
+    else:
+        settings_dict['explicit_cpus'] = False
 
     if ram:
         settings_dict['ram'] = ram
+        settings_dict['explicit_ram'] = True
+    else:
+        settings_dict['explicit_ram'] = False
 
     if num_disks:
         settings_dict['num_disks'] = num_disks
@@ -549,6 +567,24 @@ def _gen_settings_dict(version,
 
     if image_path:
         settings_dict['image_path'] = image_path
+
+    if ceph_repo:
+        settings_dict['makecheck_ceph_repo'] = ceph_repo
+
+    if ceph_branch:
+        settings_dict['makecheck_ceph_branch'] = ceph_branch
+
+    if username:
+        settings_dict['makecheck_username'] = username
+
+    if stop_before_git_clone:
+        settings_dict['makecheck_stop_before_git_clone'] = stop_before_git_clone
+
+    if stop_before_install_deps:
+        settings_dict['makecheck_stop_before_install_deps'] = stop_before_install_deps
+
+    if stop_before_run_make_check:
+        settings_dict['makecheck_stop_before_run_make_check'] = stop_before_run_make_check
 
     if not cephadm_bootstrap:
         settings_dict['ceph_salt_cephadm_bootstrap'] = False
@@ -728,6 +764,33 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
     if deploy_ses:
         settings_dict['caasp_deploy_ses'] = True
+    _create_command(deployment_id, deploy, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id', required=False)
+@common_create_options
+@libvirt_options
+@click.option("--ceph-repo", default='https://github.com/ceph/ceph',
+              help='repo from which to clone Ceph source code')
+@click.option("--ceph-branch", default='master',
+              help='ceph branch on which to run "make check"')
+@click.option("--username", default='sesdev',
+              help='name of ordinary user that will run make check')
+@click.option("--stop-before-git-clone", is_flag=True, default=False,
+              help="Stop before cloning the git repo")
+@click.option("--stop-before-install-deps", is_flag=True, default=False,
+              help="Stop before running install-deps.sh")
+@click.option("--stop-before-run-make-check", is_flag=True, default=False,
+              help="Stop before running run-make-check.sh")
+def makecheck(deployment_id, deploy, **kwargs):
+    """
+    Creates a makecheck cluster
+    """
+    settings_dict = _gen_settings_dict('makecheck', **kwargs)
+    if not deployment_id:
+        os = settings_dict['os'] if 'os' in settings_dict else 'tumbleweed'
+        deployment_id = 'makecheck_{}'.format(os)
     _create_command(deployment_id, deploy, settings_dict)
 
 

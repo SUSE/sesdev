@@ -49,7 +49,7 @@ zypper addrepo --refresh
 {% endif %}
 {% endif %}
 
-zypper --gpg-auto-import-keys ref
+zypper --gpg-auto-import-keys refresh
 
 {% set basic_pkgs_to_install = [
        'vim',
@@ -108,6 +108,10 @@ hostnamectl set-hostname {{ node.name }}
 
 {% if version == 'caasp4' %}
 {% include "caasp/provision.sh.j2" %}
+
+{% elif version == 'makecheck' %}
+{% include "makecheck/provision.sh.j2" %}
+
 {% else %}
 
 {% if not suma %}
@@ -180,7 +184,7 @@ set -ex
 {% if deployment_tool == "deepsea" %}
 {% include "deepsea/deepsea_deployment.sh.j2" %}
 {% endif %}
-{% endif %}
+{% endif %} {# node == master #}
 
 {% if node == suma %}
 {% include "suma/suma_deployment.sh.j2" %}
@@ -192,4 +196,4 @@ set -ex
 
 {% endif %} {# node == master or node == suma #}
 
-{% endif %} {# version != caasp4 #}
+{% endif %}
