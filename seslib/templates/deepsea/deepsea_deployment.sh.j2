@@ -107,9 +107,11 @@ exit 0
 {% endif %}
 
 {% if encrypted_osds %}
-echo "  encryption: True" >> /srv/salt/ceph/configuration/files/drive_groups.yml
+if [ -e "/srv/salt/ceph/configuration/files/drive_groups.yml" ] ; then
+  echo "  encryption: True" >> /srv/salt/ceph/configuration/files/drive_groups.yml
+fi
 {% endif %}
-cat /srv/salt/ceph/configuration/files/drive_groups.yml
+cat /srv/salt/ceph/configuration/files/drive_groups.yml || true
 
 echo ""
 echo "***** RUNNING stage.3 *******"
