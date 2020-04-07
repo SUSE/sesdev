@@ -96,7 +96,7 @@ ceph-salt config /Deployment/Bootstrap disable
 {% if ceph_salt_deploy_osds %}
 {% if storage_nodes < 3 %}
 ceph-salt config /Cephadm_Bootstrap/Ceph_Conf add global
-ceph-salt config /Cephadm_Bootstrap/Ceph_Conf/global set osd crush chooseleaf type = 0
+ceph-salt config /Cephadm_Bootstrap/Ceph_Conf/global set "osd crush chooseleaf type" 0
 {% endif %}
 {% endif %} {# if ceph_salt_deploy_osds #}
 
