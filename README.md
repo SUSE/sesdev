@@ -25,7 +25,7 @@ the VMs and run the deployment scripts.
    * [Install sesdev from source](#install-sesdev-from-source)
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
-   * [Create/deploy a cluster](#createdeploy-a-cluster)
+   * [Create/deploy a Ceph cluster](#createdeploy-a-ceph-cluster)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [With an additional custom zypper repo](#with-an-additional-custom-zypper-repo)
       * [With a set of custom zypper repos completely replacing the default repos](#with-a-set-of-custom-zypper-repos-completely-replacing-the-default-repos)
@@ -33,7 +33,7 @@ the VMs and run the deployment scripts.
       * [With custom default roles](#with-custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
-         * [octopus from filesystems:ceph:master:upstream](#octopus-from-filesystemscephmasterupstream)
+         * [octopus from filesystems:ceph:octopus:upstream](#octopus-from-filesystemscephoctopusupstream)
          * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
    * [List existing deployments](#list-existing-deployments)
@@ -42,6 +42,11 @@ the VMs and run the deployment scripts.
    * [Services port-forwarding](#services-port-forwarding)
    * [Temporarily stop a cluster](#temporarily-stop-a-cluster)
    * [Destroy a cluster](#destroy-a-cluster)
+   * [Run "make check"](#run-make-check)
+      * [Run "make check" on Tumbleweed from upstream "master" branch](#run-make-check-on-tumbleweed-from-upstream-master-branch)
+      * [Run "make check" on openSUSE Leap 15.2 from upstream "octopus" branch](#run-make-check-on-opensuse-leap-152-from-upstream-octopus-branch)
+      * [Run "make check" on SLE-15-SP2 from downstream "ses7" branch](#run-make-check-on-sle-15-sp2-from-downstream-ses7-branch)
+      * [Other "make check" scenarios](#other-make-check-scenarios)
 * [Common pitfalls](#common-pitfalls)
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
@@ -282,7 +287,7 @@ tox -e py36,lint
 Run `sesdev --help` or `sesdev <command> --help` to get the available
 options and description of the commands.
 
-### Create/deploy a cluster
+### Create/deploy a Ceph cluster
 
 To create a single node Ceph cluster based on nautilus/leap-15.1 on your local
 system, run the following command:
@@ -579,6 +584,65 @@ $ sesdev destroy <deployment_id>
 It has been reported that vagrant-libvirt sometimes leaves networks behind when
 destroying domains (i.e. the VMs associated with a sesdev deployment). If this
 bothers you, `sesdev destroy` has a `--destroy-networks` option you can use.
+
+### Run "make check"
+
+If your libvirtd machine has enough memory, you can use sesdev to run "make
+check" in various environments. Use
+
+```
+$ sesdev create makecheck --help
+```
+
+to see the available options.
+
+RAM CAVEAT: the default RAM amount for the makecheck might not be sufficient.
+If you have plenty of memory on your libvirtd machine, running with higher
+values of `--ram` (the higher, the better) is recommended.
+
+CPUS CAVEAT: using the `--cpus` option, it is also possible increase the number
+of (virtual) CPUs available for the build, but values greater than four have not
+been well tested.
+
+The `sesdev create makecheck` command will (1) deploy a VM, (2) create an
+"ordinary" (non-root) user with passwordless sudo privileges and, as this
+user (3) clone the specified Ceph repo and check out the specified branch,
+(4) run `install-deps.sh`, and (5) run `run-make-check.sh`.
+
+The following sub-sections provide instructions on how to reproduce some
+common "make check" scenarios.
+
+#### Run "make check" on Tumbleweed from upstream "master" branch
+
+This is the default. Just:
+
+```
+$ sesdev create makecheck
+```
+
+#### Run "make check" on openSUSE Leap 15.2 from upstream "octopus" branch
+
+```
+$ sesdev create makecheck --os leap-15.2 --ceph-branch octopus
+```
+
+(It is not necessary to give `--ceph-repo https://github.com/ceph/ceph` here,
+since that is the default.)
+
+#### Run "make check" on SLE-15-SP2 from downstream "ses7" branch
+
+```
+$ sesdev create makecheck --os sles-15-sp2 \
+      --ceph-repo https://github.com/SUSE/ceph \
+      --ceph-branch ses7
+```
+
+#### Other "make check" scenarios
+
+More combinations are supported than are described here. Compiling
+the respective `sesdev create makecheck` commands for these environments is left
+as an exercise for the reader.
+
 
 ## Common pitfalls
 

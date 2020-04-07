@@ -1,0 +1,35 @@
+
+set -ex
+
+useradd -m {{ makecheck_username }}
+echo "{{ makecheck_username }} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+pam-config -a --nullok
+passwd -d {{ makecheck_username }}
+cat << 'EOF' > /root/.bashrc
+#!/bin/bash
+CLONE_DIR="/home/{{ makecheck_username }}/ceph"
+if [ -d "$CLONE_DIR" ] ; then
+    echo "ceph source code repo can be found in $CLONE_DIR"
+fi
+echo "Starting a login shell as user {{ makecheck_username }} ..."
+su - {{ makecheck_username }}
+EOF
+
+{% if makecheck_stop_before_git_clone %}
+exit 0
+{% endif %}
+{% if os == "sles-12-sp3" %}
+su {{ makecheck_username }} -c 'git config --global http.sslVerify false'
+{% endif %}
+su {{ makecheck_username }} -c 'git clone --branch {{ makecheck_ceph_branch }} --progress {{ makecheck_ceph_repo }} /home/{{ makecheck_username }}/ceph'
+
+{% if makecheck_stop_before_install_deps %}
+exit 0
+{% endif %}
+
+su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; sed -i -e "s/^set -e$/set -ex/" install-deps.sh ; FOR_MAKE_CHECK=true ./install-deps.sh'
+
+{% if makecheck_stop_before_run_make_check %}
+exit 0
+{% endif %}
+su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; sed -i -e "s/^set -e$/set -ex/" run-make-check.sh ; ./run-make-check.sh'

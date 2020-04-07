@@ -153,3 +153,12 @@ class SupportconfigOnlyOnSLE(SesDevException):
             "sesdev supportconfig depends on the 'supportconfig' RPM, which is "
             "available only on SUSE Linux Enterprise"
             )
+
+
+class BadMakeCheckRolesNodes(SesDevException):
+    def __init__(self):
+        super(BadMakeCheckRolesNodes, self).__init__(
+            "\"makecheck\" deployments only work with a single node with role "
+            "\"makecheck\". Since this is the default, you can simply omit "
+            "the --roles option when running \"sesdev create makecheck\"."
+            )

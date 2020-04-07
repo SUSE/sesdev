@@ -20,7 +20,7 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         ServiceNotFound, ExclusiveRoles, RoleNotKnown, RoleNotSupported, \
                         CmdException, VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
                         UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
-                        NoPrometheusGrafanaInSES5
+                        NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -35,6 +35,7 @@ class GlobalSettings():
     CEPH_SALT_BRANCH = 'master'
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
     DEBUG = False
+    MAKECHECK_DEFAULT_RAM = 8
     SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
     VAGRANT_DEBUG = False
 
@@ -67,10 +68,13 @@ OS_REPOS = {
     'sles-12-sp3': {
         'base': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/',
         'update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/',
+        'sdk': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/',
+        'sdk-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/',
         'storage': 'http://dist.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/',
         'storage-update': 'http://dist.suse.de/ibs/SUSE/Updates/Storage/5/x86_64/update/'
     },
     'sles-15-sp1': {
+        'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/product/',
         'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/'
                 'product/',
         'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/'
@@ -79,10 +83,18 @@ OS_REPOS = {
                        '15-SP1/x86_64/product/',
         'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
                               'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
-        'dev-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
-                    '15-SP1/x86_64/product/',
-        'dev-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/'
-                           '15-SP1/x86_64/update/',
+        'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/'
+                        '15-SP1/x86_64/product/',
+        'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                               'SLE-Module-Desktop-Applications/15-SP1/x86_64/update/',
+        'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/15-SP1/'
+                     'x86_64/product/',
+        'dev-tools-update': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
+                            '15-SP1/x86_64/product/',
+        'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/'
+                       'SLE-15-SP1-Product-WE-POOL-x86_64-Media1/',
+        'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP1/'
+                              'x86_64/update/',
         'storage': 'http://download.suse.de/ibs/SUSE/Products/Storage/6/x86_64/product/',
         'storage-update': 'http://download.suse.de/ibs/SUSE/Updates/Storage/6/x86_64/update/'
     },
@@ -95,14 +107,22 @@ OS_REPOS = {
                        '15-SP2/x86_64/product/',
         'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
                               'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
-        'dev-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
-                    '15-SP2/x86_64/product/',
-        'dev-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/'
-                           '15-SP2/x86_64/update/',
-        'container-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
-                          'x86_64/product/',
-        'container-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
-                                 '15-SP2/x86_64/update/',
+        'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/'
+                        '15-SP2/x86_64/product/',
+        'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                               'SLE-Module-Desktop-Applications/15-SP2/x86_64/update/',
+        'dev-tools': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
+                     '15-SP2/x86_64/product/',
+        'dev-tools-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/'
+                            '15-SP2/x86_64/update/',
+        'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/TEST/images/repo/'
+                       'SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
+        'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP2/'
+                              'x86_64/update/',
+        'containers': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
+                      'x86_64/product/',
+        'containers-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
+                             '15-SP2/x86_64/update/',
         'storage7-media': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
                           'images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
     },
@@ -122,6 +142,7 @@ VERSION_PREFERRED_OS = {
     'octopus': 'leap-15.2',
     'pacific': 'leap-15.2',
     'caasp4': 'sles-15-sp1',
+    'makecheck': 'tumbleweed',
 }
 
 VERSION_PREFERRED_DEPLOYMENT_TOOL = {
@@ -130,7 +151,9 @@ VERSION_PREFERRED_DEPLOYMENT_TOOL = {
     'ses7': 'cephadm',
     'nautilus': 'deepsea',
     'octopus': 'cephadm',
-    'pacific': 'cephadm'
+    'pacific': 'cephadm',
+    'caasp4': None,
+    'makecheck': None,
 }
 
 KNOWN_ROLES = [
@@ -177,7 +200,8 @@ VERSION_DEFAULT_ROLES = {
     'nautilus': NAUTILUS_DEFAULT_ROLES,
     'octopus': OCTOPUS_DEFAULT_ROLES,
     'pacific': OCTOPUS_DEFAULT_ROLES,
-    'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]]
+    'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]],
+    'makecheck': [["makecheck"]],
 }
 
 VERSION_OS_REPO_MAPPING = {
@@ -241,8 +265,31 @@ VERSION_OS_REPO_MAPPING = {
             'standard/',
             'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/',
             'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/'
-        ]
-    }
+        ],
+    },
+    'makecheck': {
+        'sles-12-sp3': [
+            'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+            'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/',
+            'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+            'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
+        ],
+        'sles-15-sp1': [
+            'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+            'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/',
+            # 'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+            # 'SUSE-Enterprise-Storage-6-POOL-Internal-x86_64-Media/',
+        ],
+        'leap-15.1': [],
+        'sles-15-sp2': [
+            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+            'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
+            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+            'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
+        ],
+        'leap-15.2': [],
+        'tumbleweed': [],
+    },
 }
 
 
@@ -318,10 +365,20 @@ SETTINGS = {
         'help': 'RAM size in gigabytes for each node',
         'default': 4,
     },
+    'explicit_ram': {
+        'type': bool,
+        'help': 'Whether --ram was given on the command line',
+        'default': False,
+    },
     'cpus': {
         'type': int,
         'help': 'Number of virtual CPUs in each node',
         'default': 2,
+    },
+    'explicit_cpus': {
+        'type': bool,
+        'help': 'Whether --cpus was given on the command line',
+        'default': False,
     },
     'single_node': {
         'type': bool,
@@ -452,6 +509,36 @@ SETTINGS = {
         'type': str,
         'help': 'Container image path for Ceph daemons',
         'default': '',
+    },
+    'makecheck_ceph_repo': {
+        'type': str,
+        'help': 'Repo from which to clone Ceph source code',
+        'default': '',
+    },
+    'makecheck_ceph_branch': {
+        'type': str,
+        'help': 'Branch to check out for purposes of running "make check"',
+        'default': '',
+    },
+    'makecheck_username': {
+        'type': str,
+        'help': 'Name of ordinary user that will run make check',
+        'default': 'sesdev',
+    },
+    'makecheck_stop_before_git_clone': {
+        'type': bool,
+        'help': 'Stop before cloning the git repo (make check)',
+        'default': False,
+    },
+    'makecheck_stop_before_install_deps': {
+        'type': bool,
+        'help': 'Stop before running install-deps.sh (make check)',
+        'default': False,
+    },
+    'makecheck_stop_before_run_make_check': {
+        'type': bool,
+        'help': 'Stop before running run-make-check.sh (make check)',
+        'default': False,
     },
     'ceph_salt_cephadm_bootstrap': {
         'type': bool,
@@ -664,8 +751,9 @@ class Settings():
         if setting not in SETTINGS:
             raise SettingNotKnown(setting)
         log_msg = "Overriding setting '{}', old value: {}".format(setting, getattr(self, setting))
-        logger.info(log_msg)
+        logger.debug(log_msg)
         log_msg = "Overriding setting '{}', new value: {}".format(setting, new_value)
+        logger.debug(log_msg)
         setattr(self, setting, new_value)
 
     def _apply_settings(self, settings_dict):
@@ -842,7 +930,8 @@ class Deployment():
         if not self.settings.os:
             self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
 
-        if not self.settings.deployment_tool and self.settings.version != 'caasp4':
+        if not self.settings.deployment_tool \
+                and self.settings.version not in ['caasp4', 'makecheck']:
             self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.deployment_tool == 'cephadm':
@@ -851,6 +940,17 @@ class Deployment():
 
         if not self.settings.libvirt_networks:
             self._generate_static_networks()
+
+        if self.settings.version == 'makecheck':
+            self.settings.override('single_node', True)
+            self.settings.override('roles', VERSION_DEFAULT_ROLES['makecheck'])
+            if not self.settings.explicit_num_disks:
+                self.settings.override('num_disks', 0)
+                self.settings.override('explicit_num_disks', True)
+            if not self.settings.explicit_ram:
+                self.settings.override('ram', GlobalSettings.MAKECHECK_DEFAULT_RAM)
+                self.settings.override('explicit_ram', True)
+
         self._generate_nodes()
 
     @property
@@ -969,7 +1069,7 @@ class Deployment():
                     admin_node_processed = True  # only do this once, for backwards compatibility
                     name = 'admin'
                     fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
-                elif 'master' in node_roles or 'suma' in node_roles:
+                elif 'master' in node_roles or 'suma' in node_roles or 'makecheck' in node_roles:
                     name = 'master'
                     fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
                 else:
@@ -1162,6 +1262,13 @@ class Deployment():
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
             'synced_folders': self.settings.synced_folder,
+            'makecheck_ceph_repo': self.settings.makecheck_ceph_repo,
+            'makecheck_ceph_branch': self.settings.makecheck_ceph_branch,
+            'makecheck_username': self.settings.makecheck_username,
+            'makecheck_stop_before_git_clone': self.settings.makecheck_stop_before_git_clone,
+            'makecheck_stop_before_install_deps': self.settings.makecheck_stop_before_install_deps,
+            'makecheck_stop_before_run_make_check':
+                self.settings.makecheck_stop_before_run_make_check,
         }
 
         scripts = {}
@@ -1395,9 +1502,15 @@ class Deployment():
         return result
 
     def vet_configuration(self):
-        # all deployment versions require one, and only one, master role
-        if self.node_counts['master'] != 1:
-            raise UniqueRoleViolation('master', self.node_counts['master'])
+        # all deployment versions except "makecheck" require one, and only one, master role
+        if self.settings.version == 'makecheck':
+            if len(self.nodes) == 1 and self.node_counts['makecheck'] == 1:
+                pass
+            else:
+                raise BadMakeCheckRolesNodes()
+        else:
+            if self.node_counts['master'] != 1:
+                raise UniqueRoleViolation('master', self.node_counts['master'])
         # octopus and beyond require one, and only one, bootstrap role
         if self.settings.version in ['ses7', 'octopus']:
             if self.node_counts['bootstrap'] != 1:
