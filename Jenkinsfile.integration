@@ -52,7 +52,7 @@ def cloud_params = [
 ]
 
 def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls) {
-    cmd = "source venv/bin/activate; sesdev create octopus --non-interactive"
+    cmd = "sesdev create octopus --non-interactive"
     if (!ceph_salt_git_repo.isEmpty()) {
         if (ceph_salt_git_branch.isEmpty()) {
             error('ceph-salt git repo set, but no ceph-salt git branch given')
@@ -61,10 +61,9 @@ def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls)
     }
 
     if (!extra_repo_urls.isEmpty()) {
-        repos = extra_repo_urls.split(' ')
-        for (int i = 0; i < repos.size(); i++) {
-            cmd += " --repo ${repos[i]}"
-        }
+        cmd += extra_repo_urls.split(/\s+/).collect() {
+            " --repo $it"
+        }.join('')
     }
 
     cmd += " --single-node mini"
@@ -172,11 +171,15 @@ pipeline {
             agent { label "${testbed_node}" }
             steps {
                 checkout scm
-                sh "./bootstrap.sh"
-                sh "source venv/bin/activate; sesdev --help"
                 timeout(time: 90, unit: 'MINUTES') {
                     ansiColor('xterm') {
-                        sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH, params.EXTRA_REPO_URLS)
+                        sh """
+                            ./bootstrap.sh
+                            source venv/bin/activate
+                            sesdev --help
+                            ${sesdev_create_cmd(params.CEPH_SALT_GIT_REPO,
+                                                params.CEPH_SALT_GIT_BRANCH,
+                                                params.EXTRA_REPO_URLS)}"""
                     }
                 }
             }
@@ -187,7 +190,6 @@ pipeline {
             steps {
                 timeout(time: 90, unit: 'MINUTES') {
                     sh """
-                        ./bootstrap.sh
                         source venv/bin/activate
                         sesdev --version
                         sesdev list
