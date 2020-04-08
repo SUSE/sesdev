@@ -4,6 +4,10 @@
 def compute_node='storage-compute'
 def testbed_node="${currentBuild.fullProjectName.replace('/', '_')}-${currentBuild.number}"
 
+def compute_workspace="/tmp/ws/${currentBuild.fullProjectName}/${currentBuild.number}"
+def jcs_repo="${compute_workspace}/jcs"
+def jcs_venv="${compute_workspace}/jcs/venv"
+
 // images
 def testbed_image = [
     'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64'
@@ -111,10 +115,11 @@ pipeline {
                         currentBuild.description = "${params.CUSTOM_JOB_DESC}"
                     }
                 }
-                sh """# create node in openstack
-                    git clone https://github.com/toabctl/jcs.git
-                    virtualenv venv
-                    source venv/bin/activate
+                sh """
+                    mkdir -p ${compute_workspace}
+                    git clone https://github.com/toabctl/jcs.git ${jcs_repo}
+                    virtualenv ${jcs_venv}
+                    source ${jcs_venv}/bin/activate
                     pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]
                     jcs \
                         --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} \
@@ -198,14 +203,13 @@ pipeline {
         }
         cleanup {
             node("${compute_node}") {
-                sh """
-                    virtualenv venv
-                    source venv/bin/activate
-                    pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"""
                 retry(10) {
-                    sh "source venv/bin/activate; jcs delete --cloud openstack ${testbed_node}"
+                    sh """
+                        source ${jcs_venv}/bin/activate
+                        jcs delete --cloud openstack ${testbed_node}"""
                     sleep 10
                 }
+                sh "rm -rf ${compute_workspace}"
             }
         }
     }
