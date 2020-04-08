@@ -314,18 +314,27 @@ nodes are separated by commas, too.
 The following roles can be assigned:
 
 * `master` - The master node, running management components like the Salt master
+* `admin` - signifying that the node should get ceph.conf and keyring [1]
 * `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
 * `ganesha` - NFS Ganesha service
-* `grafana` - Grafana metrics visualization (requires Prometheus)
+* `grafana` - Grafana metrics visualization (requires Prometheus) [2]
 * `igw` - iSCSI target gateway
 * `mds` - CephFS MDS
 * `mgr` - Ceph Manager instance
 * `mon` - Ceph Monitor instance
-* `prometheus` - Prometheus monitoring
+* `prometheus` - Prometheus monitoring [2]
 * `rgw` - Ceph Object Gateway
 * `storage` - OSD storage daemon
 * `suma` - SUSE Manager (octopus only)
+
+[1] CAVEAT: sesdev applies the "admin" role to all nodes, regardless of whether
+or not the user specified it explicitly on the command line or in `config.yaml`.
+
+[2] CAVEAT: Do not specify "prometheus"/"grafana" roles for ses5 deployments.
+The DeepSea version shipped with SES5 always deploys Prometheus and Grafana
+instances on the master node, but does not recognize "prometheus"/"grafana"
+roles in policy.cfg.
 
 The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that
@@ -337,9 +346,6 @@ gateway, an NFS-Ganesha gateway, and an RGW gateway.
 $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, mds], \
   [storage, mon, mgr, mds], [igw, ganesha, rgw]" big_cluster
 ```
-
-CAVEAT: sesdev applies the "admin" role to all nodes, regardless of whether or
-not the user specified it explicitly on the command line or in `config.yaml`.
 
 #### Custom zypper repo (to be added together with the default repos)
 
