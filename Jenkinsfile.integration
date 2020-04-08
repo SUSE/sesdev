@@ -176,11 +176,14 @@ pipeline {
         stage('Run QA tests on the cluster') {
             agent { label "${testbed_node}" }
             steps {
-                sh "./bootstrap.sh"
-                sh "source venv/bin/activate; sesdev --version"
-                sh "source venv/bin/activate; sesdev list"
                 timeout(time: 90, unit: 'MINUTES') {
-                    sh "source venv/bin/activate; sesdev qa-test mini"
+                    sh """
+                        ./bootstrap.sh
+                        source venv/bin/activate
+                        sesdev --version
+                        sesdev list
+                        sesdev qa-test mini
+                    """
                 }
             }
         }
