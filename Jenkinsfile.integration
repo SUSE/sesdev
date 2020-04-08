@@ -74,7 +74,10 @@ def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls)
 pipeline {
     agent none
 
-    options { parallelsAlwaysFailFast() }
+    options {
+        skipDefaultCheckout()
+        parallelsAlwaysFailFast()
+    }
 
     parameters {
         /* first value in the list is the default */
@@ -168,6 +171,7 @@ pipeline {
         stage('Install sesdev from source and create cluster') {
             agent { label "${testbed_node}" }
             steps {
+                checkout scm
                 sh "./bootstrap.sh"
                 sh "source venv/bin/activate; sesdev --help"
                 timeout(time: 90, unit: 'MINUTES') {
