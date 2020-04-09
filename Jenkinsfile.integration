@@ -1,12 +1,15 @@
 #!groovy
 
-// base jenkins slave
-def jenkins_slave_base='storage-compute'
-// generated jenkins slave name
-def jenkins_slave_name="slave-${currentBuild.fullProjectName.replace('/', '_')}-${currentBuild.number}"
+
+def compute_node='storage-compute'
+def testbed_node="${currentBuild.fullProjectName.replace('/', '_')}-${currentBuild.number}"
+
+def compute_workspace="/tmp/ws/${currentBuild.fullProjectName}/${currentBuild.number}"
+def jcs_repo="${compute_workspace}/jcs"
+def jcs_venv="${compute_workspace}/jcs/venv"
 
 // images
-def images_openstack = [
+def testbed_image = [
     'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64'
 ]
 
@@ -17,6 +20,20 @@ def repos = [
         'http://download.opensuse.org/update/leap/15.2/oss/',
         'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Leap_15.2'
     ]
+]
+
+def sesdev_deps = [
+    'bridge-utils',
+    'gcc',
+    'git-core',
+    'libvirt',
+    'libvirt-devel',
+    'patterns-openSUSE-kvm_server',
+    'patterns-server-kvm_tools',
+    'python3-devel',
+    'python3-virtualenv',
+    'vagrant',
+    'vagrant-libvirt',
 ]
 
 // parameters depending on the selected cloud
@@ -34,14 +51,8 @@ def cloud_params = [
     ]
 ]
 
-def zypper_add_repos(repo_list) {
-    for (int i = 0; i < repo_list.size(); i++) {
-        sh "zypper -n ar --no-gpgcheck ${repo_list[i]} ${i}"
-    }
-}
-
 def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls) {
-    cmd = "source venv/bin/activate; sesdev create octopus --non-interactive"
+    cmd = "sesdev create octopus --non-interactive"
     if (!ceph_salt_git_repo.isEmpty()) {
         if (ceph_salt_git_branch.isEmpty()) {
             error('ceph-salt git repo set, but no ceph-salt git branch given')
@@ -50,10 +61,9 @@ def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls)
     }
 
     if (!extra_repo_urls.isEmpty()) {
-        repos = extra_repo_urls.split(' ')
-        for (int i = 0; i < repos.size(); i++) {
-            cmd += " --repo ${repos[i]}"
-        }
+        cmd += extra_repo_urls.split(/\s+/).collect() {
+            " --repo $it"
+        }.join('')
     }
 
     cmd += " --single-node mini"
@@ -63,7 +73,10 @@ def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls)
 pipeline {
     agent none
 
-    options { parallelsAlwaysFailFast() }
+    options {
+        skipDefaultCheckout()
+        parallelsAlwaysFailFast()
+    }
 
     parameters {
         /* first value in the list is the default */
@@ -91,9 +104,9 @@ pipeline {
         JENKINS_PASSWORD = credentials('storage-ci-suse-de-jenkins-password')
     }
     stages {
-        stage('Create jenkins slave') {
+        stage('Create jenkins agent') {
             agent {
-                label "${jenkins_slave_base}"
+                label "${compute_node}"
             }
             steps {
                 script {
@@ -104,66 +117,85 @@ pipeline {
                         currentBuild.description = "${params.CUSTOM_JOB_DESC}"
                     }
                 }
-                sh 'git clone https://github.com/toabctl/jcs.git'
-                sh 'virtualenv venv'
-                sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
-                sh "source venv/bin/activate; jcs --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} create --cloud openstack --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} --jenkins-credential storage-automation-for-root-user ${images_openstack[params.OS]} ${jenkins_slave_name}"
+                sh """
+                    mkdir -p ${compute_workspace}
+                    git clone https://github.com/toabctl/jcs.git ${jcs_repo}
+                    virtualenv ${jcs_venv}
+                    source ${jcs_venv}/bin/activate
+                    pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]
+                    jcs \
+                        --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} \
+                        create \
+                        --cloud openstack \
+                        --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} \
+                        --jenkins-credential storage-automation-for-root-user \
+                        ${testbed_image[params.OS]} ${testbed_node}"""
             }
         }
 
         stage('zypper add repos and refresh') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
-                zypper_add_repos(repos[params.OS])
-                sh 'zypper -n refresh'
-                sh 'zypper -n repos -d'
+                sh ((repos[params.OS].indexed().collect { i, url ->
+                    "zypper -n ar --no-gpgcheck $url $i"
+                } + [
+                    'zypper -n refresh',
+                    'zypper -n repos -d',
+                ]).join("\n"))
             }
         }
 
         stage('Install sesdev dependencies') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
-                sh 'zypper -n install patterns-openSUSE-kvm_server patterns-server-kvm_tools bridge-utils'
-                sh 'zypper -n in vagrant vagrant-libvirt libvirt gcc git-core libvirt-devel python3-devel python3-virtualenv'
+                sh 'zypper -n install ' + sesdev_deps.join(' ')
             }
         }
 
         stage('Setup libvirt') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
-                sh "usermod -a -G libvirt `whoami`"
-                sh 'systemctl enable libvirtd'
-                sh 'systemctl restart libvirtd'
-                sh 'mkdir /libvirt-pool'
-                sh 'virsh pool-define-as --name default --type dir --target /libvirt-pool'
-                sh 'virsh pool-start default'
-                sh 'virsh net-start default'
-                sh 'virsh net-list --all'
-                sh 'virsh pool-list --all'
+                sh '''
+                    usermod -a -G libvirt $(whoami)
+                    systemctl enable libvirtd
+                    systemctl restart libvirtd
+                    mkdir /libvirt-pool
+                    virsh pool-define-as --name default --type dir --target /libvirt-pool
+                    virsh pool-start default
+                    virsh net-start default
+                    virsh net-list --all
+                    virsh pool-list --all'''
             }
         }
 
         stage('Install sesdev from source and create cluster') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
-                sh "./bootstrap.sh"
-                sh "source venv/bin/activate; sesdev --help"
+                checkout scm
                 timeout(time: 90, unit: 'MINUTES') {
                     ansiColor('xterm') {
-                        sh sesdev_create_cmd(params.CEPH_SALT_GIT_REPO, params.CEPH_SALT_GIT_BRANCH, params.EXTRA_REPO_URLS)
+                        sh """
+                            ./bootstrap.sh
+                            source venv/bin/activate
+                            sesdev --help
+                            ${sesdev_create_cmd(params.CEPH_SALT_GIT_REPO,
+                                                params.CEPH_SALT_GIT_BRANCH,
+                                                params.EXTRA_REPO_URLS)}"""
                     }
                 }
             }
         }
 
         stage('Run QA tests on the cluster') {
-            agent { label "${jenkins_slave_name}" }
+            agent { label "${testbed_node}" }
             steps {
-                sh "./bootstrap.sh"
-                sh "source venv/bin/activate; sesdev --version"
-                sh "source venv/bin/activate; sesdev list"
                 timeout(time: 90, unit: 'MINUTES') {
-                    sh "source venv/bin/activate; sesdev qa-test mini"
+                    sh """
+                        source venv/bin/activate
+                        sesdev --version
+                        sesdev list
+                        sesdev qa-test mini
+                    """
                 }
             }
         }
@@ -172,18 +204,19 @@ pipeline {
     post {
         // cleanup is executed after every other post step
         failure {
-            node("${jenkins_slave_base}") {
+            node("${compute_node}") {
                 sh "sleep ${params.SLEEP_WHEN_FAILING.toInteger() * 60}"
             }
         }
         cleanup {
-            node("${jenkins_slave_base}") {
-                sh "virtualenv venv"
-                sh "source venv/bin/activate; pip install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]"
+            node("${compute_node}") {
                 retry(10) {
-                    sh "source venv/bin/activate; jcs delete --cloud openstack ${jenkins_slave_name}"
+                    sh """
+                        source ${jcs_venv}/bin/activate
+                        jcs delete --cloud openstack ${testbed_node}"""
                     sleep 10
                 }
+                sh "rm -rf ${compute_workspace}"
             }
         }
     }
