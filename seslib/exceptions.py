@@ -90,6 +90,16 @@ class RoleNotSupported(SesDevException):
             "Role '{}' is not supported in version '{}'".format(role, version))
 
 
+class NoPrometheusGrafanaInSES5(SesDevException):
+    def __init__(self):
+        super(NoPrometheusGrafanaInSES5, self).__init__(
+            "The DeepSea version used in SES5 does not recognize 'prometheus' "
+            "or 'grafana' as roles in policy.cfg (instead, it _always_ deploys "
+            "these two services on the Salt Master node. For this reason, sesdev "
+            "does not permit these roles to be used with ses5."
+            )
+
+
 class UniqueRoleViolation(SesDevException):
     def __init__(self, role, number):
         super(UniqueRoleViolation, self).__init__(

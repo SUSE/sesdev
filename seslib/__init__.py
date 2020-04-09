@@ -19,7 +19,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
                         ServiceNotFound, ExclusiveRoles, RoleNotSupported, CmdException, \
                         VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
-                        UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE
+                        UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
+                        NoPrometheusGrafanaInSES5
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -768,10 +769,8 @@ class NodeManager:
 
 
 class Deployment():
-
-    def __init__(self, dep_id, settings, load=False):
+    def __init__(self, dep_id, settings):
         self.dep_id = dep_id
-        self.from_load = load
         self.settings = settings
         self.nodes = {}
         self.node_counts = {
@@ -873,7 +872,6 @@ class Deployment():
 
     def _generate_nodes(self):
         node_id = 0
-        master_id = 0
         worker_id = 0
         storage_id = 0
         loadbl_id = 0
@@ -883,15 +881,6 @@ class Deployment():
                               "mgr", "mon", "rgw", "storage"]:
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
-            # if 'openattic' in node_roles and self.settings.version != 'ses5':
-            #     raise RoleNotSupported('openattic', self.settings.version)
-            if 'suma' in node_roles and self.settings.version not in ['octopus']:
-                raise RoleNotSupported('suma', self.settings.version)
-            if self.settings.version != 'caasp4':
-                if 'worker' in node_roles:
-                    raise RoleNotSupported('worker', self.settings.version)
-                if 'loadbalancer' in node_roles:
-                    raise RoleNotSupported('loadbalancer', self.settings.version)
 
         storage_nodes = self.node_counts["storage"]
         if not self.settings.explicit_num_disks:
@@ -967,11 +956,6 @@ class Deployment():
                     networks = ('node.vm.network :private_network, autostart: true, ip:'
                                 '"{}"').format(public_address)
 
-            if self.settings.version != 'ses5':
-                node_roles = [r for r in node_roles if r != 'openattic']
-            else:
-                node_roles = [r for r in node_roles if r not in ['grafana', 'prometheus']]
-
             node = Node(name,
                         fqdn,
                         node_roles,
@@ -1030,16 +1014,6 @@ class Deployment():
                 node.add_repo(ZypperRepo(r_name.format(idx+1), repo_url))
 
             self.nodes[node.name] = node
-
-        if not self.from_load:
-            if self.node_counts['master'] != 1:
-                raise UniqueRoleViolation('master', self.node_counts['master'])
-            if self.settings.version in ('ses7', 'octopus', 'pacific'):
-                if self.node_counts['bootstrap'] != 1:
-                    raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
-
-        if self.master and self.suma:
-            raise ExclusiveRoles('master', 'suma')
 
     def generate_vagrantfile(self):
         vagrant_box = self.settings.os
@@ -1376,6 +1350,37 @@ class Deployment():
             result += "\n"
         return result
 
+    def vet_configuration(self):
+        # all deployment versions require one, and only one, master role
+        if self.node_counts['master'] != 1:
+            raise UniqueRoleViolation('master', self.node_counts['master'])
+        # octopus and beyond require one, and only one, bootstrap role
+        if self.settings.version in ('ses7', 'octopus'):
+            if self.node_counts['bootstrap'] != 1:
+                raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
+        # there must not be more than one suma role:
+        if self.node_counts['suma'] > 1:
+            raise UniqueRoleViolation('suma', self.node_counts['suma'])
+        # openattic role only in ses5
+        if self.node_counts['openattic'] > 0 and self.settings.version != 'ses5':
+            raise RoleNotSupported('openattic', self.settings.version)
+        # ses5 DeepSea does not recognize prometheus and grafana roles
+        if self.settings.version == 'ses5':
+            if self.node_counts['prometheus'] > 0 or self.node_counts['grafana'] > 0:
+                raise NoPrometheusGrafanaInSES5()
+        # suma role only in octopus and not together with master
+        if self.suma:
+            if self.settings.version not in 'octopus':
+                raise RoleNotSupported('suma', self.settings.version)
+            if self.suma == self.master:
+                raise ExclusiveRoles('master', 'suma')
+        # worker and loadbalancer only in caasp4
+        if self.settings.version not in 'caasp4':
+            if self.node_counts['worker'] > 0:
+                raise RoleNotSupported('worker', self.settings.version)
+            if self.node_counts['loadbalancer'] > 0:
+                raise RoleNotSupported('loadbalancer', self.settings.version)
+
     def _vagrant_ssh_config(self, name):
         if name not in self.nodes:
             raise NodeDoesNotExist(name)
@@ -1605,7 +1610,7 @@ class Deployment():
         with open(metadata_file, 'r') as file:
             metadata = json.load(file)
 
-        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']), load=True)
+        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']))
         if load_status:
             dep.load_status()
         return dep
