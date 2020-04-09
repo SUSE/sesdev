@@ -775,19 +775,21 @@ class Deployment():
         self.nodes = {}
         self.node_counts = {
             "admin": 0,
-            "master": 0,
             "bootstrap": 0,
             "ganesha": 0,
+            "grafana": 0,
             "igw": 0,
+            "loadbalancer": 0,
+            "master": 0,
             "mds": 0,
             "mgr": 0,
             "mon": 0,
+            "openattic": 0,
+            "prometheus": 0,
             "rgw": 0,
             "storage": 0,
             "suma": 0,
-            "openattic": 0,
             "worker": 0,
-            "loadbalancer": 0,
         }
         self.master = None
         self.suma = None
