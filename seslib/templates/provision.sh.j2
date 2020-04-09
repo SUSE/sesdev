@@ -39,12 +39,12 @@ zypper addrepo
 
 {% if os.startswith("sle") %}
 zypper addrepo --refresh
-{%- if version == 'ses7' %}
+{%- if os == 'sles-15-sp2' %}
  http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
-{%- elif version == 'ses6' or version == 'caasp4' %}
+{%- elif os == 'sles-15-sp1' %}
  http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
-{%- elif version == 'ses5' %}
- http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
+{%- elif os == 'sles-12-sp3' %}
+ http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo
 {% endif %}
 {% endif %}
 
@@ -66,7 +66,7 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
        'man',
        'command-not-found',
    ] %}
-{% if version == 'ses5' %}
+{% if os == 'sles-12-sp3' %}
 zypper -n install {{ basic_pkgs_to_install | join(' ') }} ntp
 {% else %}
 zypper -n install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
