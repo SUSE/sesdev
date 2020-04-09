@@ -1,4 +1,6 @@
+import fnmatch
 import logging
+import re
 import sys
 
 import click
@@ -762,27 +764,60 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
     _create_command(deployment_id, deploy, settings_dict)
 
 
+def _is_a_glob(a_string):
+    """
+    Return True or False depending on whether a_string appears to be a glob
+    """
+    pattern = re.compile(r'[\*\[\]\{\}\?]')
+    return bool(pattern.search(a_string))
+
+
+def _maybe_glob_deps(deployment_id):
+    matching_deployments = None
+    if _is_a_glob(deployment_id):
+        deps = seslib.Deployment.list(True)
+        dep_ids = [d.dep_id for d in deps]
+        matching_dep_ids = fnmatch.filter(dep_ids, deployment_id)
+        matching_deployments = [d for d in deps if d.dep_id in matching_dep_ids]
+    else:
+        matching_deployments = [seslib.Deployment.load(deployment_id)]
+    return matching_deployments
+
+
+def _cluster_singular_or_plural(an_iterable):
+    if len(an_iterable) == 1:
+        return "cluster"
+    return "clusters"
+
+
 @cli.command()
 @click.argument('deployment_id')
 @click.option('--non-interactive', '-n', '--force', '-f',
               is_flag=True,
-              callback=_abort_if_false,
-              expose_value=False,
               help='Allow to destroy the deployment without user confirmation',
-              prompt='Are you sure you want to destroy the cluster?',
               )
 @click.option('--destroy-networks', is_flag=True, default=False,
               help='Allow to destroy networks associated with the deployment')
-def destroy(deployment_id, destroy_networks):
+def destroy(deployment_id, non_interactive, destroy_networks):
     """
-    Destroys the deployment named DEPLOYMENT_ID by destroying the VMs and deletes the
-    deployment directory.
+    Destroys the deployment(s) named DEPLOYMENT_SPEC -- where DEPLOYMENT_SPEC might
+    be either a literal deployment ID or a glob ("octopus_*") -- by destroying the
+    VMs and deleting the deployment directory.
     """
-    dep = seslib.Deployment.load(deployment_id)
-    logger.debug("destroy deployment: '%s', destroy networks: %s",
-                 deployment_id,
-                 destroy_networks)
-    dep.destroy(_print_log, destroy_networks)
+    matching_deployments = _maybe_glob_deps(deployment_id)
+    cluster_word = _cluster_singular_or_plural(matching_deployments)
+    if not non_interactive:
+        really_want_to = click.confirm(
+            'Do you really want to destroy {} {}'.format(len(matching_deployments), cluster_word),
+            default=True,
+            )
+        if not really_want_to:
+            raise click.Abort()
+    for dep in matching_deployments:
+        logger.debug("destroy deployment: '%s', destroy networks: %s",
+                     deployment_id,
+                     destroy_networks)
+        dep.destroy(_print_log, destroy_networks)
 
 
 @cli.command()
@@ -881,10 +916,19 @@ def supportconfig(deployment_id, node):
 @click.argument('node', required=False)
 def stop(deployment_id, node=None):
     """
-    Stops the VMs of the deployment DEPLOYMENT_ID.
+    Stops the VMs of the deployment DEPLOYMENT_SPEC, where DEPLOYMENT_SPEC
+    might be either a literal deployment ID or a glob ("octopus_*").
     """
-    dep = seslib.Deployment.load(deployment_id)
-    dep.stop(_print_log, node)
+    matching_deployments = _maybe_glob_deps(deployment_id)
+    click.echo("Stopping {} {}".format(
+        len(matching_deployments),
+        _cluster_singular_or_plural(matching_deployments),
+        ))
+    if len(matching_deployments) > 1 and node:
+        click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
+        node = None
+    for dep in matching_deployments:
+        dep.stop(_print_log, node)
 
 
 @cli.command()
@@ -892,13 +936,22 @@ def stop(deployment_id, node=None):
 @click.argument('node', required=False)
 def start(deployment_id, node=None):
     """
-    Starts the VMs of the deployment DEPLOYMENT_ID.
+    Starts the VMs of the deployment DEPLOYMENT_SPEC, where DEPLOYMENT_SPEC
+    might be either a literal deployment ID or a glob ("octopus_*").
 
     If cluster was not yet deployed (if was created with the --no-deploy flag), it will
     start the deployment of the cluster.
     """
-    dep = seslib.Deployment.load(deployment_id)
-    dep.start(_print_log, node)
+    matching_deployments = _maybe_glob_deps(deployment_id)
+    click.echo("Starting {} {}".format(
+        len(matching_deployments),
+        _cluster_singular_or_plural(matching_deployments),
+        ))
+    if len(matching_deployments) > 1 and node:
+        click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
+        node = None
+    for dep in matching_deployments:
+        dep.start(_print_log, node)
 
 
 @cli.command()
