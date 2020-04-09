@@ -87,6 +87,16 @@ zypper mr -p {{ repo.priority }} {{ repo.name }}
 zypper --gpg-auto-import-keys ref
 {% endif %}
 
+{% if os == "sles-12-sp3" %}
+# The SLE-12-SP3 Vagrant Box has newer versions of the python-base, python-xml,
+# libncurses5, and libncurses6 packages than are available in the standard
+# repos. This is a Bad Thing and, I might add, a bug in the SLE-12-SP3 Vagrant
+# Box. It also makes install-deps.sh fail. Work around the bug by reverting
+# these three packages to the latest version that is in the repos.
+zypper --non-interactive install --from storage-update --force python-base python-xml
+zypper --non-interactive install --from update --force libncurses5 libncurses6
+{% endif %}
+
 cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
 [ ! -e "/root/.ssh" ] && mkdir /root/.ssh
 chmod 600 /home/vagrant/.ssh/{{ ssh_key_name }}
