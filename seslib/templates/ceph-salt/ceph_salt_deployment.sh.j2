@@ -51,11 +51,6 @@ while true ; do
 done
 set -ex
 
-salt '*' saltutil.pillar_refresh
-salt '*' saltutil.sync_all
-
-sleep 2
-
 {% if stop_before_ceph_salt_config %}
 exit 0
 {% endif %}
