@@ -155,15 +155,16 @@ pipeline {
         stage('Setup libvirt') {
             agent { label "${testbed_node}" }
             steps {
-                sh "usermod -a -G libvirt `whoami`"
-                sh 'systemctl enable libvirtd'
-                sh 'systemctl restart libvirtd'
-                sh 'mkdir /libvirt-pool'
-                sh 'virsh pool-define-as --name default --type dir --target /libvirt-pool'
-                sh 'virsh pool-start default'
-                sh 'virsh net-start default'
-                sh 'virsh net-list --all'
-                sh 'virsh pool-list --all'
+                sh '''
+                    usermod -a -G libvirt $(whoami)
+                    systemctl enable libvirtd
+                    systemctl restart libvirtd
+                    mkdir /libvirt-pool
+                    virsh pool-define-as --name default --type dir --target /libvirt-pool
+                    virsh pool-start default
+                    virsh net-start default
+                    virsh net-list --all
+                    virsh pool-list --all'''
             }
         }
 
