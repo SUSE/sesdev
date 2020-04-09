@@ -164,6 +164,15 @@ def _abort_if_false(ctx, _, value):
         ctx.abort()
 
 
+def _maybe_gen_dep_id(version, dep_id, settings_dict):
+    if not dep_id:
+        single_node = settings_dict['single_node'] if 'single_node' in settings_dict else False
+        dep_id = version
+        if single_node:
+            dep_id += "_mini"
+    return dep_id
+
+
 @click.group()
 @click.option('-w', '--work-path', required=False,
               type=click.Path(exists=True, dir_okay=True, file_okay=False),
@@ -611,7 +620,9 @@ def _create_command(deployment_id, deploy, settings_dict):
     settings = seslib.Settings(**settings_dict)
     dep = seslib.Deployment.create(deployment_id, settings)
     really_want_to = None
-    click.echo("=== Creating deployment with the following configuration ===")
+    click.echo("=== Creating deployment \"{}\" with the following configuration ==="
+               .format(deployment_id)
+               )
     click.echo(dep.status())
     if deploy:
         if getattr(settings, 'non_interactive', False):
@@ -654,7 +665,7 @@ def _create_command(deployment_id, deploy, settings_dict):
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @deepsea_options
 @libvirt_options
@@ -663,11 +674,12 @@ def ses5(deployment_id, deploy, **kwargs):
     Creates a SES5 cluster using SLES-12-SP3
     """
     settings_dict = _gen_settings_dict('ses5', **kwargs)
+    deployment_id = _maybe_gen_dep_id('ses5', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @deepsea_options
 @libvirt_options
@@ -676,11 +688,12 @@ def ses6(deployment_id, deploy, **kwargs):
     Creates a SES6 cluster using SLES-15-SP1
     """
     settings_dict = _gen_settings_dict('ses6', **kwargs)
+    deployment_id = _maybe_gen_dep_id('ses6', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @deepsea_options
 @ceph_salt_options
@@ -689,30 +702,33 @@ def ses6(deployment_id, deploy, **kwargs):
               help="Use deepsea to deploy SES7 instead of cephadm")
 def ses7(deployment_id, deploy, use_deepsea, **kwargs):
     """
-    Creates a SES7 cluster using SLES-15-SP2
+    Creates a SES7 cluster using SLES-15-SP2 and packages (and container image)
+    from the Devel:Storage:7.0 IBS project
     """
     settings_dict = _gen_settings_dict('ses7', **kwargs)
+    deployment_id = _maybe_gen_dep_id('ses7', deployment_id, settings_dict)
     if use_deepsea:
         settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @deepsea_options
 @libvirt_options
 def nautilus(deployment_id, deploy, **kwargs):
     """
     Creates a Ceph Nautilus cluster using openSUSE Leap 15.1 and packages
-    from filesystems:ceph:nautilus OBS project.
+    from filesystems:ceph:nautilus OBS project
     """
     settings_dict = _gen_settings_dict('nautilus', **kwargs)
+    deployment_id = _maybe_gen_dep_id('nautilus', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @deepsea_options
 @ceph_salt_options
@@ -722,16 +738,17 @@ def nautilus(deployment_id, deploy, **kwargs):
 def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     """
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages
-    from filesystems:ceph:octopus OBS project.
+    (and container image) from filesystems:ceph:octopus:upstream OBS project
     """
     settings_dict = _gen_settings_dict('octopus', **kwargs)
+    deployment_id = _maybe_gen_dep_id('octopus', deployment_id, settings_dict)
     if use_deepsea:
         settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @deepsea_options
 @ceph_salt_options
@@ -741,16 +758,17 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
 def pacific(deployment_id, deploy, use_deepsea, **kwargs):
     """
     Creates a Ceph Pacific cluster using openSUSE Leap 15.2 and packages
-    from filesystems:ceph:master:upstream OBS project.
+    (and container image) from filesystems:ceph:master:upstream OBS project
     """
     settings_dict = _gen_settings_dict('pacific', **kwargs)
+    deployment_id = _maybe_gen_dep_id('pacific', deployment_id, settings_dict)
     if use_deepsea:
         settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
 @create.command()
-@click.argument('deployment_id')
+@click.argument('deployment_id', required=False)
 @common_create_options
 @libvirt_options
 @click.option("--deploy-ses", is_flag=True, default=False,
@@ -762,6 +780,7 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
     if kwargs['num_disks'] is None:
         kwargs['num_disks'] = 2 if deploy_ses else 0
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
+    deployment_id = _maybe_gen_dep_id('caasp4', deployment_id, settings_dict)
     if deploy_ses:
         settings_dict['caasp_deploy_ses'] = True
     _create_command(deployment_id, deploy, settings_dict)
