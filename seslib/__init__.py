@@ -135,7 +135,7 @@ VERSION_PREFERRED_DEPLOYMENT_TOOL = {
 
 LUMINOUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana", "openattic"],
                           ["storage", "mon", "mgr", "rgw", "igw"],
-                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
+                          ["storage", "mon", "mgr", "mds", "ganesha"],
                           ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
 
 NAUTILUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
