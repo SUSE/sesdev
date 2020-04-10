@@ -7,16 +7,15 @@ ls -lR /home/vagrant
 # remove the first line introduced by vagrant
 head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
 
-{% for _node in nodes %}
-
 # remove "which" RPM because testing environments typically don't have it installed
 zypper -n rm which || true
 
 # remove Python 2 so it doesn't pollute the environment
-{% if os == 'leap-15.1' or os == 'leap-15.2' or os == 'sles-15-sp1' or os == 'sles-15-sp2' %}
+{% if os != 'sles-12-sp3' %}
 zypper -n rm python-base || true
 {% endif %}
 
+{% for _node in nodes %}
 {% if _node.public_address %}
 echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
 {% endif %}
@@ -63,9 +62,9 @@ zypper --gpg-auto-import-keys ref
        'command-not-found',
    ] %}
 {% if version == 'ses5' %}
-zypper -n install {{ basic_pkgs_to_install | join(' ') }}
+zypper -n install {{ basic_pkgs_to_install | join(' ') }} ntp
 {% else %}
-zypper -n install {{ basic_pkgs_to_install | join(' ') }} hostname
+zypper -n install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
 {% endif %}
 
 {% if os.startswith("sle") %}
@@ -98,9 +97,9 @@ hostnamectl set-hostname {{ node.name }}
 
 {% if version == 'caasp4' %}
 {% include "caasp/provision.sh.j2" %}
-{% else %}
+{% endif %}
 
-{% if not suma %}
+{% if not suma and version != "caasp4" %}
 zypper -n install salt-minion
 sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
 
@@ -109,11 +108,17 @@ sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
 
 systemctl enable salt-minion
 systemctl start salt-minion
+
+{% if version == "ses5" or version == "nautilus" or version == "ses6" %}
+{% include "sync_clocks.sh.j2" ignore missing %}
 {% endif %}
+
+{% endif %} {# not suma and version != "caasp4" #}
 
 touch /tmp/ready
 
 {% if node == master or node == suma %}
+
 {% if node == master %}
 zypper -n install salt-master
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
@@ -121,7 +126,7 @@ systemctl enable salt-master
 systemctl start salt-master
 sleep 5
 systemctl restart salt-minion
-{% endif %}
+{% endif %} {# node == master #}
 
 while : ; do
   PROVISIONED_NODES=`ls -l /tmp/ready-* 2>/dev/null | wc -l`
@@ -162,20 +167,20 @@ while true ; do
   set +x
 done
 set -ex
+{% endif %} {# node == master #}
 
 {% if deployment_tool == "deepsea" %}
+{% if node == master %}
 {% include "deepsea/deepsea_deployment.sh.j2" %}
-{% endif %}
-{% endif %}
+{% endif %} {# node == master #}
+{% endif %} {# deployment_tool == "deepsea" #}
 
 {% if node == suma %}
 {% include "suma/suma_deployment.sh.j2" %}
 {% endif %}
 
-{% if node == master and deployment_tool == "cephadm" %}
+{% if deployment_tool == "cephadm" %}
 {% include "ceph-salt/ceph_salt_deployment.sh.j2" %}
 {% endif %}
 
 {% endif %} {# node == master or node == suma #}
-
-{% endif %} {# version != caasp4 #}
