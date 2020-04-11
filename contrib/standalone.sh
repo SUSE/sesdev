@@ -1,6 +1,23 @@
 #!/bin/bash
 #
+# contrib/standalone.sh - sesdev regression testing
+#
 # NOTE: This is a work in progress!
+#
+# contrib/standalone.sh is a script which
+#
+# - deploys 1- and 4-node clusters of each of the main deployment types
+#   (ses5, nautilus, ses6, octopus, ses7, pacific)
+# - runs basic QA tests on each cluster after deployment is finished
+# - if QA tests succeed, cluster is destroyed before moving on to the next one
+# - when a failure occurs, the script aborts and post-mortem can be performed
+#
+# The script sends all output (its own and that of sesdev) to the screen,
+# and there is typically so much of it that it will overflow any ordinary
+# scrollback buffer. To facilitate capture of the output into a file for
+# later analysis, a simple companion script is provided. See:
+#
+#     contrib/run-standalone.sh
 #
 
 set -x
