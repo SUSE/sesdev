@@ -142,6 +142,7 @@ def _parse_roles(roles):
                 if role:
                     _node.append(role)
                     _node = list(set(_node))  # eliminate duplicate roles
+                _node.sort()
                 _roles.append(_node)
             else:
                 role = role[1:]
@@ -150,6 +151,7 @@ def _parse_roles(roles):
             role = role[:-1]
             _node.append(role)
             _node = list(set(_node))  # eliminate duplicate roles
+            _node.sort()
             _roles.append(_node)
         else:
             _node.append(role)
