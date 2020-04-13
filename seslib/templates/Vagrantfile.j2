@@ -28,11 +28,13 @@ Vagrant.configure("2") do |config|
     node.vm.synced_folder ".", "/vagrant", disabled: true
 
     node.vm.provision "shell", path: "provision_{{ node.name }}.sh"
-  end
+{% if node == master %}
 
+    node.vm.provision "qa-test", type: "shell", run: "never" do |s|
+      s.inline = "/home/vagrant/qa-test.sh"
+    end
+{% endif %}
+  end
 {% endfor %}
 
-  config.vm.provision "qa-test", type: "shell", run: "never" do |s|
-    s.inline = "/home/vagrant/qa-test.sh"
-  end
 end

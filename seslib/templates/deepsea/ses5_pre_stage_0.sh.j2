@@ -6,19 +6,8 @@ if [ ! -e /etc/fstab ]; then
     echo "$uuid $partial" > /etc/fstab
 fi
 
-zypper -n install ntp SuSEfirewall2
+zypper -n install SuSEfirewall2
 SuSEfirewall2 off
-
-zypper -n install ntp
-systemctl enable ntpd
-cat > /etc/ntp.conf <<EOF
-server 0.europe.pool.ntp.org
-server 1.europe.pool.ntp.org
-server 2.europe.pool.ntp.org
-EOF
-ntpd -gq
-systemctl start ntpd
-ntpq -p
 
 sed -i 's/#worker_threads: 5/worker_threads: 10/g' /etc/salt/master
 systemctl restart salt-master
@@ -102,7 +91,7 @@ popd
 echo "mon_max_pg_per_osd = 500" >> /srv/salt/ceph/configuration/files/ceph.conf.d/global.conf
 {% endif %}
 
-{% for node in nodes: %}
+{% for node in nodes %}
 {% if node.has_role('rgw') and node.has_role('openattic') %}
 # we need to change RGW port to not conflict with openATTIC port
 sed -i 's/port=80"/port=8080"/g' /srv/salt/ceph/configuration/files/rgw.conf

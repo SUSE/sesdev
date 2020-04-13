@@ -11,3 +11,4 @@ Pipfile
 build
 dist
 .tox
+typescript

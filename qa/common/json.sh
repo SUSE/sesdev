@@ -15,11 +15,33 @@ function json_osd_nodes {
 }
 
 function json_total_mgrs {
-    echo "$(($(ceph status --format json | jq -r .mgrmap.num_standbys) + 1))"
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        # SES7
+        echo "$(($(ceph status --format json | jq -r .mgrmap.num_standbys) + 1))"
+    elif [ "$VERSION_ID" = "15.1" ] ; then
+        # SES6
+        echo "$(($(ceph status --format json | jq -r ".mgrmap.standbys | length") + 1))"
+    elif [ "$VERSION_ID" = "12.3" ] ; then
+        # SES5
+        echo "$(($(ceph status --format json | jq -r ".mgrmap.standbys | length") + 1))"
+    else
+        echo "0"
+    fi
 }
 
 function json_total_mons {
-    ceph status --format json | jq -r .monmap.num_mons
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        # SES7
+        echo "$(ceph status --format json | jq -r .monmap.num_mons)"
+    elif [ "$VERSION_ID" = "15.1" ] ; then
+        # SES6
+        echo "$(ceph status --format json | jq -r ".monmap.mons | length")"
+    elif [ "$VERSION_ID" = "12.3" ] ; then
+        # SES5
+        echo "$(ceph status --format json | jq -r ".monmap.mons | length")"
+    else
+        echo "0"
+    fi
 }
 
 function json_total_osds {
