@@ -760,9 +760,13 @@ class Node():
         return role in self.roles
 
     def has_roles(self):
+        log_msg = "Node {}: has_roles: self.roles: {}".format(self.fqdn, self.roles)
+        logger.debug(log_msg)
         return bool(self.roles)
 
     def has_exclusive_role(self, role):
+        log_msg = "Node {}: has_exclusive_role: self.roles: {}".format(self.fqdn, self.roles)
+        logger.debug(log_msg)
         if role not in KNOWN_ROLES:
             raise RoleNotKnown(role)
         return self.roles == [role]
@@ -1343,8 +1347,8 @@ class Deployment():
             if k == 'master':
                 result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
             result += "     - roles:            {}\n".format(v.roles)
-            if self.settings.version in ["octopus", "ses7", "master"]:
-                if 'admin' not in v.roles:
+            if self.settings.version in ["octopus", "ses7", "pacific"]:
+                if 'admin' not in v.roles and v.roles != [] and v.roles != ['client']:
                     result += (
                         "                         (CAVEAT: the 'admin' role is assumed"
                         " even though not explicitly given!)\n"
