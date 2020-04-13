@@ -84,6 +84,12 @@ class ExclusiveRoles(SesDevException):
             .format(role_a, role_b))
 
 
+class RoleNotKnown(SesDevException):
+    def __init__(self, role):
+        super(RoleNotKnown, self).__init__(
+            "Role '{}' is not supported by sesdev".format(role))
+
+
 class RoleNotSupported(SesDevException):
     def __init__(self, role, version):
         super(RoleNotSupported, self).__init__(
