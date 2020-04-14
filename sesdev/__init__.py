@@ -124,28 +124,36 @@ def common_create_options(func):
 
 
 def _parse_roles(roles):
-    roles = [r.strip() for r in roles.split(",")]
+    roles = "".join(roles.split())
+    if roles.startswith('[[') and roles.endswith(']]'):
+        roles = roles[1:-1]
+    roles = roles.split(",")
+    log_msg = "_parse_roles: raw roles from user: {}".format(roles)
+    logger.debug(log_msg)
+    log_msg = "_parse_roles: pre-processed roles array: {}".format(roles)
+    logger.debug(log_msg)
     _roles = []
     _node = None
     for role in roles:
-        role = role.strip()
         if role.startswith('['):
             _node = []
             if role.endswith(']'):
-                role = role[1:-1].strip()
-                _node.append(role)
-                _node = list(set(_node))  # eliminate duplicate roles
+                role = role[1:-1]
+                if role:
+                    _node.append(role)
+                    _node = list(set(_node))  # eliminate duplicate roles
+                _node.sort()
                 _roles.append(_node)
             else:
-                role = role[1:].strip()
+                role = role[1:]
                 _node.append(role)
         elif role.endswith(']'):
-            role = role[:-1].strip()
+            role = role[:-1]
             _node.append(role)
             _node = list(set(_node))  # eliminate duplicate roles
+            _node.sort()
             _roles.append(_node)
         else:
-            role = role.strip()
             _node.append(role)
     return _roles
 
@@ -439,10 +447,14 @@ def _gen_settings_dict(version,
     if not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
-        if version in ('ses7', 'octopus', 'pacific'):
+        if version in ['ses7', 'octopus', 'pacific']:
             settings_dict['roles'] = _parse_roles(
                 "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
                 "igw, rgw, ganesha ]"
+                )
+        elif version in ['ses5']:
+            settings_dict['roles'] = _parse_roles(
+                "[ master, bootstrap, storage, mon, mgr, mds, igw, rgw, ganesha ]"
                 )
         else:
             settings_dict['roles'] = _parse_roles(

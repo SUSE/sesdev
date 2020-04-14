@@ -41,8 +41,10 @@ type ceph-salt
 MON_NODES_COMMA_SEPARATED_LIST=""
 MGR_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
+{% if node.has_roles() and not node.has_exclusive_role('client') %}
 ceph-salt config /ceph_cluster/minions add {{ node.fqdn }}
 ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
+{% endif %}
 {% if node.has_role('bootstrap') %}
 ceph-salt config /ceph_cluster/roles/bootstrap set {{ node.fqdn }}
 {% endif %}
