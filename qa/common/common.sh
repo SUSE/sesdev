@@ -230,6 +230,14 @@ function maybe_wait_for_osd_nodes_test {
     echo
 }
 
+function mgr_is_available_test {
+    echo
+    echo "WWWW: mgr_is_available_test"
+    test "$(json_mgr_is_available)"
+    echo "mgr_is_available_test: OK"
+    echo
+}
+
 function number_of_nodes_actual_vs_expected_test {
     echo
     echo "WWWW: number_of_nodes_actual_vs_expected_test"
