@@ -26,10 +26,13 @@ the VMs and run the deployment scripts.
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
    * [Create/deploy a cluster](#createdeploy-a-cluster)
-      * [Custom zypper repo (to be added together with the default repos)](#custom-zypper-repo-to-be-added-together-with-the-default-repos)
-      * [Custom zypper repos (completely replace the default repos)](#custom-zypper-repos-completely-replace-the-default-repos)
-      * [Custom image paths](#custom-image-paths)
-      * [Custom default roles](#custom-default-roles)
+      * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
+      * [With a custom zypper repo (to be added together with the default repos)](#with-a-custom-zypper-repo-to-be-a
+  ether-with-the-default-repos)
+      * [With custom zypper repos (completely replacing the default repos)](#with-custom-zypper-repos-completely-rep
+  he-default-repos)
+      * [With custom image paths](#with-custom-image-paths)
+      * [With custom default roles](#with-custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
          * [octopus from filesystems:ceph:master:upstream](#octopus-from-filesystemscephmasterupstream)
@@ -292,20 +295,6 @@ The `mini` argument is the ID of the deployment. It is optional: if you omit it,
 sesdev will assign an ID as it sees fit. You can create many deployments by
 giving them different IDs.
 
-If you would like to start the cluster VMs on a remote server via libvirt/SSH,
-create a configuration file `$HOME/.sesdev/config.yaml` with the following
-content:
-
-```
-libvirt_use_ssh: true
-libvirt_user: <ssh_user>
-libvirt_private_key_file: <private_key_file>   # defaults to $HOME/.ssh/id_rsa
-libvirt_host: <hostname|ip address>
-```
-
-Note that passwordless SSH access to this user@host combination needs to be
-configured and enabled.
-
 To create a multi-node Ceph cluster, you can specify the nodes and their roles
 using the `--roles` option.
 
@@ -348,7 +337,23 @@ $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, 
   [storage, mon, mgr, mds], [igw, ganesha, rgw]"
 ```
 
-#### Custom zypper repo (to be added together with the default repos)
+#### On a remote libvirt server via SSH
+
+If you would like to start the cluster VMs on a remote server via libvirt/SSH,
+create a configuration file `$HOME/.sesdev/config.yaml` with the following
+content:
+
+```
+libvirt_use_ssh: true
+libvirt_user: <ssh_user>
+libvirt_private_key_file: <private_key_file>   # defaults to $HOME/.ssh/id_rsa
+libvirt_host: <hostname|ip address>
+```
+
+Note that passwordless SSH access to this user@host combination needs to be
+configured and enabled.
+
+#### With a custom zypper repo (to be added together with the default repos)
 
 Each deployment version (e.g. "octopus", "nautilus") is associated with
 a set of zypper repos which are added on each VM that is created.
@@ -366,7 +371,7 @@ to ensure that packages from these repos will be installed even if higher
 RPM versions of those packages exist. If this behavior is not desired,
 add `--no-repo-priority` to disable it.
 
-#### Custom zypper repos (completely replace the default repos)
+#### With custom zypper repos (completely replacing the default repos)
 
 If the default zypper repos that are added to each VM
 prior to deployment are completely wrong for your use case, you can override
@@ -409,8 +414,7 @@ version_os_repo_mapping:
 
 This would cause the zypper repo to be added at priority 96.
 
-
-#### Custom image paths
+#### With custom image paths
 
 In Ceph versions "octopus" and newer, the Ceph daemons run inside containers.
 When the cluster is bootstrapped, a container image is downloaded from a remote
@@ -427,7 +431,7 @@ image_paths:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 ```
 
-#### Custom default roles
+#### With custom default roles
 
 When the user does not give the `--roles` option on the command line, `sesdev`
 will use the default roles for the given deployment version. These defaults can
