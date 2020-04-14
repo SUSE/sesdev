@@ -48,7 +48,12 @@ zypper addrepo --refresh
 {% endif %}
 {% endif %}
 
-zypper --gpg-auto-import-keys ref
+zypper --gpg-auto-import-keys refresh
+
+{% if os == "sles-12-sp3" %}
+zypper --non-interactive install --from storage-update --force python-base python-xml
+zypper --non-interactive install --from update --force libncurses5 libncurses6
+{% endif %}
 
 {% set basic_pkgs_to_install = [
        'vim',
@@ -83,7 +88,7 @@ zypper mr -p {{ repo.priority }} {{ repo.name }}
 {% endif %}
 {% endfor %}
 {% if node.repos|length > 0 %}
-zypper --gpg-auto-import-keys ref
+zypper --gpg-auto-import-keys refresh
 {% endif %}
 
 cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
