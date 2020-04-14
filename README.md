@@ -48,6 +48,7 @@ the VMs and run the deployment scripts.
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
    * [When sesdev deployments get destroyed, virtual networks get left behind](#when-sesdev-deployments-get-destroyed-virtual-networks-get-left-behind)
+   * ["Failed to connect socket" error when attempting to use remote libvirt server](#failed-to-connect-socket-error-when-attempting-to-use-remote-libvirt-server)
 * [Contributing](#contributing)
 
 
@@ -741,6 +742,30 @@ done
 
 The script should be run as root on the libvirt server.
 
+### "Failed to connect socket" error when attempting to use remote libvirt server
+
+#### Symptom
+
+When attempting to create or list deployments on a remote libvirt/SSH server,
+sesdev barfs out a Python traceback ending in:
+
+```
+libvirt.libvirtError: Failed to connect socket to
+'/var/run/libvirt/libvirt-sock': No such file or directory
+```
+
+#### Analysis
+
+When told to use remote libvirt/SSH, sesdev expects that there won't be any
+libvirtd instance running locally. This Python traceback is displayed when
+
+1. sesdev is configured to use remote libvirt/SSH, **and**
+2. libvirtd.service is running locally
+
+#### Resolution
+
+Stop the local libvirtd.service.
+
 ## Contributing
 
 If you would like to submit a patch to sesdev, please read the file
@@ -748,3 +773,4 @@ If you would like to submit a patch to sesdev, please read the file
 It can be found on-line here:
 
 https://github.com/SUSE/sesdev/blob/master/CONTRIBUTING.rst
+
