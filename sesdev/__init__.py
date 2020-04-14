@@ -7,7 +7,8 @@ from os.path import isabs, exists, isdir
 import click
 import pkg_resources
 import seslib
-from seslib.exceptions import SesDevException, OptionFormatError, OptionValueError
+from seslib.exceptions import SesDevException, OptionFormatError, OptionValueError, \
+                              VersionNotKnown
 
 
 logger = logging.getLogger(__name__)
@@ -458,25 +459,22 @@ def _gen_settings_dict(version,
                        ):
 
     settings_dict = {}
+
     if version == 'makecheck':
         settings_dict['roles'] = _parse_roles("[ makecheck ]")
     elif not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
     elif single_node:
+        roles_string = ""
         if version in ['ses7', 'octopus', 'pacific']:
-            settings_dict['roles'] = _parse_roles(
-                "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
-                "igw, rgw, nfs ]"
-                )
+            roles_string = seslib.GlobalSettings.ROLES_SINGLE_NODE_OCTOPUS
+        elif version in ['ses6', 'nautilus']:
+            roles_string = seslib.GlobalSettings.ROLES_SINGLE_NODE_NAUTILUS
         elif version in ['ses5']:
-            settings_dict['roles'] = _parse_roles(
-                "[ master, storage, mon, mgr, mds, igw, rgw, nfs ]"
-                )
+            roles_string = seslib.GlobalSettings.ROLES_SINGLE_NODE_LUMINOUS
         else:
-            settings_dict['roles'] = _parse_roles(
-                "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
-                "nfs ]"
-                )
+            raise VersionNotKnown(version)
+        settings_dict['roles'] = _parse_roles(roles_string)
 
     if single_node:
         settings_dict['single_node'] = single_node

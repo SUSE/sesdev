@@ -36,6 +36,17 @@ class GlobalSettings():
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
     DEBUG = False
     MAKECHECK_DEFAULT_RAM = 8
+    ROLES_SINGLE_NODE_LUMINOUS = (
+        "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]"
+        )
+    ROLES_SINGLE_NODE_NAUTILUS = (
+        "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
+        "nfs ]"
+        )
+    ROLES_SINGLE_NODE_OCTOPUS = (
+        "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
+        "igw, rgw, nfs ]"
+        )
     SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
     VAGRANT_DEBUG = False
 
@@ -916,10 +927,6 @@ class Deployment():
         self.suma = None
         self.box = Box(settings)
 
-        if self.settings.version == 'ses5' and self.settings.roles and self.settings.single_node:
-            new_roles = self.settings.roles
-            new_roles[0].append("openattic")
-            self.settings.override('roles', new_roles)
         if self.settings.roles:
             pass
         else:
