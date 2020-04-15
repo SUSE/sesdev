@@ -75,9 +75,10 @@ def ceph_salt_options(func):
         click.option('--cephadm-bootstrap/--no-cephadm-bootstrap', default=True,
                      help='Run cephadm bootstrap during deployment. '
                           '(If false all other --deploy-* options will be disabled)'),
-        click.option('--deploy-mons/--no-deploy-mons', default=True, help='Deploy Ceph Mons'),
-        click.option('--deploy-mgrs/--no-deploy-mgrs', default=True, help='Deploy Ceph Mgrs'),
+        click.option('--deploy-mons/--no-deploy-mons', default=True, help='Deploy Ceph MONs'),
+        click.option('--deploy-mgrs/--no-deploy-mgrs', default=True, help='Deploy Ceph MGRs'),
         click.option('--deploy-osds/--no-deploy-osds', default=True, help='Deploy Ceph OSDs'),
+        click.option('--deploy-mdss/--no-deploy-mdss', default=True, help='Deploy Ceph MDSs'),
         click.option('--ceph-salt-deploy/--no-ceph-salt-deploy', default=True,
                      help='Use `ceph-salt deploy` command to run ceph-salt formula'),
     ]
@@ -442,11 +443,12 @@ def _gen_settings_dict(version,
                        stop_before_ceph_salt_config=False,
                        stop_before_ceph_salt_deploy=False,
                        image_path=None,
-                       cephadm_bootstrap=True,
-                       deploy_mons=True,
-                       deploy_mgrs=True,
-                       deploy_osds=True,
-                       ceph_salt_deploy=True,
+                       cephadm_bootstrap=None,
+                       ceph_salt_deploy=None,
+                       deploy_mons=None,
+                       deploy_mgrs=None,
+                       deploy_osds=None,
+                       deploy_mdss=None,
                        ):
 
     settings_dict = {}
@@ -577,11 +579,18 @@ def _gen_settings_dict(version,
     if image_path:
         settings_dict['image_path'] = image_path
 
-    if not cephadm_bootstrap:
+    if cephadm_bootstrap:
+        settings_dict['ceph_salt_cephadm_bootstrap'] = True
+        settings_dict['ceph_salt_deploy_mons'] = True
+        settings_dict['ceph_salt_deploy_mgrs'] = True
+        settings_dict['ceph_salt_deploy_osds'] = True
+        settings_dict['ceph_salt_deploy_mdss'] = True
+    else:
         settings_dict['ceph_salt_cephadm_bootstrap'] = False
         settings_dict['ceph_salt_deploy_mons'] = False
         settings_dict['ceph_salt_deploy_mgrs'] = False
         settings_dict['ceph_salt_deploy_osds'] = False
+        settings_dict['ceph_salt_deploy_mdss'] = False
 
     if not deploy_mons:
         settings_dict['ceph_salt_deploy_mons'] = False
@@ -591,6 +600,9 @@ def _gen_settings_dict(version,
 
     if not deploy_osds:
         settings_dict['ceph_salt_deploy_osds'] = False
+
+    if not deploy_mdss:
+        settings_dict['ceph_salt_deploy_mdss'] = False
 
     if not ceph_salt_deploy:
         settings_dict['ceph_salt_deploy'] = False

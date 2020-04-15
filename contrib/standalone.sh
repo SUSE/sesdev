@@ -39,11 +39,11 @@ function usage {
     echo
     echo "Usage:"
     echo "    --help                   Display this usage message"
-    echo "    --all                    Run all tests (the default)"
+    echo "    --all                    Run all tests except makecheck (the default)"
     echo "    --ceph-salt-from-source  Install ceph-salt from source"
-    echo "                             (default: from RPM package)"
-    echo "    --makecheck              Run makecheck (install-deps.sh,"
-    echo "                             actually) tests"
+    echo "                             (default: from package)"
+    echo "    --makecheck              Run makecheck (install-deps.sh, actually)"
+    echo "                             tests"
     echo "    --nautilus               Run nautilus deployment tests"
     echo "    --octopus                Run octopus deployment tests"
     echo "    --pacific                Run pacific deployment tests"
@@ -109,7 +109,6 @@ if [ "$MAKECHECK" -o "$NAUTILUS" -o "$OCTOPUS" -o "$PACIFIC" -o "$SES5" -o "$SES
 fi
 
 if [ "$ALL" ] ; then
-    # MAKECHECK="--makecheck"
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
     PACIFIC="--pacific"

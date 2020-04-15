@@ -472,6 +472,11 @@ SETTINGS = {
         'help': 'Tell ceph-salt to deploy Ceph OSDs',
         'default': True,
     },
+    'ceph_salt_deploy_mdss': {
+        'type': bool,
+        'help': 'Tell ceph-salt to deploy Ceph MDSs',
+        'default': True,
+    },
     'ceph_salt_deploy': {
         'type': bool,
         'help': 'Use "ceph-salt deploy" instead of applying the ceph-salt highstate directly',
@@ -1151,6 +1156,7 @@ class Deployment():
             'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
             'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,
+            'ceph_salt_deploy_mdss': self.settings.ceph_salt_deploy_mdss,
             'ceph_salt_deploy': self.settings.ceph_salt_deploy,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
