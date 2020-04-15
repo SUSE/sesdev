@@ -1,3 +1,4 @@
+#!/bin/bash
 # This file is part of the sesdev-qa integration test suite
 
 set -e

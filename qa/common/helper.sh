@@ -1,3 +1,4 @@
+#!/bin/bash
 # This file is part of the sesdev-qa integration test suite
 
 set -e
@@ -15,7 +16,7 @@ function _ceph_cluster_running {
 function _copy_file_from_minion_to_master {
     local MINION="$1"
     local FULL_PATH="$2"
-    salt --static --out json "$MINION" cmd.shell "cat $FULL_PATH" | jq -r \.\"$MINION\" > $FULL_PATH
+    salt --static --out json "$MINION" cmd.shell "cat $FULL_PATH" | jq -r \.\""$MINION"\" > "$FULL_PATH"
 }
 
 function _first_x_node {
@@ -24,16 +25,23 @@ function _first_x_node {
 }
 
 function _grace_period {
-    local SECONDS=$1
-    echo "${SECONDS}-second grace period"
-    sleep $SECONDS
+    local SECONDS
+    SECONDS="$1"
+    local counter
+    counter="$2"
+    if [ "$counter" ] ; then
+        echo "${SECONDS}-second grace period ($counter)"
+    else
+        echo "${SECONDS}-second grace period"
+    fi
+    sleep "$SECONDS"
 }
 
 function _ping_minions_until_all_respond {
-    local RESPONDING=""
+    local RESPONDING
     for i in {1..20} ; do
-        sleep 10
-        RESPONDING=$(salt '*' test.ping 2>/dev/null | grep True 2>/dev/null | wc --lines)
+        _grace_period 10 "$i"
+        RESPONDING=$(salt '*' test.ping 2>/dev/null | grep --count True 2>/dev/null)
         echo "Of $TOTAL_NODES total minions, $RESPONDING are responding"
         test "$TOTAL_NODES" -eq "$RESPONDING" && break
     done
@@ -46,5 +54,6 @@ function _extract_ceph_version {
     #
     # return just the part before the first parentheses
     local full_version_string="$1"
+    # shellcheck disable=SC2003
     expr match "$full_version_string" '\(ceph version [^[:space:]]\+\)'
 }
