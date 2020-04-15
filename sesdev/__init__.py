@@ -818,6 +818,7 @@ def destroy(deployment_id, non_interactive, destroy_networks):
                      deployment_id,
                      destroy_networks)
         dep.destroy(_print_log, destroy_networks)
+        click.echo("Deployment {} destroyed!".format(dep.dep_id))
 
 
 @cli.command()
@@ -929,6 +930,7 @@ def stop(deployment_id, node=None):
         node = None
     for dep in matching_deployments:
         dep.stop(_print_log, node)
+        click.echo("Deployment {} stopped!".format(dep.dep_id))
 
 
 @cli.command()
@@ -952,6 +954,7 @@ def start(deployment_id, node=None):
         node = None
     for dep in matching_deployments:
         dep.start(_print_log, node)
+        click.echo("Deployment {} started!".format(dep.dep_id))
 
 
 @cli.command()
