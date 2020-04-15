@@ -2,7 +2,7 @@
 {% set qa_test_script = "/home/vagrant/qa-test.sh" %}
 {%- set qa_test_cmd = "/home/vagrant/sesdev-qa/health-ok.sh"
     ~ " --total-nodes=" ~ nodes|length
-    ~ " --nfs-ganesha-nodes=" ~ ganesha_nodes
+    ~ " --nfs-nodes=" ~ nfs_nodes
     ~ " --igw-nodes=" ~ igw_nodes
     ~ " --mds-nodes=" ~ mds_nodes
     ~ " --mgr-nodes=" ~ mgr_nodes

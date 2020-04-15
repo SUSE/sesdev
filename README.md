@@ -309,7 +309,7 @@ The following roles can be assigned:
 * `admin` - signifying that the node should get ceph.conf and keyring [1]
 * `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
-* `ganesha` - NFS Ganesha service
+* `nfs` - NFS (Ganesha) gateway
 * `grafana` - Grafana metrics visualization (requires Prometheus) [2]
 * `igw` - iSCSI target gateway
 * `mds` - CephFS MDS
@@ -332,11 +332,11 @@ The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that
 will also run a MON, a MGR and an MDS and serve as the bootstrap node; another
 storage (OSD) node with MON, MGR, and MDS; and a fourth node that will run an iSCSI
-gateway, an NFS-Ganesha gateway, and an RGW gateway.
+gateway, an NFS (Ganesha) gateway, and an RGW gateway.
 
 ```
 $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, mds], \
-  [storage, mon, mgr, mds], [igw, ganesha, rgw]"
+  [storage, mon, mgr, mds], [igw, nfs, rgw]"
 ```
 
 #### On a remote libvirt server via SSH

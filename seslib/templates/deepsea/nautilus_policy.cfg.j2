@@ -32,7 +32,7 @@ role-rgw/cluster/{{ node.name }}*.sls
 role-igw/cluster/{{ node.name }}*.sls
 {% endif %}
 
-{% if node.has_role('ganesha') %}
+{% if node.has_role('nfs') %}
 role-ganesha/cluster/{{ node.name }}*.sls
 {% endif %}
 

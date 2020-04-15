@@ -458,16 +458,16 @@ def _gen_settings_dict(version,
         if version in ['ses7', 'octopus', 'pacific']:
             settings_dict['roles'] = _parse_roles(
                 "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
-                "igw, rgw, ganesha ]"
+                "igw, rgw, nfs ]"
                 )
         elif version in ['ses5']:
             settings_dict['roles'] = _parse_roles(
-                "[ master, bootstrap, storage, mon, mgr, mds, igw, rgw, ganesha ]"
+                "[ master, storage, mon, mgr, mds, igw, rgw, nfs ]"
                 )
         else:
             settings_dict['roles'] = _parse_roles(
                 "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
-                "ganesha ]"
+                "nfs ]"
                 )
 
     if single_node:
