@@ -1,10 +1,11 @@
 import logging
 import sys
+from os.path import isabs, exists, isdir
 
 import click
 import pkg_resources
 import seslib
-from seslib.exceptions import SesDevException
+from seslib.exceptions import SesDevException, OptionFormatError, OptionValueError
 
 
 logger = logging.getLogger(__name__)
@@ -119,6 +120,8 @@ def common_create_options(func):
                      help='Do not ask the user if they really want to'),
         click.option('--encrypted-osds', is_flag=True, default=False,
                      help='Deploy OSDs encrypted'),
+        click.option('--synced-folder', type=str, default=None, multiple=True,
+                     help='Set synced-folder to be mounted on the master node. <str:dest>'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -426,6 +429,7 @@ def _gen_settings_dict(version,
                        scc_pass,
                        domain,
                        non_interactive,
+                       synced_folder,
                        encrypted_osds,
                        deepsea_cli=None,
                        stop_before_deepsea_stage=None,
@@ -588,6 +592,23 @@ def _gen_settings_dict(version,
 
     if not ceph_salt_deploy:
         settings_dict['ceph_salt_deploy'] = False
+
+    for folder in synced_folder:
+        try:
+            src, dst = folder.split(':')
+            if not all([isabs(x) for x in [src, dst]]):
+                raise OptionValueError('--synced-folder',
+                                       "Please provide absolute paths for "
+                                       "synced folder paths",
+                                       folder)
+            if not exists(src):
+                raise OptionValueError('--synced-folder',
+                                       "Path to the source synced folder must exist",
+                                       src)
+
+        except ValueError:
+            raise OptionFormatError('--synced-folder', "src:dst", folder)
+    settings_dict['synced_folder'] = [folder.split(':') for folder in synced_folder]
 
     return settings_dict
 

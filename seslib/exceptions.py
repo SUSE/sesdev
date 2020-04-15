@@ -45,6 +45,20 @@ class SettingTypeError(SesDevException):
             .format(setting, expected_type, value, type(value)))
 
 
+class OptionValueError(SesDevException):
+    def __init__(self, option, message, value):
+        super(OptionValueError, self).__init__(
+            "Wrong value for option '{}'. {}. Actual value: '{}'"
+            .format(option, message, value))
+
+
+class OptionFormatError(SesDevException):
+    def __init__(self, option, expected_type, value):
+        super(OptionFormatError, self).__init__(
+            "Wrong format for option '{}': expected format: '{}', actual format: '{}'"
+            .format(option, expected_type, value))
+
+
 class VagrantBoxDoesNotExist(SesDevException):
     def __init__(self, box):
         super(VagrantBoxDoesNotExist, self).__init__(
