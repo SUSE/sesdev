@@ -811,7 +811,7 @@ class Deployment():
         self.node_counts = {}
         for role in KNOWN_ROLES:
             self.node_counts[role] = 0
-        log_msg = "node_counts: {}".format(self.node_counts)
+        log_msg = "Deployment ctor: node_counts: {}".format(self.node_counts)
         logger.debug(log_msg)
         self.master = None
         self.suma = None
@@ -910,6 +910,18 @@ class Deployment():
             for role_type in KNOWN_ROLES:
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
+
+        if self.settings.version in ['ses5', 'ses6', 'nautilus', 'ses7', 'octopus', 'pacific']:
+            if self.node_counts['master'] == 0:
+                self.settings.roles[0].append('master')
+                self.node_counts['master'] = 1
+        if self.settings.version in ['ses7', 'octopus', 'pacific']:
+            if self.node_counts['bootstrap'] == 0:
+                for node_roles in self.settings.roles:
+                    if 'mon' in node_roles and 'mgr' in node_roles:
+                        node_roles.append('bootstrap')
+                        self.node_counts['bootstrap'] = 1
+                        break
 
         storage_nodes = self.node_counts["storage"]
         if not self.settings.explicit_num_disks:
