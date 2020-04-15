@@ -1,4 +1,5 @@
 import fnmatch
+import json
 import logging
 import re
 import sys
@@ -245,18 +246,21 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
         seslib.GlobalSettings.CONFIG_FILE = config_file
 
 
+@click.option('--format', 'format_opt', type=str, default=None)
 @cli.command(name='list')
-def list_deps():
+def list_deps(format_opt):
     """
     Lists all the available deployments.
     """
+    deployments_list = []
     deps = seslib.Deployment.list(True)
     log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
     logger.debug(log_msg)
 
-    click.echo("| {:^11} | {:^10} | {:^15} | {:^60} |".format("Deployments", "Version", "Status",
-                                                              "VMs"))
-    click.echo("{}".format('-' * 109))
+    if format_opt not in ['json']:
+        click.echo("| {:^11} | {:^10} | {:^15} | {:^60} |"
+                   .format("Deployments", "Version", "Status", "VMs"))
+        click.echo("{}".format('-' * 109))
 
     def _status(nodes):
         status = None
@@ -284,9 +288,20 @@ def list_deps():
         nodes = getattr(dep, 'nodes', None)
         node_names = '(unknown)' if nodes is None else ', '.join(nodes)
         logger.debug("-> node_names: %s", node_names)
-        click.echo("| {:<11} | {:<10} | {:<15} | {:<60} |"
-                   .format(dep.dep_id, version, status, node_names))
-    click.echo()
+        if format_opt in ['json']:
+            deployments_list.append({
+                "id": dep.dep_id,
+                "version": version,
+                "status": status,
+                "num_vms": len(nodes)
+                })
+        else:
+            click.echo("| {:<11} | {:<10} | {:<15} | {:<60} |"
+                       .format(dep.dep_id, version, status, node_names))
+    if format_opt in ['json']:
+        click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
+    else:
+        click.echo()
 
 
 @cli.group()
