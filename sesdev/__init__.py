@@ -7,6 +7,8 @@ from os.path import isabs, exists, isdir
 
 import click
 import pkg_resources
+from prettytable import PrettyTable
+
 import seslib
 from seslib.exceptions import SesDevException, OptionFormatError, OptionValueError, \
                               VersionNotKnown
@@ -252,15 +254,20 @@ def list_deps(format_opt):
     """
     Lists all the available deployments.
     """
+    p_table = None
     deployments_list = []
     deps = seslib.Deployment.list(True)
-    log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
-    logger.debug(log_msg)
-
-    if format_opt not in ['json']:
-        click.echo("| {:^11} | {:^10} | {:^15} | {:^60} |"
-                   .format("Deployments", "Version", "Status", "VMs"))
-        click.echo("{}".format('-' * 109))
+    if deps:
+        log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
+        logger.info(log_msg)
+    else:
+        msg = "No deployments found"
+        logger.info(msg)
+        if format_opt in ['json']:
+            click.echo(json.dumps([], sort_keys=True, indent=4))
+        else:
+            click.echo(msg)
+        return None
 
     def _status(nodes):
         status = None
@@ -279,6 +286,9 @@ def list_deps(format_opt):
                 status = 'partially running'
         return status
 
+    if format_opt not in ['json']:
+        p_table = PrettyTable(["Deployments", "Version", "Status", "VMs"])
+
     for dep in deps:
         logger.debug("Looping over deployments: %s", dep.dep_id)
         status = str(_status(dep.nodes))
@@ -296,11 +306,11 @@ def list_deps(format_opt):
                 "num_vms": len(nodes)
                 })
         else:
-            click.echo("| {:<11} | {:<10} | {:<15} | {:<60} |"
-                       .format(dep.dep_id, version, status, node_names))
+            p_table.add_row([dep.dep_id, version, status, node_names])
     if format_opt in ['json']:
         click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
     else:
+        click.echo(p_table)
         click.echo()
 
 

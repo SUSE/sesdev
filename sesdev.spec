@@ -36,11 +36,13 @@ BuildRequires:  python3-setuptools
 %if 0%{?suse_version}
 Requires:       python3-Jinja2 >= 2.10.1
 Requires:       python3-libvirt-python >= 5.1.0
+Requires:       python3-PrettyTable
 Requires:       python3-PyYAML >= 3.13
 %endif
 %if 0%{?el8} || 0%{?fedora}
 Requires:       python3-jinja2 >= 2.10.1
 Requires:       python3-libvirt >= 5.1.0
+Requires:       python3-prettytable
 Requires:       python3-pyyaml >= 3.13
 %endif
 Requires:       python3-click >= 6.7
