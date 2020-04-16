@@ -49,6 +49,7 @@ the VMs and run the deployment scripts.
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
    * [When sesdev deployments get destroyed, virtual networks get left behind](#when-sesdev-deployments-get-destroyed-virtual-networks-get-left-behind)
    * ["Failed to connect socket" error when attempting to use remote libvirt server](#failed-to-connect-socket-error-when-attempting-to-use-remote-libvirt-server)
+   * [mount.nfs: Unknown error 521](#mountnfs-unknown-error-521)
 * [Contributing](#contributing)
 
 
@@ -765,6 +766,38 @@ libvirtd instance running locally. This Python traceback is displayed when
 #### Resolution
 
 Stop the local libvirtd.service.
+
+### mount.nfs: Unknown error 521
+
+#### Symptom
+
+When the `--synced-folder` option is provided, the deployment fails with something like:
+
+```
+mount -o vers=3,udp 192.168.xxx.xxx:/home/$USER/.sesdev/$NAME /$PATH
+
+Stderr from the command:
+
+mount.nfs: Unknown error 521
+
+#### Analysis
+
+This indicates that your nfs-server is not working properly or hasn't started yet.
+
+#### Resolution
+
+Please make sure that your nfs-server is up and running without errors.
+
+```
+sudo systemctl status nfs-server
+```
+
+If this doesn't report back with `active`, please consider running
+
+```
+sudo systemctl restart nfs-server
+sudo systemctl enable nfs-server
+```
 
 ## Contributing
 

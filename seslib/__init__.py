@@ -482,6 +482,11 @@ SETTINGS = {
         'help': 'Deploy SES using rook in CaasP',
         'default': False,
     },
+    'synced_folder': {
+        'type': list,
+        'help': 'Sync Folders to VM',
+        'default': [],
+    },
 }
 
 
@@ -1149,6 +1154,7 @@ class Deployment():
             'ceph_salt_deploy': self.settings.ceph_salt_deploy,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
+            'synced_folders': self.settings.synced_folder,
         }
 
         scripts = {}
@@ -1372,6 +1378,8 @@ class Deployment():
             if self.settings.version in ['octopus', 'ses7', 'master'] \
                     and self.settings.deployment_tool == 'cephadm':
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
+            for synced_folder in self.settings.synced_folder:
+                result += "     - synced_folder:    {}\n".format(' -> '.join(synced_folder))
             if v.repos:
                 result += "     - custom_repos:\n"
                 for repo in v.repos:
