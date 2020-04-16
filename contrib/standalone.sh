@@ -118,9 +118,10 @@ if [ "$ALL" ] ; then
 fi
 
 if [ "$SES5" ] ; then
-    run_cmd sesdev create ses5 --non-interactive --single-node --qa-test ses5-1node
+    # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
+    run_cmd sesdev create ses5 --non-interactive --roles [master,storage,mon,mgr,mds,rgw,nfs] --qa-test ses5-1node
     run_cmd sesdev destroy --non-interactive ses5-1node
-    run_cmd sesdev create ses5 --non-interactive ses5-4node
+    run_cmd sesdev create ses5 --non-interactive --roles [master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs] ses5-4node
     run_cmd sesdev qa-test ses5-4node
     run_cmd sesdev destroy --non-interactive ses5-4node
 fi
