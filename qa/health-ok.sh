@@ -115,9 +115,9 @@ support_cop_out_test
 ceph_rpm_version_test
 ceph_cluster_running_test
 ceph_daemon_versions_test "$STRICT_VERSIONS"
-ceph_health_test
 mgr_is_available_test
 maybe_wait_for_osd_nodes_test "$OSD_NODES"  # it might take a long time for OSD nodes to show up
 maybe_wait_for_mdss_test "$MDS_NODES"  # it might take a long time for MDSs to be ready
 number_of_daemons_expected_vs_metadata_test
 number_of_nodes_actual_vs_expected_test
+ceph_health_test
