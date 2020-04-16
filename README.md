@@ -27,10 +27,8 @@ the VMs and run the deployment scripts.
 * [Usage](#usage)
    * [Create/deploy a cluster](#createdeploy-a-cluster)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
-      * [With a custom zypper repo (to be added together with the default repos)](#with-a-custom-zypper-repo-to-be-a
-  ether-with-the-default-repos)
-      * [With custom zypper repos (completely replacing the default repos)](#with-custom-zypper-repos-completely-rep
-  he-default-repos)
+      * [With an additional custom zypper repo](#with-an-additional-custom-zypper-repo)
+      * [With a set of custom zypper repos completely replacing the default repos](#with-a-set-of-custom-zypper-repos-completely-replacing-the-default-repos)
       * [With custom image paths](#with-custom-image-paths)
       * [With custom default roles](#with-custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
@@ -355,7 +353,7 @@ libvirt_host: <hostname|ip address>
 Note that passwordless SSH access to this user@host combination needs to be
 configured and enabled.
 
-#### With a custom zypper repo (to be added together with the default repos)
+#### With an additional custom zypper repo
 
 Each deployment version (e.g. "octopus", "nautilus") is associated with
 a set of zypper repos which are added on each VM that is created.
@@ -373,11 +371,11 @@ to ensure that packages from these repos will be installed even if higher
 RPM versions of those packages exist. If this behavior is not desired,
 add `--no-repo-priority` to disable it.
 
-#### With custom zypper repos (completely replacing the default repos)
+#### With a set of custom zypper repos completely replacing the default repos
 
-If the default zypper repos that are added to each VM
-prior to deployment are completely wrong for your use case, you can override
-them via `~/.sesdev/config.yaml`.
+If the default zypper repos that are added to each VM prior to deployment are
+completely wrong for your use case, you can override them via
+`~/.sesdev/config.yaml`.
 
 To do this, you have to be familiar with two of sesdev's internal dictionaries:
 `OS_REPOS` and `VERSION_OS_REPO_MAPPING`. The former specifies repos that are
