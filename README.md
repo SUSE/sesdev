@@ -769,14 +769,14 @@ Stop the local libvirtd.service.
 
 #### Symptom
 
-When the `--synced-folder` option is provided, the deployment fails with something like:
+When the `--synced-folder` option is provided, the deployment fails with
+something like:
 
-```
-mount -o vers=3,udp 192.168.xxx.xxx:/home/$USER/.sesdev/$NAME /$PATH
+    mount -o vers=3,udp 192.168.xxx.xxx:/home/$USER/.sesdev/$NAME /$PATH
 
-Stderr from the command:
+    Stderr from the command:
 
-mount.nfs: Unknown error 521
+    mount.nfs: Unknown error 521
 
 #### Analysis
 
@@ -784,17 +784,17 @@ This indicates that your nfs-server is not working properly or hasn't started ye
 
 #### Resolution
 
-Please make sure that your nfs-server is up and running without errors.
+Please make sure that your nfs-server is up and running without errors:
 
 ```
-sudo systemctl status nfs-server
+# systemctl status nfs-server
 ```
 
-If this doesn't report back with `active`, please consider running
+If this doesn't report back with `active`, please consider running:
 
 ```
-sudo systemctl restart nfs-server
-sudo systemctl enable nfs-server
+# systemctl restart nfs-server
+# systemctl enable nfs-server
 ```
 
 ## Contributing
