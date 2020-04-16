@@ -585,6 +585,39 @@ bothers you, `sesdev destroy` has a `--destroy-networks` option you can use.
 
 This section describes some common pitfalls and how to resolve them.
 
+### NFS mount is failing
+
+#### Symptom
+
+When the `--synced-folder` option is provided, the deployment fails with something like:
+
+```
+mount -o vers=3,udp 192.168.xxx.xxx:/home/$USER/.sesdev/$NAME /$PATH
+
+Stderr from the command:
+
+mount.nfs: Unknown error 521
+```
+
+#### Analysis
+
+This indicates that your nfs-server is not working properly or hasn't started yet.
+
+#### Resolution
+
+Please make sure that your nfs-server is up and running without errors.
+
+```
+sudo systemctl status nfs-server
+```
+
+If this doesn't report back with `active`, please consider running
+
+```
+sudo systemctl restart nfs-server
+sudo systemctl enable nfs-server
+```
+
 ### Domain about to create is already taken
 
 #### Symptom
