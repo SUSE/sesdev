@@ -6,13 +6,15 @@
 set -e
 trap 'catch $?' EXIT
 
-SCRIPTNAME=$(basename ${0})
-BASEDIR=$(readlink -f "$(dirname ${0})")
-test -d $BASEDIR
+SCRIPTNAME="$(basename "${0}")"
+BASEDIR="$(readlink -f "$(dirname "${0}")")"
+test -d "$BASEDIR"
 # [[ $BASEDIR =~ \/sesdev-qa$ ]]
 
+# shellcheck disable=SC1091
 source /etc/os-release
-source $BASEDIR/common/common.sh
+# shellcheck source=common/common.sh
+source "$BASEDIR/common/common.sh"
 
 function catch {
     echo
@@ -30,7 +32,7 @@ function usage {
     echo
     echo "Usage:"
     echo "  $SCRIPTNAME [-h,--help] [--igw=X] [--mds=X] [--mgr=X]"
-    echo "  [--mon=X] [--nfs-ganesha=X] [--strict-versions] [--rgw=X]"
+    echo "  [--mon=X] [--nfs=X] [--strict-versions] [--rgw=X]"
     echo "  [--total-nodes=X]"
     echo
     echo "Options:"
@@ -39,7 +41,7 @@ function usage {
     echo "    --mds-nodes          expected number of nodes with MDS"
     echo "    --mgr-nodes          expected number of nodes with MGR"
     echo "    --mon-nodes          expected number of nodes with MON"
-    echo "    --nfs-ganesha-nodes  expected number of nodes with NFS-Ganesha"
+    echo "    --nfs-nodes          expected number of nodes with NFS"
     echo "    --osd-nodes          expected number of nodes with OSD"
     echo "    --osds               expected total number of OSDs in cluster"
     echo "    --strict-versions    Insist that daemon versions match \"ceph --version\""
@@ -51,10 +53,8 @@ function usage {
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,mds-nodes:,mgr-nodes:,mon-nodes:,nfs-ganesha-nodes:,osd-nodes:,osds:,strict-versions,rgw-nodes:,total-nodes:" \
--n 'health-ok.sh' -- "$@")
-
-if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+--long "help,igw-nodes:,mds-nodes:,mgr-nodes:,mon-nodes:,nfs-nodes:,osd-nodes:,osds:,strict-versions,rgw-nodes:,total-nodes:" \
+-n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
 # process command-line options
@@ -62,7 +62,7 @@ IGW_NODES=""
 MDS_NODES=""
 MGR_NODES=""
 MON_NODES=""
-NFS_GANESHA_NODES=""
+NFS_NODES=""
 OSD_NODES=""
 OSDS=""
 STRICT_VERSIONS=""
@@ -74,7 +74,7 @@ while true ; do
         --mds-nodes) shift ; MDS_NODES="$1" ; shift ;;
         --mgr-nodes) shift ; MGR_NODES="$1" ; shift ;;
         --mon-nodes) shift ; MON_NODES="$1" ; shift ;;
-        --nfs-ganesha-nodes) shift ; NFS_GANESHA_NODES="$1" ; shift ;;
+        --nfs-nodes) shift ; NFS_NODES="$1" ; shift ;;
         --osd-nodes) shift ; OSD_NODES="$1" ; shift ;;
         --osds) shift ; OSDS="$1" ; shift ;;
         --strict-versions) STRICT_VERSIONS="$1"; shift ;;
@@ -115,6 +115,9 @@ support_cop_out_test
 ceph_rpm_version_test
 ceph_cluster_running_test
 ceph_daemon_versions_test "$STRICT_VERSIONS"
-ceph_health_test
+mgr_is_available_test
 maybe_wait_for_osd_nodes_test "$OSD_NODES"  # it might take a long time for OSD nodes to show up
+maybe_wait_for_mdss_test "$MDS_NODES"  # it might take a long time for MDSs to be ready
+number_of_daemons_expected_vs_metadata_test
 number_of_nodes_actual_vs_expected_test
+ceph_health_test

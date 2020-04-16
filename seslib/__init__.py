@@ -137,7 +137,7 @@ KNOWN_ROLES = [
     "admin",
     "bootstrap",
     "client",
-    "ganesha",
+    "ganesha",       # deprecated (replaced by "nfs")
     "grafana",
     "igw",
     "loadbalancer",
@@ -146,6 +146,7 @@ KNOWN_ROLES = [
     "mds",
     "mgr",
     "mon",
+    "nfs",
     "openattic",
     "prometheus",
     "rgw",
@@ -156,18 +157,18 @@ KNOWN_ROLES = [
 
 LUMINOUS_DEFAULT_ROLES = [["master", "client", "openattic"],
                           ["storage", "mon", "mgr", "rgw", "igw"],
-                          ["storage", "mon", "mgr", "mds", "ganesha"],
-                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+                          ["storage", "mon", "mgr", "mds", "nfs"],
+                          ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
 
 NAUTILUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
                           ["storage", "mon", "mgr", "rgw", "igw"],
-                          ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
-                          ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+                          ["storage", "mon", "mgr", "mds", "igw", "nfs"],
+                          ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
 
 OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
                          ["bootstrap", "storage", "mon", "mgr", "rgw", "igw"],
-                         ["storage", "mon", "mgr", "mds", "igw", "ganesha"],
-                         ["storage", "mon", "mgr", "mds", "rgw", "ganesha"]]
+                         ["storage", "mon", "mgr", "mds", "igw", "nfs"],
+                         ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
 
 VERSION_DEFAULT_ROLES = {
     'ses5': LUMINOUS_DEFAULT_ROLES,
@@ -470,6 +471,11 @@ SETTINGS = {
     'ceph_salt_deploy_osds': {
         'type': bool,
         'help': 'Tell ceph-salt to deploy Ceph OSDs',
+        'default': True,
+    },
+    'ceph_salt_deploy_mdss': {
+        'type': bool,
+        'help': 'Tell ceph-salt to deploy Ceph MDSs',
         'default': True,
     },
     'ceph_salt_deploy': {
@@ -1127,14 +1133,14 @@ class Deployment():
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
             'qa_test': self.settings.qa_test,
-            'ganesha_nodes': self.node_counts["ganesha"],
+            'nfs_nodes': self.node_counts["nfs"],
             'igw_nodes': self.node_counts["igw"],
             'mds_nodes': self.node_counts["mds"],
             'mgr_nodes': self.node_counts["mgr"],
             'mon_nodes': self.node_counts["mon"],
             'rgw_nodes': self.node_counts["rgw"],
             'storage_nodes': self.node_counts["storage"],
-            'deepsea_need_stage_4': bool(self.node_counts["ganesha"] or self.node_counts["igw"]
+            'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
                                          or self.node_counts["mds"] or self.node_counts["rgw"]),
             'total_osds': self.settings.num_disks * self.node_counts["storage"],
             'encrypted_osds': self.settings.encrypted_osds,
@@ -1151,6 +1157,7 @@ class Deployment():
             'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
             'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,
+            'ceph_salt_deploy_mdss': self.settings.ceph_salt_deploy_mdss,
             'ceph_salt_deploy': self.settings.ceph_salt_deploy,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,

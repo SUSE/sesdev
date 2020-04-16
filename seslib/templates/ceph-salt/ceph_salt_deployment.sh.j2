@@ -40,6 +40,7 @@ type ceph-salt
 
 MON_NODES_COMMA_SEPARATED_LIST=""
 MGR_NODES_COMMA_SEPARATED_LIST=""
+MDS_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
 {% if node.has_roles() and not node.has_exclusive_role('client') %}
 ceph-salt config /ceph_cluster/minions add {{ node.fqdn }}
@@ -54,9 +55,13 @@ MON_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 {% if node.has_role('mgr') %}
 MGR_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 {% endif %}
+{% if node.has_role('mds') %}
+MDS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
+{% endif %}
 {% endfor %}
 MON_NODES_COMMA_SEPARATED_LIST="${MON_NODES_COMMA_SEPARATED_LIST%,*}"
 MGR_NODES_COMMA_SEPARATED_LIST="${MGR_NODES_COMMA_SEPARATED_LIST%,*}"
+MDS_NODES_COMMA_SEPARATED_LIST="${MDS_NODES_COMMA_SEPARATED_LIST%,*}"
 
 ceph-salt config /system_update/packages disable
 ceph-salt config /system_update/reboot disable
@@ -125,5 +130,9 @@ echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.na
 {% endif %}
 {% endfor %}
 {% endif %} {# if ceph_salt_deploy_osds #}
+
+{% if ceph_salt_deploy_mdss %}
+ceph fs volume create myfs "$MDS_NODES_COMMA_SEPARATED_LIST"
+{% endif %} {# if ceph_salt_deploy_mdss #}
 
 {% include "qa_test.sh" %}

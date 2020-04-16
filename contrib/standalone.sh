@@ -39,11 +39,11 @@ function usage {
     echo
     echo "Usage:"
     echo "    --help                   Display this usage message"
-    echo "    --all                    Run all tests (the default)"
+    echo "    --all                    Run all tests except makecheck (the default)"
     echo "    --ceph-salt-from-source  Install ceph-salt from source"
-    echo "                             (default: from RPM package)"
-    echo "    --makecheck              Run makecheck (install-deps.sh,"
-    echo "                             actually) tests"
+    echo "                             (default: from package)"
+    echo "    --makecheck              Run makecheck (install-deps.sh, actually)"
+    echo "                             tests"
     echo "    --nautilus               Run nautilus deployment tests"
     echo "    --octopus                Run octopus deployment tests"
     echo "    --pacific                Run pacific deployment tests"
@@ -109,7 +109,6 @@ if [ "$MAKECHECK" -o "$NAUTILUS" -o "$OCTOPUS" -o "$PACIFIC" -o "$SES5" -o "$SES
 fi
 
 if [ "$ALL" ] ; then
-    # MAKECHECK="--makecheck"
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
     PACIFIC="--pacific"
@@ -119,9 +118,10 @@ if [ "$ALL" ] ; then
 fi
 
 if [ "$SES5" ] ; then
-    run_cmd sesdev create ses5 --non-interactive --single-node --qa-test ses5-1node
+    # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
+    run_cmd sesdev create ses5 --non-interactive --roles [master,storage,mon,mgr,mds,rgw,nfs] --qa-test ses5-1node
     run_cmd sesdev destroy --non-interactive ses5-1node
-    run_cmd sesdev create ses5 --non-interactive ses5-4node
+    run_cmd sesdev create ses5 --non-interactive --roles [master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs] ses5-4node
     run_cmd sesdev qa-test ses5-4node
     run_cmd sesdev destroy --non-interactive ses5-4node
 fi

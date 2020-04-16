@@ -27,10 +27,8 @@ the VMs and run the deployment scripts.
 * [Usage](#usage)
    * [Create/deploy a cluster](#createdeploy-a-cluster)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
-      * [With a custom zypper repo (to be added together with the default repos)](#with-a-custom-zypper-repo-to-be-a
-  ether-with-the-default-repos)
-      * [With custom zypper repos (completely replacing the default repos)](#with-custom-zypper-repos-completely-rep
-  he-default-repos)
+      * [With an additional custom zypper repo](#with-an-additional-custom-zypper-repo)
+      * [With a set of custom zypper repos completely replacing the default repos](#with-a-set-of-custom-zypper-repos-completely-replacing-the-default-repos)
       * [With custom image paths](#with-custom-image-paths)
       * [With custom default roles](#with-custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
@@ -309,7 +307,7 @@ The following roles can be assigned:
 * `admin` - signifying that the node should get ceph.conf and keyring [1]
 * `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
-* `ganesha` - NFS Ganesha service
+* `nfs` - NFS (Ganesha) gateway
 * `grafana` - Grafana metrics visualization (requires Prometheus) [2]
 * `igw` - iSCSI target gateway
 * `mds` - CephFS MDS
@@ -332,11 +330,11 @@ The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that
 will also run a MON, a MGR and an MDS and serve as the bootstrap node; another
 storage (OSD) node with MON, MGR, and MDS; and a fourth node that will run an iSCSI
-gateway, an NFS-Ganesha gateway, and an RGW gateway.
+gateway, an NFS (Ganesha) gateway, and an RGW gateway.
 
 ```
 $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, mds], \
-  [storage, mon, mgr, mds], [igw, ganesha, rgw]"
+  [storage, mon, mgr, mds], [igw, nfs, rgw]"
 ```
 
 #### On a remote libvirt server via SSH
@@ -355,7 +353,7 @@ libvirt_host: <hostname|ip address>
 Note that passwordless SSH access to this user@host combination needs to be
 configured and enabled.
 
-#### With a custom zypper repo (to be added together with the default repos)
+#### With an additional custom zypper repo
 
 Each deployment version (e.g. "octopus", "nautilus") is associated with
 a set of zypper repos which are added on each VM that is created.
@@ -373,11 +371,11 @@ to ensure that packages from these repos will be installed even if higher
 RPM versions of those packages exist. If this behavior is not desired,
 add `--no-repo-priority` to disable it.
 
-#### With custom zypper repos (completely replacing the default repos)
+#### With a set of custom zypper repos completely replacing the default repos
 
-If the default zypper repos that are added to each VM
-prior to deployment are completely wrong for your use case, you can override
-them via `~/.sesdev/config.yaml`.
+If the default zypper repos that are added to each VM prior to deployment are
+completely wrong for your use case, you can override them via
+`~/.sesdev/config.yaml`.
 
 To do this, you have to be familiar with two of sesdev's internal dictionaries:
 `OS_REPOS` and `VERSION_OS_REPO_MAPPING`. The former specifies repos that are
