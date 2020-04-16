@@ -71,9 +71,6 @@ ceph-salt config /containers/images/ceph set {{ image_path }}
 {% endif %}
 ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
 ceph-salt config /time_server/external_servers add 0.pt.pool.ntp.org
-{% if not ceph_salt_cephadm_bootstrap %}
-ceph-salt config /deployment/bootstrap disable
-{% endif %}
 
 {% if ceph_salt_deploy_osds %}
 {% if storage_nodes < 3 %}
