@@ -13,7 +13,8 @@ test -d "$BASEDIR"
 
 # shellcheck disable=SC1091
 source /etc/os-release
-# shellcheck source=common/common.sh
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 source "$BASEDIR/common/common.sh"
 
 function catch {
@@ -57,7 +58,9 @@ TEMP=$(getopt -o h \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
-# process command-line options
+# set some global variables
+ADMIN_KEYRING="/etc/ceph/ceph.client.admin.keyring"
+CEPH_CONF="/etc/ceph/ceph.conf"
 IGW_NODES=""
 MDS_NODES=""
 MGR_NODES=""
@@ -68,6 +71,8 @@ OSDS=""
 STRICT_VERSIONS=""
 RGW_NODES=""
 TOTAL_NODES=""
+
+# process command-line options
 while true ; do
     case "$1" in
         --igw-nodes) shift ; IGW_NODES="$1" ; shift ;;
@@ -86,32 +91,25 @@ while true ; do
     esac
 done
 
-# make Salt Master be an "admin node"
-_zypper_install_on_master ceph-common
-ADMIN_KEYRING="/etc/ceph/ceph.client.admin.keyring"
-CEPH_CONF="/etc/ceph/ceph.conf"
-mkdir -p /etc/ceph
-if [ -f "$ADMIN_KEYRING" -a -f "$CEPH_CONF" ] ; then
-    true
-else
-    set -x
-    ARBITRARY_MON_NODE="$(_first_x_node mon)"
-    if [ ! -f "$ADMIN_KEYRING" ] ; then
-        _copy_file_from_minion_to_master "$ARBITRARY_MON_NODE" "$ADMIN_KEYRING"
-        chmod 0600 "$ADMIN_KEYRING"
-    fi
-    if [ ! -f "$CEPH_CONF" ] ; then
-        _copy_file_from_minion_to_master "$ARBITRARY_MON_NODE" "$CEPH_CONF"
-    fi
-    set +x
-fi
-set -x
-test -f "$ADMIN_KEYRING"
-test -f "$CEPH_CONF"
-set +x
+# use all global variables once to avoid SC2034
+set +e
+test "$ADMIN_KEYRING"
+test "$CEPH_CONF"
+test "$IGW_NODES"
+test "$MDS_NODES"
+test "$MGR_NODES"
+test "$MON_NODES"
+test "$NFS_NODES"
+test "$OSD_NODES"
+test "$OSDS"
+test "$STRICT_VERSIONS"
+test "$RGW_NODES"
+test "$TOTAL_NODES"
+set -e
 
 # run tests
 support_cop_out_test
+make_salt_master_an_admin_node_test
 ceph_rpm_version_test
 ceph_cluster_running_test
 ceph_daemon_versions_test "$STRICT_VERSIONS"
