@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.10] - 2020-04-17
+
+### Added
+- ceph_salt_deployment: sync clocks after deployment (PR #187)
+- ceph_salt_deployment: fetch GitHub PRs when needed (PR #197)
+- New deployment type "pacific" using packages/containers built from upstream
+  Ceph "master" branch (PR #200)
+- README.md: Needed packages for all major distros (PR #209)
+- sesdev: systemically vet roles on create (PR #215)
+- templates: extend --qa-test to DeepSea-deployed versions (PR #230)
+- sesdev: make deployment_id argument optional (PR#235)
+- sesdev: Globbing for "stop", "start", and "destroy" (PR #238)
+- new --synced-folder option to NFS mount directories (PR #247)
+- ses7, octopus, pacific: Deploy MDSs (PR #258)
+
+### Fixed
+- deepsea_deployment: run Stage 4 only if justified by roles (PR #205)
+- seslib: install sesdev-generated keypair under non-default name (PR #207) 
+- Jenkinsfile.integration: Retry jenkins slave deletion (PR #214)
+- ceph_salt_deployment: use --prefix /usr with "pip install" (PR #221)
+- deepsea_deployment: check if drive_groups.yml exists (PR #229)
+- seslib: force ses5 prometheus node to master (PR #232)
+- provision.sh: reinstall certain packages from the update repos (PR #243)
+- ceph_salt_deployment: do not provision client-only nodes (PR #246)
+
+### Changed
+- ceph_salt_deployment: move OSD deployment to sesdev (PR #186)
+- ceph_salt_deployment: use sesdev to deploy MONs and MGRs (PR #189)
+- sesdev: uniform --force/--non-interactive (PR #201)
+- ceph_salt_deployment: make it easier to install ceph-salt from source (PR #210)
+- seslib: make all str-type settings default to the empty string (PR #217)
+- ceph_salt_deployment: Use quoted string to set bootstrap configs (PR #224)
+- ceph_salt_deployment: use lower-case on config nodes (PR #226)
+- ceph_salt_deployment: do not refresh/sync pillar data (PR #227)
+- templates: move test.ping try-wait into a separate file (PR #234)
+
 ## [1.1.9] - 2020-03-26
 
 ### Added
@@ -272,7 +308,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.9...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.10...HEAD
+[1.1.10]: https://github.com/SUSE/sesdev/releases/tag/v1.1.10
 [1.1.9]: https://github.com/SUSE/sesdev/releases/tag/v1.1.9
 [1.1.8]: https://github.com/SUSE/sesdev/releases/tag/v1.1.8
 [1.1.7]: https://github.com/SUSE/sesdev/releases/tag/v1.1.7
