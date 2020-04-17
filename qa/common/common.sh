@@ -240,18 +240,25 @@ function maybe_wait_for_osd_nodes_test {
 
 function maybe_wait_for_mdss_test {
     local expected_mdss="$1"
-    local actual_mdss=""
-    local minutes_to_wait="5"
+    local actual_mdss
+    local minutes_to_wait
+    minutes_to_wait="5"
+    local metadata_mdss
+    local minute
+    local i
+    local success
     echo
     echo "WWWW: maybe_wait_for_mdss_test"
     if [ "$expected_mdss" ] ; then
-        echo "Waiting up to $minutes_to_wait minutes for OSD nodes to show up..."
+        echo "Waiting up to $minutes_to_wait minutes for all $expected_mdss MDS(s) to show up..."
         for minute in $(seq 1 "$minutes_to_wait") ; do
             for i in $(seq 1 4) ; do
                 set -x
+                metadata_mdss="$(json_metadata_mdss)"
                 actual_mdss="$(json_total_mdss)"
                 set +x
-                if [ "$actual_mdss" = "$expected_mdss" ] ; then
+                if [ "$actual_mdss" = "$expected_mdss" ] && [ "$actual_mdss" = "$metadata_mdss" ] ; then
+                    success="not_empty"
                     break 2
                 else
                     _grace_period 15 "$i"
@@ -260,9 +267,17 @@ function maybe_wait_for_mdss_test {
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
     else
+        success="not_empty"
         echo "No MDSs expected: nothing to wait for."
     fi
-    echo "maybe_wait_for_mdss_test: OK"
+    if [ "$success" ] ; then
+        echo "maybe_wait_for_mdss_test: OK"
+        echo
+    else
+        echo "maybe_wait_for_mdss_test: FAIL"
+        echo
+        false
+    fi
 }
 
 function mgr_is_available_test {
