@@ -1,10 +1,26 @@
-# sesdev - deploy and manage SES/Ceph clusters<br/> [![Travis Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev) [![Jenkins Build Status](https://ceph-ci.suse.de/job/sesdev-integration/job/master/badge/icon)](https://ceph-ci.suse.de/job/sesdev-integration/job/master/)
+# sesdev - deploy and manage SES/Ceph clusters<br/>
 
 `sesdev` is a CLI tool to deploy Ceph clusters (both the upstream and SUSE
 downstream versions).
 
 This tool uses [Vagrant](https://www.vagrantup.com/) behind the scenes to create
 the VMs and run the deployment scripts.
+
+## Build Status
+
+### Travis
+
+[![Travis Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev)
+
+The Travis CI tests that the Python source code of `sesdev` compiles and has no
+linter issues.
+
+### Jenkins
+
+[![Jenkins Build Status](https://ceph-ci.suse.de/job/sesdev-integration/job/master/badge/icon)](https://ceph-ci.suse.de/job/sesdev-integration/job/master/)
+
+The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
+15.2.x ("Octopus") cluster in an openSUSE Leap 15.2 environment.
 
 ## Table of Contents
 
