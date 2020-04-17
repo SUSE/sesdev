@@ -109,6 +109,7 @@ set -e
 
 # run tests
 support_cop_out_test
+no_non_oss_repos_test
 make_salt_master_an_admin_node_test
 ceph_rpm_version_test
 ceph_cluster_running_test

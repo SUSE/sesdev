@@ -105,7 +105,7 @@ function support_cop_out_test {
     local not_supported
     not_supported="ERROR: sesdev-qa does not currently support this OS"
     echo
-    echo "WWWW: ceph_version_test"
+    echo "WWWW: support_cop_out_test"
     echo "Detected operating system $NAME $VERSION_ID"
     case "$ID" in
         opensuse*|suse|sles)
@@ -126,6 +126,35 @@ function support_cop_out_test {
     set +x
     echo "support_cop_out_test: OK"
     echo
+}
+
+function no_non_oss_repos_test {
+    local success
+    echo
+    echo "WWWW: no_non_oss_repos_test"
+    echo "Detected operating system $NAME $VERSION_ID"
+    echo
+    case "$ID" in
+        opensuse*|suse|sles)
+            if zypper lr -u | grep 'non-oss' ; then
+                echo
+                echo "ERROR: Non-OSS repo(s) detected!"
+            else
+                success="not_empty"
+            fi
+            ;;
+        *)
+            echo "ERROR: Unsupported OS ->$ID<-"
+            ;;
+    esac
+    if [ "$success" ] ; then
+        echo "no_non_oss_repos_test: OK"
+        echo
+    else
+        echo "no_non_oss_repos_test: FAIL"
+        echo
+        false
+    fi
 }
 
 function make_salt_master_an_admin_node_test {
