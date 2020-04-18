@@ -27,6 +27,7 @@ the VMs and run the deployment scripts.
 * [Usage](#usage)
    * [Create/deploy a Ceph cluster](#createdeploy-a-ceph-cluster)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
+      * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
       * [With an additional custom zypper repo](#with-an-additional-custom-zypper-repo)
       * [With a set of custom zypper repos completely replacing the default repos](#with-a-set-of-custom-zypper-repos-completely-replacing-the-default-repos)
       * [With custom image paths](#with-custom-image-paths)
@@ -357,6 +358,15 @@ libvirt_host: <hostname|ip address>
 
 Note that passwordless SSH access to this user@host combination needs to be
 configured and enabled.
+
+#### Using salt instead of DeepSea/ceph-salt CLI
+
+By default, sesdev will use the DeepSea CLI to run the DeepSea Stages (ses5,
+nautilus, ses6) or the "ceph-salt" command to apply the ceph-salt Salt Formula
+(ses7, octopus, pacific).
+
+If you would rather use Salt directly, give the `--salt` option on the `sesdev
+create` command line.
 
 #### With an additional custom zypper repo
 

@@ -37,17 +37,19 @@ sleep 5
 exit 0
 {% endif %}
 
-{% if use_deepsea_cli %}
 echo "PATH is $PATH"
+{% if use_salt %}
+type salt-run
+{% else %}
 type deepsea
 {% endif %}
 
 echo ""
 echo "***** RUNNING stage.0 *******"
-{% if use_deepsea_cli %}
-deepsea stage run --simple-output ceph.stage.0
-{% else %}
+{% if use_salt %}
 salt-run state.orch ceph.stage.0
+{% else %}
+deepsea stage run --simple-output ceph.stage.0
 {% endif %}
 sleep 5
 
@@ -59,10 +61,10 @@ exit 0
 
 echo ""
 echo "***** RUNNING stage.1 *******"
-{% if use_deepsea_cli %}
-deepsea stage run --simple-output ceph.stage.1
-{% else %}
+{% if use_salt %}
 salt-run state.orch ceph.stage.1
+{% else %}
+deepsea stage run --simple-output ceph.stage.1
 {% endif %}
 sleep 5
 
@@ -74,10 +76,10 @@ exit 0
 
 echo ""
 echo "***** RUNNING stage.2 *******"
-{% if use_deepsea_cli %}
-deepsea stage run --simple-output ceph.stage.2
-{% else %}
+{% if use_salt %}
 salt-run state.orch ceph.stage.2
+{% else %}
+deepsea stage run --simple-output ceph.stage.2
 {% endif %}
 sleep 5
 
@@ -100,10 +102,10 @@ cat /srv/salt/ceph/configuration/files/drive_groups.yml
 
 echo ""
 echo "***** RUNNING stage.3 *******"
-{% if use_deepsea_cli %}
-DEV_ENV=true deepsea stage run --simple-output ceph.stage.3
-{% else %}
+{% if use_salt %}
 DEV_ENV=true salt-run state.orch ceph.stage.3
+{% else %}
+DEV_ENV=true deepsea stage run --simple-output ceph.stage.3
 {% endif %}
 sleep 5
 
@@ -131,10 +133,10 @@ exit 0
 {% if deepsea_need_stage_4 %}
 echo ""
 echo "***** RUNNING stage.4 *******"
-{% if use_deepsea_cli %}
-deepsea stage run --simple-output ceph.stage.4
-{% else %}
+{% if use_salt %}
 salt-run state.orch ceph.stage.4
+{% else %}
+deepsea stage run --simple-output ceph.stage.4
 {% endif %}
 sleep 5
 {% endif %} {# deepsea_need_stage_4 #}
