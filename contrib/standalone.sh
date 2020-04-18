@@ -38,10 +38,17 @@ function usage {
     echo "$SCRIPTNAME - sesdev regression testing"
     echo
     echo "Usage:"
+    echo
+    echo "    $ contrib/standalone.sh"
+    echo
+    echo "By default, runs regression tests of sesdev's ability to deploy Ceph"
+    echo "on supported OSes/OS versions."
+    echo
+    echo "Options:"
     echo "    --help                   Display this usage message"
-    echo "    --all                    Run all tests except makecheck (the default)"
     echo "    --ceph-salt-from-source  Install ceph-salt from source"
     echo "                             (default: from package)"
+    echo "    --full                   Run all tests, including makecheck"
     echo "    --makecheck              Run makecheck (install-deps.sh, actually)"
     echo "                             tests"
     echo "    --nautilus               Run nautilus deployment tests"
@@ -71,15 +78,16 @@ function run_cmd {
 }
 
 TEMP=$(getopt -o h \
---long "help,all,ceph-salt-from-source,makecheck,nautilus,octopus,pacific,ses5,ses6,ses7" \
+--long "help,ceph-salt-from-source,full,makecheck,nautilus,octopus,pacific,ses5,ses6,ses7" \
 -n 'standalone.sh' -- "$@")
 
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
 # process command-line options
-ALL="--all"
+NORMAL_OPERATION="not_empty"
 CEPH_SALT_FROM_SOURCE=""
+FULL=""
 MAKECHECK=""
 NAUTILUS=""
 OCTOPUS=""
@@ -89,8 +97,8 @@ SES6=""
 SES7=""
 while true ; do
     case "$1" in
-        --all)                   ALL="$1" ; shift ;;
         --ceph-salt-from-source) CEPH_SALT_FROM_SOURCE="--ceph-salt-branch=master" ; shift ;;
+        --full)                  FULL="$1" ; shift ;;
         --makecheck)             MAKECHECK="$1" ; shift ;;
         --nautilus)              NAUTILUS="$1" ; shift ;;
         --octopus)               OCTOPUS="$1" ; shift ;;
@@ -104,11 +112,12 @@ while true ; do
     esac
 done
 
-if [ "$MAKECHECK" -o "$NAUTILUS" -o "$OCTOPUS" -o "$PACIFIC" -o "$SES5" -o "$SES6" -o "$SES7" ] ; then
-    ALL=""
+if [ "$FULL" -o "$MAKECHECK" -o "$NAUTILUS" -o "$OCTOPUS" -o "$PACIFIC" -o "$SES5" -o "$SES6" -o "$SES7" ] ; then
+    NORMAL_OPERATION=""
 fi
 
-if [ "$ALL" ] ; then
+if [ "$FULL" -o "$NORMAL_OPERATION" ] ; then
+    [ "$FULL" ] && MAKECHECK="--makecheck"
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
     PACIFIC="--pacific"
