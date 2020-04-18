@@ -118,6 +118,7 @@ if [ "$ALL" ] ; then
 fi
 
 if [ "$SES5" ] ; then
+    run_cmd sesdev box remove --non-interactive sles-12-sp3 || true
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
     run_cmd sesdev create ses5 --non-interactive --roles [master,storage,mon,mgr,mds,rgw,nfs] --qa-test ses5-1node
     run_cmd sesdev destroy --non-interactive ses5-1node
@@ -127,6 +128,7 @@ if [ "$SES5" ] ; then
 fi
 
 if [ "$NAUTILUS" ] ; then
+    run_cmd sesdev box remove --non-interactive leap-15.1 || true
     run_cmd sesdev create nautilus --non-interactive --single-node --qa-test nautilus-1node
     run_cmd sesdev destroy --non-interactive nautilus-1node
     run_cmd sesdev create nautilus --non-interactive nautilus-4node
@@ -135,6 +137,7 @@ if [ "$NAUTILUS" ] ; then
 fi
 
 if [ "$SES6" ] ; then
+    run_cmd sesdev box remove --non-interactive sles-15-sp1 || true
     run_cmd sesdev create ses6 --non-interactive --single-node --qa-test ses6-1node
     run_cmd sesdev destroy --non-interactive ses6-1node
     run_cmd sesdev create ses6 --non-interactive ses6-4node
@@ -143,6 +146,7 @@ if [ "$SES6" ] ; then
 fi
 
 if [ "$OCTOPUS" ] ; then
+    run_cmd sesdev box remove --non-interactive leap-15.2 || true
     run_cmd sesdev create octopus --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test octopus-1node
     run_cmd sesdev destroy --non-interactive octopus-1node
     run_cmd sesdev create octopus --non-interactive $CEPH_SALT_FROM_SOURCE octopus-4node
@@ -151,6 +155,7 @@ if [ "$OCTOPUS" ] ; then
 fi
 
 if [ "$SES7" ] ; then
+    run_cmd sesdev box remove --non-interactive sles-15-sp2 || true
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test ses7-1node
     run_cmd sesdev destroy --non-interactive ses7-1node
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
@@ -159,19 +164,24 @@ if [ "$SES7" ] ; then
 fi
 
 if [ "$PACIFIC" ] ; then
+    run_cmd sesdev box remove --non-interactive leap-15.2 || true
     run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test pacific-1node
     run_cmd sesdev destroy --non-interactive pacific-1node
-    run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
-    run_cmd sesdev qa-test pacific-4node
-    run_cmd sesdev destroy --non-interactive pacific-4node
+    # commented out pending resolution of https://tracker.ceph.com/issues/45093
+    # run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
+    # run_cmd sesdev qa-test pacific-4node
+    # run_cmd sesdev destroy --non-interactive pacific-4node
 fi
 
 if [ "$MAKECHECK" ] ; then
-    # run_cmd sesdev create makecheck --non-interactive --stop-before-run-make-check --ram 4
-    # run_cmd sesdev create makecheck --non-interactive --os sles-12-sp3 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses5 --stop-before-run-make-check --ram 4
-    # run_cmd sesdev create makecheck --non-interactive --os sles-15-sp1 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses6 --stop-before-run-make-check --ram 4
-    # run_cmd sesdev create makecheck --non-interactive --os sles-15-sp2 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses7 --stop-before-run-make-check --ram 4
-    true
+    run_cmd sesdev create makecheck --non-interactive --stop-before-run-make-check --ram 4
+    run_cmd sesdev destroy --non-interactive makecheck_tumbleweed
+    run_cmd sesdev create makecheck --non-interactive --os sles-12-sp3 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses5 --stop-before-run-make-check --ram 4
+    run_cmd sesdev destroy --non-interactive makecheck_sles-12-sp3
+    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp1 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses6 --stop-before-run-make-check --ram 4
+    run_cmd sesdev destroy --non-interactive makecheck_sles-15-sp1
+    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp2 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses7 --stop-before-run-make-check --ram 4
+    run_cmd sesdev destroy --non-interactive makecheck_sles-15-sp2
 fi
 
 final_report

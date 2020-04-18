@@ -25,6 +25,12 @@ class DeploymentDoesNotExists(SesDevException):
             "Deployment '{}' does not exist".format(dep_id))
 
 
+class VersionNotKnown(SesDevException):
+    def __init__(self, version):
+        super(VersionNotKnown, self).__init__(
+            "Unknown deployment version: '{}'".format(version))
+
+
 class VersionOSNotSupported(SesDevException):
     def __init__(self, version, os):
         super(VersionOSNotSupported, self).__init__(
@@ -152,4 +158,13 @@ class SupportconfigOnlyOnSLE(SesDevException):
         super(SupportconfigOnlyOnSLE, self).__init__(
             "sesdev supportconfig depends on the 'supportconfig' RPM, which is "
             "available only on SUSE Linux Enterprise"
+            )
+
+
+class BadMakeCheckRolesNodes(SesDevException):
+    def __init__(self):
+        super(BadMakeCheckRolesNodes, self).__init__(
+            "\"makecheck\" deployments only work with a single node with role "
+            "\"makecheck\". Since this is the default, you can simply omit "
+            "the --roles option when running \"sesdev create makecheck\"."
             )
