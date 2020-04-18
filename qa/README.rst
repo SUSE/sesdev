@@ -44,3 +44,17 @@ Caveats
 The following caveats apply:
 
 1. Ceph will not work properly unless the nodes have (at least) short hostnames. That means the health-ok.sh script won't pass, either. There are two options: ``/etc/hosts`` or DNS
+
+
+Linting
+-------
+
+When it comes to bash scripting, we run a tight ship. For linting, we use
+ShellCheck [1] which can be installed in an openSUSE Leap 15.1 environment
+by issuing the command:
+
+    zypper -n install ShellCheck
+
+To facilitate running ShellCheck on `health-ok.sh`, a script `shellcheck.sh` is provided.
+
+[1] https://www.shellcheck.net/
