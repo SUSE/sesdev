@@ -1714,6 +1714,8 @@ class Deployment():
                 try:
                     node = tools.run_sync(ssh_cmd)
                     node = node.strip()
+                    if node == '':
+                        raise CmdException(ssh_cmd, 1, 'No host returned.')
                 except CmdException:
                     node = 'null'
                 if node == 'null':
