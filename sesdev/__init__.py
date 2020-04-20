@@ -1,4 +1,5 @@
 import fnmatch
+import json
 import logging
 import re
 import sys
@@ -6,6 +7,8 @@ from os.path import isabs, exists, isdir
 
 import click
 import pkg_resources
+from prettytable import PrettyTable
+
 import seslib
 from seslib.exceptions import SesDevException, OptionFormatError, OptionValueError, \
                               VersionNotKnown
@@ -245,18 +248,26 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
         seslib.GlobalSettings.CONFIG_FILE = config_file
 
 
+@click.option('--format', 'format_opt', type=str, default=None)
 @cli.command(name='list')
-def list_deps():
+def list_deps(format_opt):
     """
     Lists all the available deployments.
     """
+    p_table = None
+    deployments_list = []
     deps = seslib.Deployment.list(True)
-    log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
-    logger.debug(log_msg)
-
-    click.echo("| {:^11} | {:^10} | {:^15} | {:^60} |".format("Deployments", "Version", "Status",
-                                                              "VMs"))
-    click.echo("{}".format('-' * 109))
+    if deps:
+        log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
+        logger.info(log_msg)
+    else:
+        msg = "No deployments found"
+        logger.info(msg)
+        if format_opt in ['json']:
+            click.echo(json.dumps([], sort_keys=True, indent=4))
+        else:
+            click.echo(msg)
+        return None
 
     def _status(nodes):
         status = None
@@ -275,6 +286,9 @@ def list_deps():
                 status = 'partially running'
         return status
 
+    if format_opt not in ['json']:
+        p_table = PrettyTable(["Deployments", "Version", "Status", "VMs"])
+
     for dep in deps:
         logger.debug("Looping over deployments: %s", dep.dep_id)
         status = str(_status(dep.nodes))
@@ -284,9 +298,20 @@ def list_deps():
         nodes = getattr(dep, 'nodes', None)
         node_names = '(unknown)' if nodes is None else ', '.join(nodes)
         logger.debug("-> node_names: %s", node_names)
-        click.echo("| {:<11} | {:<10} | {:<15} | {:<60} |"
-                   .format(dep.dep_id, version, status, node_names))
-    click.echo()
+        if format_opt in ['json']:
+            deployments_list.append({
+                "id": dep.dep_id,
+                "version": version,
+                "status": status,
+                "num_vms": len(nodes)
+                })
+        else:
+            p_table.add_row([dep.dep_id, version, status, node_names])
+    if format_opt in ['json']:
+        click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
+    else:
+        click.echo(p_table)
+        click.echo()
 
 
 @cli.group()

@@ -117,6 +117,12 @@ if [ "$ALL" ] ; then
     SES7="--ses7"
 fi
 
+if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
+    echo "ERROR: detected existing deployments"
+    echo "(This script expects a clean environment -- i.e., \"sesdev list\" must be empty)"
+    exit 1
+fi
+
 if [ "$SES5" ] ; then
     run_cmd sesdev box remove --non-interactive sles-12-sp3 || true
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
