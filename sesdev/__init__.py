@@ -1122,7 +1122,12 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
     a generic service.
     """
     if service:
-        click.echo("Opening tunnel to service '{}' on node '{}'...".format(service, node))
+        if service == 'dashboard':
+            click.echo("Opening tunnel to service 'dashboard' in deployment '{}'..."
+                       .format(deployment_id))
+        else:
+            click.echo("Opening tunnel to service '{}' on node '{}'..."
+                       .format(service, node))
     elif remote_port:
         click.echo("Opening tunnel between remote {} port and local {} port on node {}"
                    .format(remote_port, local_port if local_port else remote_port, node))
