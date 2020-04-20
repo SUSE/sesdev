@@ -100,7 +100,7 @@ def common_create_options(func):
         click.option('--vagrant-box', type=str, default=None,
                      help='Vagrant box to use in deployment'),
         click.option('--deploy/--no-deploy', default=True,
-                     help="Don't run the deployment phase. Just generated the Vagrantfile"),
+                     help="Don't run the deployment phase. Just generate the Vagrantfile"),
         click.option('--cpus', default=None, type=int,
                      help='Number of virtual CPUs for the VMs'),
         click.option('--ram', default=None, type=int,
@@ -458,6 +458,7 @@ def _gen_settings_dict(version,
                        scc_pass,
                        domain,
                        non_interactive,
+                       force,
                        synced_folder,
                        encrypted_osds,
                        deepsea_cli=None,
@@ -579,7 +580,7 @@ def _gen_settings_dict(version,
     if domain:
         settings_dict['domain'] = domain
 
-    if non_interactive:
+    if non_interactive or force:
         settings_dict['non_interactive'] = non_interactive
 
     if encrypted_osds:
@@ -683,6 +684,7 @@ def _gen_settings_dict(version,
 
 
 def _create_command(deployment_id, deploy, settings_dict):
+    interactive = not settings_dict.get('non_interactive', False)
     settings = seslib.Settings(**settings_dict)
     dep = seslib.Deployment.create(deployment_id, settings)
     really_want_to = None
@@ -691,9 +693,8 @@ def _create_command(deployment_id, deploy, settings_dict):
                )
     click.echo(dep.status())
     if deploy:
-        if getattr(settings, 'non_interactive', False):
-            really_want_to = True
-        else:
+        really_want_to = True
+        if interactive:
             really_want_to = click.confirm(
                 'Do you want to continue with the deployment?',
                 default=True,
@@ -730,6 +731,16 @@ def _create_command(deployment_id, deploy, settings_dict):
             dep.destroy(_silent_log)
 
 
+def _prep_kwargs(kwargs):
+    # Click 6 and Click 7 have different option-naming semantics
+    # for options with aliases
+    # handle them both
+    if 'non_interactive' in kwargs:
+        kwargs['force'] = kwargs['non_interactive']
+    if 'force' in kwargs:
+        kwargs['non_interactive'] = kwargs['force']
+
+
 @create.command()
 @click.argument('deployment_id', required=False)
 @common_create_options
@@ -739,6 +750,7 @@ def ses5(deployment_id, deploy, **kwargs):
     """
     Creates a SES5 cluster using SLES-12-SP3
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses5', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses5', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
@@ -753,6 +765,7 @@ def ses6(deployment_id, deploy, **kwargs):
     """
     Creates a SES6 cluster using SLES-15-SP1
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses6', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses6', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
@@ -771,6 +784,7 @@ def ses7(deployment_id, deploy, use_deepsea, **kwargs):
     Creates a SES7 cluster using SLES-15-SP2 and packages (and container image)
     from the Devel:Storage:7.0 IBS project
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses7', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses7', deployment_id, settings_dict)
     if use_deepsea:
@@ -788,6 +802,7 @@ def nautilus(deployment_id, deploy, **kwargs):
     Creates a Ceph Nautilus cluster using openSUSE Leap 15.1 and packages
     from filesystems:ceph:nautilus OBS project
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('nautilus', **kwargs)
     deployment_id = _maybe_gen_dep_id('nautilus', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
@@ -806,6 +821,7 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages
     (and container image) from filesystems:ceph:octopus:upstream OBS project
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('octopus', **kwargs)
     deployment_id = _maybe_gen_dep_id('octopus', deployment_id, settings_dict)
     if use_deepsea:
@@ -826,6 +842,7 @@ def pacific(deployment_id, deploy, use_deepsea, **kwargs):
     Creates a Ceph Pacific cluster using openSUSE Leap 15.2 and packages
     (and container image) from filesystems:ceph:master:upstream OBS project
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('pacific', **kwargs)
     deployment_id = _maybe_gen_dep_id('pacific', deployment_id, settings_dict)
     if use_deepsea:
@@ -843,6 +860,7 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
     """
     Creates a CaaSP cluster using SLES 15 SP1
     """
+    _prep_kwargs(kwargs)
     if kwargs['num_disks'] is None:
         kwargs['num_disks'] = 2 if deploy_ses else 0
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
@@ -872,6 +890,7 @@ def makecheck(deployment_id, deploy, **kwargs):
     """
     Creates a makecheck cluster
     """
+    _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('makecheck', **kwargs)
     if not deployment_id:
         os = settings_dict['os'] if 'os' in settings_dict else 'tumbleweed'
@@ -913,15 +932,17 @@ def _cluster_singular_or_plural(an_iterable):
               )
 @click.option('--destroy-networks', is_flag=True, default=False,
               help='Allow to destroy networks associated with the deployment')
-def destroy(deployment_id, non_interactive, destroy_networks):
+def destroy(deployment_id, **kwargs):
     """
     Destroys the deployment(s) named DEPLOYMENT_SPEC -- where DEPLOYMENT_SPEC might
     be either a literal deployment ID or a glob ("octopus_*") -- by destroying the
     VMs and deleting the deployment directory.
     """
+    interactive = not (kwargs.get('non_interactive', False) or kwargs.get('force', False))
+    destroy_networks = kwargs.get('destroy_networks', False)
     matching_deployments = _maybe_glob_deps(deployment_id)
     cluster_word = _cluster_singular_or_plural(matching_deployments)
-    if not non_interactive:
+    if interactive:
         really_want_to = click.confirm(
             'Do you really want to destroy {} {}'.format(len(matching_deployments), cluster_word),
             default=True,
@@ -999,7 +1020,7 @@ def scp(recursive, deployment_id, source, destination):
     dep.scp(source, destination, recurse=recursive)
 
 
-@cli.command()
+@cli.command(name='qa-test')
 @click.argument('deployment_id')
 def qa_test(deployment_id):
     """
@@ -1090,11 +1111,21 @@ def show(deployment_id):
               expose_value=False,
               help='Allow to redeploy the cluster without user confirmation',
               prompt='Are you sure you want to redeploy the cluster?')
-def redeploy(deployment_id):
+def redeploy(deployment_id, **kwargs):
     """
     Destroys the VMs of the deployment DEPLOYMENT_ID and deploys again the cluster
     from scratch with the same configuration.
     """
+    interactive = not (kwargs.get('non_interactive', False) or kwargs.get('force', False))
+    if interactive:
+        really_want_to = True
+        if interactive:
+            really_want_to = click.confirm(
+                'Do you want to continue with the deployment?',
+                default=True,
+                )
+        if not really_want_to:
+            raise click.Abort()
     dep = seslib.Deployment.load(deployment_id)
     dep.destroy(_print_log)
     dep = seslib.Deployment.create(deployment_id, dep.settings)
