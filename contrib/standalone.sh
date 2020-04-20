@@ -148,6 +148,7 @@ if [ "$NAUTILUS" ] ; then
     run_cmd sesdev destroy --non-interactive nautilus-1node
     run_cmd sesdev create nautilus --non-interactive nautilus-4node
     run_cmd sesdev qa-test nautilus-4node
+    run_cmd sesdev tunnel dashboard nautilus-4node
     run_cmd sesdev destroy --non-interactive nautilus-4node
 fi
 
@@ -157,6 +158,7 @@ if [ "$SES6" ] ; then
     run_cmd sesdev destroy --non-interactive ses6-1node
     run_cmd sesdev create ses6 --non-interactive ses6-4node
     run_cmd sesdev qa-test ses6-4node
+    run_cmd sesdev tunnel dashboard ses6-4node
     run_cmd sesdev destroy --non-interactive ses6-4node
 fi
 
@@ -166,6 +168,7 @@ if [ "$OCTOPUS" ] ; then
     run_cmd sesdev destroy --non-interactive octopus-1node
     run_cmd sesdev create octopus --non-interactive $CEPH_SALT_FROM_SOURCE octopus-4node
     run_cmd sesdev qa-test octopus-4node
+    run_cmd sesdev tunnel dashboard octopus-4node
     run_cmd sesdev destroy --non-interactive octopus-4node
 fi
 
@@ -175,6 +178,7 @@ if [ "$SES7" ] ; then
     run_cmd sesdev destroy --non-interactive ses7-1node
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
     run_cmd sesdev qa-test ses7-4node
+    run_cmd sesdev tunnel dashboard ses7-4node
     run_cmd sesdev destroy --non-interactive ses7-4node
 fi
 
@@ -182,10 +186,10 @@ if [ "$PACIFIC" ] ; then
     run_cmd sesdev box remove --non-interactive leap-15.2 || true
     run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test pacific-1node
     run_cmd sesdev destroy --non-interactive pacific-1node
-    # commented out pending resolution of https://tracker.ceph.com/issues/45093
-    # run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
-    # run_cmd sesdev qa-test pacific-4node
-    # run_cmd sesdev destroy --non-interactive pacific-4node
+    run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
+    run_cmd sesdev qa-test pacific-4node
+    run_cmd sesdev tunnel dashboard ses7-4node
+    run_cmd sesdev destroy --non-interactive pacific-4node
 fi
 
 if [ "$MAKECHECK" ] ; then

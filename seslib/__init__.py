@@ -1707,16 +1707,7 @@ class Deployment():
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
 
-                if self.settings.version in ['octopus', 'ses7']:
-                    ceph_client_node = None
-                    for _node in self.nodes.values():
-                        if _node.has_role('mon'):
-                            ceph_client_node = _node.name
-                            break
-                else:
-                    ceph_client_node = 'master'
-                # we need to find which node has the active mgr
-                ssh_cmd = self._ssh_cmd(ceph_client_node)
+                ssh_cmd = self._ssh_cmd('master')
                 ssh_cmd.append("ceph mgr services | jq -r .dashboard "
                                "| sed 's!https://\\(.*\\)\\.{}:.*/!\\1!g'"
                                .format(self.settings.domain.format(self.dep_id)))
