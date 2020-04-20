@@ -7,6 +7,14 @@ ls -lR /home/vagrant
 # remove the first line introduced by vagrant
 head -1 /etc/hosts | grep -q '127.*' && sed -i '1d' /etc/hosts
 
+{% for _node in nodes %}
+{% if _node.public_address %}
+echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
+{% endif %}
+{% endfor %}
+
+sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
+
 # remove "which" RPM because testing environments typically don't have it installed
 zypper -n rm which || true
 
@@ -15,13 +23,14 @@ zypper -n rm which || true
 zypper -n rm python-base || true
 {% endif %}
 
-{% for _node in nodes %}
-{% if _node.public_address %}
-echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
+# remove Non-OSS repos in openSUSE
+{% if os.startswith('leap') or os == "tumbleweed" %}
+zypper --non-interactive removerepo repo-non-oss || true
+zypper --non-interactive removerepo repo-update-non-oss || true
+zypper --non-interactive removerepo repo-debug-non-oss || true
+zypper --non-interactive removerepo repo-debug-update-non-oss || true
+zypper --non-interactive removerepo repo-source-non-oss || true
 {% endif %}
-{% endfor %}
-
-sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
 
 {% for os_repo_name, os_repo_url in os_base_repos %}
 zypper addrepo {{ os_repo_url }} {{ os_repo_name }}
