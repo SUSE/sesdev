@@ -1709,8 +1709,7 @@ class Deployment():
 
                 ssh_cmd = self._ssh_cmd('master')
                 ssh_cmd.append("ceph mgr services | jq -r .dashboard "
-                               "| sed 's!https://\\(.*\\)\\.{}:.*/!\\1!g'"
-                               .format(self.settings.domain.format(self.dep_id)))
+                               "| sed 's!https://\\([^.]*\\).*!\\1!g'")
                 try:
                     node = tools.run_sync(ssh_cmd)
                     node = node.strip()
