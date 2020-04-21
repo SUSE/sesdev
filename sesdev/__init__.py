@@ -287,7 +287,8 @@ def list_deps(format_opt):
         return status
 
     if format_opt not in ['json']:
-        p_table = PrettyTable(["Deployments", "Version", "Status", "VMs"])
+        p_table = PrettyTable(["ID", "Version", "Status", "Nodes"])
+        p_table.align = "l"
 
     for dep in deps:
         logger.debug("Looping over deployments: %s", dep.dep_id)
@@ -303,13 +304,16 @@ def list_deps(format_opt):
                 "id": dep.dep_id,
                 "version": version,
                 "status": status,
-                "num_vms": len(nodes)
+                "nodes": list(nodes),
                 })
         else:
             p_table.add_row([dep.dep_id, version, status, node_names])
     if format_opt in ['json']:
         click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
     else:
+        deployment_word = "deployments" if len(deps) > 1 else "deployment"
+        click.echo("Found {} {}:".format(len(deps), deployment_word))
+        click.echo()
         click.echo(p_table)
         click.echo()
 
