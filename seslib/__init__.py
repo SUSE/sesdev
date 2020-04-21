@@ -1260,7 +1260,8 @@ class Deployment():
             'rgw_nodes': self.node_counts["rgw"],
             'storage_nodes': self.node_counts["storage"],
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
-                                         or self.node_counts["mds"] or self.node_counts["rgw"]),
+                                         or self.node_counts["mds"] or self.node_counts["rgw"]
+                                         or self.node_counts["openattic"]),
             'total_osds': self.settings.num_disks * self.node_counts["storage"],
             'encrypted_osds': self.settings.encrypted_osds,
             'scc_username': self.settings.scc_username,
