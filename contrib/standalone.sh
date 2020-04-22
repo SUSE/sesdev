@@ -287,11 +287,11 @@ fi
 if [ "$MAKECHECK" ] ; then
     run_cmd sesdev create makecheck --non-interactive --stop-before-run-make-check --ram 4
     run_cmd sesdev destroy --non-interactive makecheck-tumbleweed
-    run_cmd sesdev create makecheck --non-interactive --os sles-12-sp3 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses5 --stop-before-run-make-check --ram 4
+    run_cmd sesdev create makecheck --non-interactive --os sles-12-sp3 --stop-before-run-make-check --ram 4
     run_cmd sesdev destroy --non-interactive makecheck-sles-12-sp3
-    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp1 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses6 --stop-before-run-make-check --ram 4
+    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp1 --stop-before-run-make-check --ram 4
     run_cmd sesdev destroy --non-interactive makecheck-sles-15-sp1
-    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp2 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses7 --stop-before-run-make-check --ram 4
+    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp2 --stop-before-run-make-check --ram 4
     run_cmd sesdev destroy --non-interactive makecheck-sles-15-sp2
 fi
 
@@ -300,6 +300,12 @@ if [ "$CAASP4" ] ; then
     run_cmd sesdev destroy --non-interactive caasp4-default
     run_cmd sesdev create caasp4 --non-interactive --deploy-ses caasp4-with-rook
     run_cmd sesdev destroy --non-interactive caasp4-with-rook
+fi
+
+if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
+    echo "ERROR: dangling deployments detected"
+    echo "(One or more deployments created by this script were not destroyed)"
+    exit 1
 fi
 
 final_report

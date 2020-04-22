@@ -858,9 +858,9 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
 @click.argument('deployment_id', required=False)
 @common_create_options
 @libvirt_options
-@click.option("--ceph-repo", default='https://github.com/ceph/ceph',
+@click.option("--ceph-repo", default=None,
               help='repo from which to clone Ceph source code')
-@click.option("--ceph-branch", default='master',
+@click.option("--ceph-branch", default=None,
               help='ceph branch on which to run "make check"')
 @click.option("--username", default='sesdev',
               help='name of ordinary user that will run make check')
@@ -872,7 +872,10 @@ def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
               help="Stop before running run-make-check.sh")
 def makecheck(deployment_id, deploy, **kwargs):
     """
-    Creates a makecheck cluster
+    Brings up a single VM and clones a Ceph repo/branch which can either be
+    specified explicitly on the command line or, failing that, will default to
+    something reasonable depending on which OS is specified. Inside the Ceph
+    clone, first "install-deps.sh" and then "run-make-check.sh" will be run.
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('makecheck', **kwargs)

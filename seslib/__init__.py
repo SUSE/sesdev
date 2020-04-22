@@ -328,6 +328,32 @@ VERSION_OS_REPO_MAPPING = {
     },
 }
 
+MAKECHECK_DEFAULT_REPO_BRANCH = {
+    'sles-12-sp3': {
+        'repo': 'https://github.com/SUSE/ceph',
+        'branch': 'ses5',
+    },
+    'sles-15-sp1': {
+        'repo': 'https://github.com/SUSE/ceph',
+        'branch': 'ses6-downstream-commits',
+    },
+    'leap-15.1': {
+        'repo': 'https://github.com/ceph/ceph',
+        'branch': 'nautilus',
+    },
+    'sles-15-sp2': {
+        'repo': 'https://github.com/SUSE/ceph',
+        'branch': 'ses7',
+    },
+    'leap-15.2': {
+        'repo': 'https://github.com/ceph/ceph',
+        'branch': 'octopus',
+    },
+    'tumbleweed': {
+        'repo': 'https://github.com/ceph/ceph',
+        'branch': 'master',
+    },
+}
 
 SETTINGS = {
     # RESERVED KEY, DO NOT USE: 'strict'
@@ -991,6 +1017,16 @@ class Deployment():
             if not self.settings.explicit_ram:
                 self.settings.override('ram', GlobalSettings.MAKECHECK_DEFAULT_RAM)
                 self.settings.override('explicit_ram', True)
+            if not self.settings.makecheck_ceph_repo:
+                self.settings.override(
+                    'makecheck_ceph_repo',
+                    MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
+                    )
+            if not self.settings.makecheck_ceph_branch:
+                self.settings.override(
+                    'makecheck_ceph_branch',
+                    MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
+                    )
 
         self._generate_nodes()
 
