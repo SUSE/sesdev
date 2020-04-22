@@ -82,7 +82,6 @@ sed -i -e 's/^\s*lv.qemu_use_session = false$//g' seslib/templates/Vagrantfile.j
 %install
 %py3_install
 %fdupes %{buildroot}%{python3_sitelib}
-# qa script installation
 install -m 0755 -d %{buildroot}/%{_datadir}/%{name}/qa
 install -m 0755 -d %{buildroot}/%{_datadir}/%{name}/qa/common
 install -m 0755 qa/health-ok.sh %{buildroot}/%{_datadir}/%{name}/qa/health-ok.sh

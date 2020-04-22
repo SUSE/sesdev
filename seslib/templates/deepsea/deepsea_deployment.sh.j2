@@ -23,7 +23,7 @@ EOF
 
 chown -R salt:salt /srv
 
-{% include "wait_for_minions.sh" %}
+{% include "wait_for_minions.sh.j2" %}
 
 sleep 2
 salt '*' grains.set deepsea True
@@ -143,4 +143,4 @@ sleep 5
 
 echo "deployment complete!"
 
-{% include "qa_test.sh" %}
+{% include "qa_test.sh.j2" %}

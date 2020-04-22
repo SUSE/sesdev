@@ -12,7 +12,7 @@ SuSEfirewall2 off
 sed -i 's/#worker_threads: 5/worker_threads: 10/g' /etc/salt/master
 systemctl restart salt-master
 systemctl restart salt-minion
-{% include "wait_for_minions.sh" %}
+{% include "wait_for_minions.sh.j2" %}
 
 cat > /srv/salt/ceph/updates/nop.sls <<EOF
 dummy command:
