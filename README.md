@@ -49,7 +49,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [With custom default roles](#with-custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
-         * [octopus from filesystems:ceph:octopus:upstream](#octopus-from-filesystemscephoctopusupstream)
+         * [octopus from filesystems:ceph:octopus&#8203;:upstream](#octopus-from-filesystemscephoctopusupstream)
          * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
    * [List existing deployments](#list-existing-deployments)
@@ -492,7 +492,7 @@ sesdev create octopus \
     --single-node
 ```
 
-##### octopus from filesystems:ceph:octopus:upstream
+##### octopus from filesystems:ceph:octopus&#8203;:upstream
 
 No config.yaml changes are needed, because this is the default configuration.
 
