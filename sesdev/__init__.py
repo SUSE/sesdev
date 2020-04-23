@@ -1147,12 +1147,24 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
     If SERVICE is not specified, you can use the --remote-port and --node to forward
     a generic service.
     """
-    if service:
-        click.echo("Opening tunnel to service '{}' on node '{}'...".format(service, node))
-    elif remote_port:
-        click.echo("Opening tunnel between remote {} port and local {} port on node {}"
-                   .format(remote_port, local_port if local_port else remote_port, node))
     dep = seslib.Deployment.load(deployment_id)
+    if service:
+        if service == 'dashboard':
+            click.echo("Opening tunnel to service 'dashboard' in deployment '{}'..."
+                       .format(dep.dep_id))
+        else:
+            click.echo("Opening tunnel to service '{}' on node '{}' of "
+                       "deployment '{}'..."
+                       .format(service, node, dep.dep_id))
+    elif remote_port:
+        click.echo("Opening tunnel between remote {} port and local {} port on "
+                   "node '{}' of deployment '{}'..."
+                   .format(
+                       remote_port,
+                       local_port if local_port else remote_port,
+                       node,
+                       dep.dep_id)
+                   )
     dep.start_port_forwarding(service, node, remote_port, local_port, local_address)
 
 

@@ -29,6 +29,18 @@ METADATA_FILENAME = ".metadata"
 logger = logging.getLogger(__name__)
 
 
+def _log_debug(log_msg):
+    logger.debug(log_msg)
+
+
+def _log_info(log_msg):
+    logger.info(log_msg)
+
+
+def _log_warning(log_msg):
+    logger.warning(log_msg)
+
+
 class GlobalSettings():
     A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
     CEPH_SALT_REPO = 'https://github.com/ceph/ceph-salt'
@@ -756,10 +768,10 @@ class Settings():
     def override(self, setting, new_value):
         if setting not in SETTINGS:
             raise SettingNotKnown(setting)
-        log_msg = "Overriding setting '{}', old value: {}".format(setting, getattr(self, setting))
-        logger.debug(log_msg)
-        log_msg = "Overriding setting '{}', new value: {}".format(setting, new_value)
-        logger.debug(log_msg)
+        _log_debug("Overriding setting '{}', old value: {}"
+                   .format(setting, getattr(self, setting)))
+        _log_debug("Overriding setting '{}', new value: {}"
+                   .format(setting, new_value))
         setattr(self, setting, new_value)
 
     def _apply_settings(self, settings_dict):
@@ -802,8 +814,7 @@ class Settings():
                 config_tree = yaml.load(file)
         if not config_tree:
             config_tree = {}
-        log_msg = "_load_config_file: config_tree: {}".format(config_tree)
-        logger.debug(log_msg)
+        _log_debug("_load_config_file: config_tree: {}".format(config_tree))
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
         __fill_in_config_tree('os_repos', OS_REPOS)
         __fill_in_config_tree('version_os_repo_mapping', VERSION_OS_REPO_MAPPING)
@@ -865,13 +876,12 @@ class Node():
         return role in self.roles
 
     def has_roles(self):
-        log_msg = "Node {}: has_roles: self.roles: {}".format(self.fqdn, self.roles)
-        logger.debug(log_msg)
+        _log_debug("Node {}: has_roles: self.roles: {}".format(self.fqdn, self.roles))
         return bool(self.roles)
 
     def has_exclusive_role(self, role):
-        log_msg = "Node {}: has_exclusive_role: self.roles: {}".format(self.fqdn, self.roles)
-        logger.debug(log_msg)
+        _log_debug("Node {}: has_exclusive_role: self.roles: {}"
+                   .format(self.fqdn, self.roles))
         if role not in KNOWN_ROLES:
             raise RoleNotKnown(role)
         return self.roles == [role]
@@ -916,8 +926,7 @@ class Deployment():
         self.node_counts = {}
         for role in KNOWN_ROLES:
             self.node_counts[role] = 0
-        log_msg = "Deployment ctor: node_counts: {}".format(self.node_counts)
-        logger.debug(log_msg)
+        _log_debug("Deployment ctor: node_counts: {}".format(self.node_counts))
         self.master = None
         self.suma = None
         self.box = Box(settings)
@@ -1013,9 +1022,8 @@ class Deployment():
         storage_id = 0
         loadbl_id = 0
         storage_id = 0
-        log_msg = ("_generate_nodes: about to process cluster roles: {}"
+        _log_debug("_generate_nodes: about to process cluster roles: {}"
                    .format(self.settings.roles))
-        logger.debug(log_msg)
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             for role in node_roles:
                 if role not in KNOWN_ROLES:
@@ -1196,8 +1204,8 @@ class Deployment():
                     "priority": 0,
                 }
             version_repos_prio.append(version_repos_dict)
-        log_msg = "generate_vagrantfile: version_repos_prio: {}".format(version_repos_prio)
-        logger.debug(log_msg)
+        _log_debug("generate_vagrantfile: version_repos_prio: {}"
+                   .format(version_repos_prio))
 
         if self.settings.os in self.settings.os_repos:
             os_base_repos = list(self.settings.os_repos[self.settings.os].items())
@@ -1209,16 +1217,14 @@ class Deployment():
         ceph_salt_fetch_github_pr_merges = False
         ceph_salt_git_branch = self.settings.ceph_salt_git_branch
         if ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr/'):
-            log_msg = ("Detected special ceph-salt GitHub PR (HEAD) branch {}"
-                       .format(ceph_salt_git_branch)
-                       )
-            logger.info(log_msg)
+            _log_info("Detected special ceph-salt GitHub PR (HEAD) branch {}"
+                      .format(ceph_salt_git_branch)
+                      )
             ceph_salt_fetch_github_pr_heads = True
         elif ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr-merged/'):
-            log_msg = ("Detected special ceph-salt GitHub PR (MERGE) branch {}"
-                       .format(ceph_salt_git_branch)
-                       )
-            logger.info(log_msg)
+            _log_info("Detected special ceph-salt GitHub PR (MERGE) branch {}"
+                      .format(ceph_salt_git_branch)
+                      )
             ceph_salt_fetch_github_pr_merges = True
 
         context = {
@@ -1340,7 +1346,8 @@ class Deployment():
             using_custom_box = False
             vagrant_box = self.settings.os
 
-        logger.info("Checking if vagrant box is already here: %s", vagrant_box)
+        _log_info("Checking if vagrant box is already here: {}"
+                  .format(vagrant_box))
         found_box = False
         output = tools.run_sync(["vagrant", "box", "list"])
         lines = output.split('\n')
@@ -1698,32 +1705,29 @@ class Deployment():
                 else:
                     service_url = 'https://{}:{}'.format(local_address, local_port)
             elif service == 'dashboard':
+                if self.settings.version == 'ses5':
+                    raise ServiceNotFound(service)
                 remote_port = 8443
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
-
-                if self.settings.version in ['octopus', 'ses7']:
-                    ceph_client_node = None
-                    for _node in self.nodes.values():
-                        if _node.has_role('mon'):
-                            ceph_client_node = _node.name
-                            break
-                else:
-                    ceph_client_node = 'master'
-                # we need to find which node has the active mgr
-                ssh_cmd = self._ssh_cmd(ceph_client_node)
-                ssh_cmd.append("ceph mgr services | jq -r .dashboard "
-                               "| sed 's!https://\\(.*\\)\\.{}:.*/!\\1!g'"
-                               .format(self.settings.domain.format(self.dep_id)))
+                ssh_cmd = self._ssh_cmd('master')
+                ssh_cmd += ["ceph", "mgr", "services"]
+                _log_debug("About to run: {}".format(ssh_cmd))
                 try:
-                    node = tools.run_sync(ssh_cmd)
-                    node = node.strip()
-                except CmdException:
+                    raw_json = tools.run_sync(ssh_cmd)
+                    raw_json = raw_json.strip()
+                    _log_debug("Got output: {}".format(raw_json))
+                    decoded_json = json.loads(raw_json)
+                    _log_debug("Decoded json: {}".format(decoded_json))
+                    dashboard_url = decoded_json['dashboard']
+                    _log_debug("Dashboard URL: {}".format(dashboard_url))
+                    node = re.match(r"https://([^.]*).*", dashboard_url).group(1)
+                    _log_debug("Extracted node: {}".format(node))
+                except (CmdException, AttributeError, KeyError):
                     node = 'null'
                 if node == 'null':
                     raise ServiceNotFound(service)
-
-                logger.info("dashboard is running on node %s", node)
+                print("dashboard is running on node '{}'".format(node))
             elif service == 'suma':
                 node = 'master'
                 remote_port = 443
@@ -1739,7 +1743,6 @@ class Deployment():
                 remote_port = 9093
                 local_port = 9093
                 service_url = 'http://{}:{}'.format(local_address, local_port)
-
         else:
             if node not in self.nodes:
                 raise NodeDoesNotExist(node)
@@ -1753,6 +1756,7 @@ class Deployment():
         ssh_cmd.extend(["-M", "-S", "{}-admin-socket".format(self.dep_id), "-fNT", "-L",
                         "{}:{}:{}:{}".format(local_address, local_port, self.nodes[node].fqdn,
                                              remote_port)])
+        _log_debug("About to run: {}".format(ssh_cmd))
         print("You can now access the service in: {}".format(service_url))
         tools.run_sync(ssh_cmd)
 

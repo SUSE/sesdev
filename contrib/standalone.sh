@@ -22,13 +22,15 @@
 
 set -x
 
-SCRIPTNAME=$(basename ${0})
+SCRIPTNAME="$(basename "${0}")"
 FINAL_REPORT="$(mktemp)"
+TEMP_FILE="$(mktemp)"
 
 function final_report {
-    echo -en "\n=====================================================================\n" >> $FINAL_REPORT
-    cat $FINAL_REPORT
-    rm $FINAL_REPORT
+    echo -en "\n=====================================================================\n" >> "$FINAL_REPORT"
+    cat "$FINAL_REPORT"
+    rm "$FINAL_REPORT"
+    rm "$TEMP_FILE"
     exit 0
 }
 
@@ -63,25 +65,61 @@ function usage {
 
 function run_cmd {
     local exit_status
-    local timestamp="$(date -Iminutes --utc)"
-    echo -en "\n${timestamp%+00:00}\n" >> $FINAL_REPORT
-    echo -en "=====================================================================\n" >> $FINAL_REPORT
-    echo -en "Command:\n\n    $@\n" >> $FINAL_REPORT
-    $@
+    local timestamp
+    timestamp="$(date -Iminutes --utc)"
+    {
+        echo -en "\n${timestamp%+00:00}\n" ;
+        echo -en "=====================================================================\n" ;
+        echo -en "Command:\n\n    $*\n" 
+    } >> "$FINAL_REPORT"
+    "$@"
     exit_status="$?"
     if [ "$exit_status" = "0" ] ; then
-        echo -en "\nExit status: 0 (PASS)\n" >> $FINAL_REPORT
+        echo -en "\nExit status: 0 (PASS)\n" >> "$FINAL_REPORT"
     else
-        echo -en "\nExit status: $exit_status (FAIL)\n" >> $FINAL_REPORT
+        echo -en "\nExit status: $exit_status (FAIL)\n" >> "$FINAL_REPORT"
         final_report
     fi  
 }
 
+function test_tunnel {
+    local dep_id="$1"
+    local service="$2"
+    local protocol="$3"
+    local port="$4"
+    local search_string="$5"
+    local exit_status
+    [ -z "$service" ]       && service="dashboard"
+    [ -z "$protocol" ]      && protocol="https"
+    [ -z "$port" ]          && port="8443"
+    [ -z "$search_string" ] && search_string="SUSE Enterprise Storage"
+    timeout 40s sesdev tunnel "$dep_id" "$service" &
+    sleep 30
+    curl --silent --insecure "$protocol://127.0.0.1:$port" | tee "$TEMP_FILE"
+    grep "$search_string" "$TEMP_FILE"
+    exit_status="$?"
+    sleep 15
+    return "$exit_status"
+}
+
+function tunnel_gone {
+    local protocol="$1"
+    local port="$2"
+    local curl_output
+    [ -z "$protocol" ] && protocol="https"
+    [ -z "$port" ]     && port="8443"
+    curl_output="$(curl --silent --insecure "$protocol://127.0.0.1:$port")"
+    if [ "$curl_output" ] ; then
+        echo "ERROR: tunnel is unexpectedly still there - bailing out!"
+        return 1
+    else
+        return 0
+    fi
+}
+
 TEMP=$(getopt -o h \
 --long "help,ceph-salt-from-source,full,makecheck,nautilus,octopus,pacific,ses5,ses6,ses7" \
--n 'standalone.sh' -- "$@")
-
-if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+-n 'standalone.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
 # process command-line options
@@ -112,11 +150,11 @@ while true ; do
     esac
 done
 
-if [ "$FULL" -o "$MAKECHECK" -o "$NAUTILUS" -o "$OCTOPUS" -o "$PACIFIC" -o "$SES5" -o "$SES6" -o "$SES7" ] ; then
+if [ "$FULL" ] || [ "$MAKECHECK" ] || [ "$NAUTILUS" ] || [ "$OCTOPUS" ] || [ "$PACIFIC" ] || [ "$SES5" ] || [ "$SES6" ] || [ "$SES7" ] ; then
     NORMAL_OPERATION=""
 fi
 
-if [ "$FULL" -o "$NORMAL_OPERATION" ] ; then
+if [ "$FULL" ] || [ "$NORMAL_OPERATION" ] ; then
     [ "$FULL" ] && MAKECHECK="--makecheck"
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
@@ -135,10 +173,13 @@ fi
 if [ "$SES5" ] ; then
     run_cmd sesdev box remove --non-interactive sles-12-sp3 || true
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
-    run_cmd sesdev create ses5 --non-interactive --roles [master,storage,mon,mgr,mds,rgw,nfs] --qa-test ses5-1node
+    run_cmd sesdev create ses5 --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" --qa-test ses5-1node
     run_cmd sesdev destroy --non-interactive ses5-1node
-    run_cmd sesdev create ses5 --non-interactive --roles [master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs] ses5-4node
+    run_cmd sesdev create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
     run_cmd sesdev qa-test ses5-4node
+    run_cmd test_tunnel ses5-4node openattic http 8080 Redirecting
+    # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
+    # run_cmd tunnel_gone http 8080
     run_cmd sesdev destroy --non-interactive ses5-4node
 fi
 
@@ -157,6 +198,9 @@ if [ "$SES6" ] ; then
     run_cmd sesdev destroy --non-interactive ses6-1node
     run_cmd sesdev create ses6 --non-interactive ses6-4node
     run_cmd sesdev qa-test ses6-4node
+    run_cmd test_tunnel ses6-4node
+    # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
+    # run_cmd tunnel_gone
     run_cmd sesdev destroy --non-interactive ses6-4node
 fi
 
@@ -175,6 +219,9 @@ if [ "$SES7" ] ; then
     run_cmd sesdev destroy --non-interactive ses7-1node
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
     run_cmd sesdev qa-test ses7-4node
+    run_cmd test_tunnel ses7-4node
+    # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
+    # run_cmd tunnel_gone
     run_cmd sesdev destroy --non-interactive ses7-4node
 fi
 
@@ -182,10 +229,9 @@ if [ "$PACIFIC" ] ; then
     run_cmd sesdev box remove --non-interactive leap-15.2 || true
     run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test pacific-1node
     run_cmd sesdev destroy --non-interactive pacific-1node
-    # commented out pending resolution of https://tracker.ceph.com/issues/45093
-    # run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
-    # run_cmd sesdev qa-test pacific-4node
-    # run_cmd sesdev destroy --non-interactive pacific-4node
+    run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
+    run_cmd sesdev qa-test pacific-4node
+    run_cmd sesdev destroy --non-interactive pacific-4node
 fi
 
 if [ "$MAKECHECK" ] ; then
