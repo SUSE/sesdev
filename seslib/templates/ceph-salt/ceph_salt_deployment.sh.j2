@@ -29,7 +29,7 @@ zypper -n in ceph-salt
 {% endif %}
 
 systemctl restart salt-master
-{% include "wait_for_minions.sh" %}
+{% include "wait_for_minions.sh.j2" %}
 
 {% if stop_before_ceph_salt_config %}
 exit 0
@@ -132,4 +132,4 @@ echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.na
 ceph fs volume create myfs "$MDS_NODES_COMMA_SEPARATED_LIST"
 {% endif %} {# if ceph_salt_deploy_mdss #}
 
-{% include "qa_test.sh" %}
+{% include "qa_test.sh.j2" %}

@@ -124,7 +124,7 @@ systemctl enable salt-minion
 systemctl start salt-minion
 
 {% if version == "ses5" or version == "nautilus" or version == "ses6" %}
-{% include "sync_clocks.sh.j2" ignore missing %}
+{% include "sync_clocks.sh.j2" %}
 {% endif %}
 
 {% endif %} {# not suma #}
@@ -142,26 +142,40 @@ sleep 5
 systemctl restart salt-minion
 {% endif %} {# node == master #}
 
-while : ; do
-  PROVISIONED_NODES=`ls -l /tmp/ready-* 2>/dev/null | wc -l`
-  echo "waiting for nodes (${PROVISIONED_NODES}/{{ nodes|length }})";
-  [[ "${PROVISIONED_NODES}" != "{{ nodes|length }}" ]] || break
-  sleep 2;
+set +x
+rm -f /tmp/ready-*
+echo "Waiting for {{ nodes | length }} nodes to complete initial provisioning..."
+while true ; do
 {% for node in nodes %}
-  scp -o StrictHostKeyChecking=no {{ node.name }}:/tmp/ready /tmp/ready-{{ node.name }};
+  scp -o StrictHostKeyChecking=no {{ node.name }}:/tmp/ready /tmp/ready-{{ node.name }} || true
 {% endfor %}
+  PROVISIONED_NODES="$(find /tmp -maxdepth 1 -type f -regex '/tmp/ready-.*' | wc --lines)"
+  echo "${PROVISIONED_NODES} of {{ nodes | length }} have completed initial provisioning."
+  [ "${PROVISIONED_NODES}" = "{{ nodes|length }}" ] && break
+  set -x
+  sleep 3
+  set +x
 done
+set -x
 
 {% if node == master %}
+set +x
+echo "Waiting for {{ nodes | length }} minions to submit their keys..."
 while true; do
-  sleep 1
+  set -x
   salt-key -L
-  N=`salt-key --out=json -L | jq '.minions_pre | length'`
-  [ "$N" == "{{ nodes|length }}" ] && break
+  set +x
+  N=$(salt-key --out=json -L | jq '.minions_pre | length')
+  echo "${N} of {{ nodes | length }} minions have submitted their keys."
+  [ "$N" = "{{ nodes|length }}" ] && break
+  set -x
+  sleep 3
+  set +x
 done
+set -x
 salt-key -Ay
 
-{% include "wait_for_minions.sh" %}
+{% include "wait_for_minions.sh.j2" %}
 {% endif %} {# node == master #}
 
 {% if deployment_tool == "deepsea" %}
