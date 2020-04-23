@@ -558,11 +558,6 @@ SETTINGS = {
         'help': 'Stop before running run-make-check.sh (make check)',
         'default': False,
     },
-    'ceph_salt_cephadm_bootstrap': {
-        'type': bool,
-        'help': 'Tell ceph-salt to run "cephadm bootstrap" during deployment',
-        'default': True,
-    },
     'ceph_salt_deploy_mons': {
         'type': bool,
         'help': 'Tell ceph-salt to deploy Ceph MONs',
@@ -1273,7 +1268,6 @@ class Deployment():
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
             'image_path': self.settings.image_path,
-            'ceph_salt_cephadm_bootstrap': self.settings.ceph_salt_cephadm_bootstrap,
             'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
             'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,
