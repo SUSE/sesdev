@@ -461,11 +461,6 @@ SETTINGS = {
         'help': 'Git branch to use',
         'default': 'master',
     },
-    'use_deepsea_cli': {
-        'type': bool,
-        'help': 'Use deepsea-cli to run deepsea stages',
-        'default': True,
-    },
     'stop_before_stage': {
         'type': int,
         'help': 'Stop deployment before running the specified DeepSea stage',
@@ -576,10 +571,10 @@ SETTINGS = {
         'help': 'Tell ceph-salt to deploy Ceph MDSs',
         'default': True,
     },
-    'ceph_salt_deploy': {
+    'use_salt': {
         'type': bool,
-        'help': 'Use "ceph-salt deploy" instead of applying the ceph-salt highstate directly',
-        'default': True,
+        'help': 'Use "salt" (or "salt-run") to apply Salt Formula (or execute DeepSea Stages)',
+        'default': False,
     },
     'caasp_deploy_ses': {
         'type': bool,
@@ -1245,7 +1240,6 @@ class Deployment():
             'deepsea_git_repo': self.settings.deepsea_git_repo,
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
-            'use_deepsea_cli': self.settings.use_deepsea_cli,
             'stop_before_stage': self.settings.stop_before_stage,
             'deployment_tool': self.settings.deployment_tool,
             'version_repos_prio': version_repos_prio,
@@ -1278,7 +1272,7 @@ class Deployment():
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
             'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,
             'ceph_salt_deploy_mdss': self.settings.ceph_salt_deploy_mdss,
-            'ceph_salt_deploy': self.settings.ceph_salt_deploy,
+            'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
             'synced_folders': self.settings.synced_folder,

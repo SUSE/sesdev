@@ -97,10 +97,10 @@ ceph-salt --version
 exit 0
 {% endif %}
 
-{% if ceph_salt_deploy %}
-stdbuf -o0 ceph-salt -ldebug deploy --non-interactive
-{% else %}
+{% if use_salt %}
 salt -G 'ceph-salt:member' state.apply ceph-salt
+{% else %}
+stdbuf -o0 ceph-salt -ldebug deploy --non-interactive
 {% endif %}
 
 {% if ceph_salt_deploy_mons %}

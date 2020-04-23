@@ -54,8 +54,8 @@ def libvirt_options(func):
 
 def deepsea_options(func):
     click_options = [
-        click.option('--deepsea-cli/--salt-run', default=True,
-                     help="Use deepsea-cli or salt-run to execute DeepSea stages"),
+        click.option('--salt/--deepsea-cli', default=False,
+                     help='Use "salt-run" (instead of DeepSea CLI) to execute DeepSea stages'),
         click.option('--stop-before-deepsea-stage', type=int, default=None,
                      help='Allows to stop deployment before running the specified DeepSea stage'),
         click.option('--deepsea-repo', type=str, default=None, help='DeepSea Git repo URL'),
@@ -83,8 +83,8 @@ def ceph_salt_options(func):
         click.option('--deploy-mgrs/--no-deploy-mgrs', default=True, help='Deploy Ceph MGRs'),
         click.option('--deploy-osds/--no-deploy-osds', default=True, help='Deploy Ceph OSDs'),
         click.option('--deploy-mdss/--no-deploy-mdss', default=True, help='Deploy Ceph MDSs'),
-        click.option('--ceph-salt-deploy/--no-ceph-salt-deploy', default=True,
-                     help='Use `ceph-salt deploy` command to run ceph-salt formula'),
+        click.option('--salt/--ceph-salt', default=False,
+                     help='Use "salt" (instead of "ceph-salt") to run ceph-salt formula'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -465,7 +465,7 @@ def _gen_settings_dict(version,
                        force,
                        synced_folder,
                        encrypted_osds,
-                       deepsea_cli=None,
+                       salt=None,
                        stop_before_deepsea_stage=None,
                        deepsea_repo=None,
                        deepsea_branch=None,
@@ -475,7 +475,6 @@ def _gen_settings_dict(version,
                        stop_before_ceph_salt_deploy=False,
                        image_path=None,
                        cephadm_bootstrap=None,
-                       ceph_salt_deploy=None,
                        deploy_mons=None,
                        deploy_mgrs=None,
                        deploy_osds=None,
@@ -548,16 +547,16 @@ def _gen_settings_dict(version,
     if libvirt_networks:
         settings_dict['libvirt_networks'] = libvirt_networks
 
-    if deepsea_cli is not None:
-        settings_dict['use_deepsea_cli'] = deepsea_cli
+    if salt is not None:
+        settings_dict['use_salt'] = salt
 
     if stop_before_deepsea_stage is not None:
         settings_dict['stop_before_stage'] = stop_before_deepsea_stage
 
-    if deepsea_repo:
+    if deepsea_repo is not None:
         settings_dict['deepsea_git_repo'] = deepsea_repo
 
-    if deepsea_branch:
+    if deepsea_branch is not None:
         settings_dict['deepsea_git_branch'] = deepsea_branch
 
     if version is not None:
@@ -612,10 +611,10 @@ def _gen_settings_dict(version,
     if ceph_salt_branch:
         settings_dict['ceph_salt_git_branch'] = ceph_salt_branch
 
-    if stop_before_ceph_salt_config:
+    if stop_before_ceph_salt_config is not None:
         settings_dict['stop_before_ceph_salt_config'] = stop_before_ceph_salt_config
 
-    if stop_before_ceph_salt_deploy:
+    if stop_before_ceph_salt_deploy is not None:
         settings_dict['stop_before_ceph_salt_deploy'] = stop_before_ceph_salt_deploy
 
     if image_path:
@@ -630,42 +629,34 @@ def _gen_settings_dict(version,
     if username:
         settings_dict['makecheck_username'] = username
 
-    if stop_before_git_clone:
+    if stop_before_git_clone is not None:
         settings_dict['makecheck_stop_before_git_clone'] = stop_before_git_clone
 
-    if stop_before_install_deps:
+    if stop_before_install_deps is not None:
         settings_dict['makecheck_stop_before_install_deps'] = stop_before_install_deps
 
-    if stop_before_run_make_check:
+    if stop_before_run_make_check is not None:
         settings_dict['makecheck_stop_before_run_make_check'] = stop_before_run_make_check
 
-    if cephadm_bootstrap:
-        settings_dict['ceph_salt_cephadm_bootstrap'] = True
-        settings_dict['ceph_salt_deploy_mons'] = True
-        settings_dict['ceph_salt_deploy_mgrs'] = True
-        settings_dict['ceph_salt_deploy_osds'] = True
-        settings_dict['ceph_salt_deploy_mdss'] = True
-    else:
-        settings_dict['ceph_salt_cephadm_bootstrap'] = False
-        settings_dict['ceph_salt_deploy_mons'] = False
-        settings_dict['ceph_salt_deploy_mgrs'] = False
-        settings_dict['ceph_salt_deploy_osds'] = False
-        settings_dict['ceph_salt_deploy_mdss'] = False
+    if deploy_mons is not None:
+        settings_dict['ceph_salt_deploy_mons'] = deploy_mons
 
-    if not deploy_mons:
-        settings_dict['ceph_salt_deploy_mons'] = False
+    if deploy_mgrs is not None:
+        settings_dict['ceph_salt_deploy_mgrs'] = deploy_mgrs
 
-    if not deploy_mgrs:
-        settings_dict['ceph_salt_deploy_mgrs'] = False
+    if deploy_osds is not None:
+        settings_dict['ceph_salt_deploy_osds'] = deploy_osds
 
-    if not deploy_osds:
-        settings_dict['ceph_salt_deploy_osds'] = False
+    if deploy_mdss is not None:
+        settings_dict['ceph_salt_deploy_mdss'] = deploy_mdss
 
-    if not deploy_mdss:
-        settings_dict['ceph_salt_deploy_mdss'] = False
-
-    if not ceph_salt_deploy:
-        settings_dict['ceph_salt_deploy'] = False
+    if cephadm_bootstrap is not None:
+        settings_dict['ceph_salt_cephadm_bootstrap'] = cephadm_bootstrap
+        if cephadm_bootstrap is False:
+            settings_dict['ceph_salt_deploy_mons'] = False
+            settings_dict['ceph_salt_deploy_mgrs'] = False
+            settings_dict['ceph_salt_deploy_osds'] = False
+            settings_dict['ceph_salt_deploy_mdss'] = False
 
     for folder in synced_folder:
         try:
