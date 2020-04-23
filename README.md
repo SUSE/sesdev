@@ -1,10 +1,26 @@
-# sesdev - deploy and manage SES/Ceph clusters<br/> [![Travis Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev) [![Jenkins Build Status](https://ceph-ci.suse.de/job/sesdev-integration/job/master/badge/icon)](https://ceph-ci.suse.de/job/sesdev-integration/job/master/)
+# sesdev - deploy and manage SES/Ceph clusters<br/>
 
 `sesdev` is a CLI tool to deploy Ceph clusters (both the upstream and SUSE
 downstream versions).
 
 This tool uses [Vagrant](https://www.vagrantup.com/) behind the scenes to create
 the VMs and run the deployment scripts.
+
+## Build Status
+
+### Travis
+
+[![Travis Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev)
+
+The Travis CI tests that the Python source code of `sesdev` compiles and has no
+linter issues.
+
+### Jenkins
+
+[![Jenkins Build Status](https://ceph-ci.suse.de/job/sesdev-integration/job/master/badge/icon)](https://ceph-ci.suse.de/job/sesdev-integration/job/master/)
+
+The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
+15.2.x ("Octopus") cluster in an openSUSE Leap 15.2 environment.
 
 ## Table of Contents
 
@@ -34,7 +50,7 @@ the VMs and run the deployment scripts.
       * [With custom default roles](#with-custom-default-roles)
       * [config.yaml examples](#configyaml-examples)
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
-         * [octopus from filesystems:ceph:octopus:upstream](#octopus-from-filesystemscephoctopusupstream)
+         * [octopus from filesystems:ceph:octopus&#8203;:upstream](#octopus-from-filesystemscephoctopusupstream)
          * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
    * [List existing deployments](#list-existing-deployments)
@@ -486,7 +502,7 @@ sesdev create octopus \
     --single-node
 ```
 
-##### octopus from filesystems:ceph:octopus:upstream
+##### octopus from filesystems:ceph:octopus&#8203;:upstream
 
 No config.yaml changes are needed, because this is the default configuration.
 
