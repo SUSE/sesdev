@@ -111,11 +111,11 @@ hostnamectl set-hostname {{ node.name }}
 
 {% if version == 'caasp4' %}
 {% include "caasp/provision.sh.j2" %}
-{% elif version == 'makecheck' %}
-{% include "makecheck/provision.sh.j2" %}
 {% endif %}
 
-{% if node != suma %}
+{% if version == 'makecheck' %}
+{% include "makecheck/provision.sh.j2" %}
+{% elif not suma %}
 zypper -n install salt-minion
 sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
 
@@ -129,7 +129,7 @@ systemctl start salt-minion
 {% include "sync_clocks.sh.j2" %}
 {% endif %}
 
-{% endif %} {# node != suma #}
+{% endif %} {# not suma #}
 
 touch /tmp/ready
 
