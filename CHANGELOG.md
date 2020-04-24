@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.11] - 2020-04-24
+
+### Added
+- Implement feature "sesdev create makecheck" (PR #236)
+- Deployment: silently add "master" and "bootstrap" roles (PR #254)
+- sesdev: implement "sesdev list --format json" and PrettyTable-based
+  "sesdev list" (PR #259)
+
+### Fixed
+- qa: fix maybe_wait_for_mdss test (PR #262)
+- provision.sh: remove Non-OSS repos on openSUSE (PR #265)
+- sesdev: support Click 6.7 (PR #268)
+- seslib: more robust dashboard tunnelling (PR #274)
+- deepsea: "openattic" role needs Stage 4 (PR #275)
+- provision.sh: refactor while loops and fix packaging-related breakage
+  (PR #279)
+
+### Changed
+- Remove "disable cephadm bootstrap" functionality (PR #261)
+- Rename --deepsea-cli and --ceph-salt-deploy options to --salt (PR #267)
+
 ## [1.1.10] - 2020-04-17
 
 ### Added
@@ -308,7 +329,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.10...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.11...HEAD
+[1.1.11]: https://github.com/SUSE/sesdev/releases/tag/v1.1.11
 [1.1.10]: https://github.com/SUSE/sesdev/releases/tag/v1.1.10
 [1.1.9]: https://github.com/SUSE/sesdev/releases/tag/v1.1.9
 [1.1.8]: https://github.com/SUSE/sesdev/releases/tag/v1.1.8
