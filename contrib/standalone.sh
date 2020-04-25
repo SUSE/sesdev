@@ -224,7 +224,8 @@ if [ "$SES7" ] ; then
     run_cmd sesdev destroy --non-interactive ses7-1node
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
     run_cmd sesdev qa-test ses7-4node
-    run_cmd test_tunnel ses7-4node
+    # revert back to default test_tunnel arguments after bsc#1170498 is fixed
+    run_cmd test_tunnel ses7-4node dashboard https 8443 "JavaScript required"
     # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
     # run_cmd tunnel_gone
     run_cmd sesdev destroy --non-interactive ses7-4node
