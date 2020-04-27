@@ -1435,9 +1435,11 @@ class Deployment():
         if node and node not in self.nodes:
             raise NodeDoesNotExist(node)
         if node:
+            log_handler("Stopping node {} of deployment {}\n".format(node, self.dep_id))
             self._stop(node)
         else:
             for _node in self.nodes:
+                log_handler("Stopping node {} of deployment {}\n".format(_node, self.dep_id))
                 self._stop(_node)
 
     def start(self, log_handler, node=None):
