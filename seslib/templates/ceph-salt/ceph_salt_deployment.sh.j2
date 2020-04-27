@@ -70,7 +70,8 @@ ceph-salt config /ssh/ generate
 ceph-salt config /containers/images/ceph set {{ image_path }}
 {% endif %}
 ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
-ceph-salt config /time_server/external_servers add 0.pt.pool.ntp.org
+{% set external_timeserver = "pool.ntp.org" %}
+ceph-salt config /time_server/external_servers add {{ external_timeserver }}
 
 {% if ceph_salt_deploy_osds %}
 {% if storage_nodes < 3 %}
@@ -103,12 +104,55 @@ stdbuf -o0 ceph-salt -ldebug apply --non-interactive
 {% if ceph_salt_deploy_mons %}
 {% if mon_nodes > 1 %}
 TIME_SERVER="$(ceph-salt export | jq -r .time_server.server_host)"
-salt "$TIME_SERVER" cmd.run 'bash -c "chronyc makestep && chronyc waitsync"'
-{% for node in nodes %}
-if [ "{{ node.fqdn }}" != "$TIME_SERVER" ] ; then
-    salt "{{ node.fqdn }}" cmd.run 'bash -c "chronyc makestep && chronyc waitsync"'
+{% set chrony_script = "chrony_sync_start.sh" %}
+cat > /root/{{ chrony_script }} << 'EOF'
+#!/bin/bash
+
+set -x
+
+function try_wait {
+    local cmd="$1"
+    local tries="$2"
+    local sleep_secs="$3"
+    set +x
+    for i in $(seq 1 "$tries") ; do
+        set -x
+        $cmd
+        set +x
+        SAVED_STATUS="$?"
+        test "$SAVED_STATUS" = "0" && break
+        set -x
+        sleep "$sleep_secs"
+        set +x
+    done
+    set -x
+}
+
+chronyc 'burst 4/4'
+sleep 15
+chronyc makestep
+stdbuf -o0 chronyc waitsync 30 0.04
+try_wait "chronyc -n sources" 10 5
+systemctl status --lines 20 chronyd.service | grep stepped
+chronyc tracking
+EOF
+chmod 755 /root/{{ chrony_script }}
+{% for _node in nodes %}
+{% if _node != master %}
+scp -o StrictHostKeyChecking=no /root/{{ chrony_script }} {{ _node.name }}:
+{% endif %}
+{% endfor %}
+{% for _node in nodes %}
+if [ "{{ _node.fqdn }}" == "$TIME_SERVER" ] ; then
+    ssh -o StrictHostKeyChecking=no {{ _node.name }} ./{{ chrony_script }}
 fi
 {% endfor %}
+{% for _node in nodes %}
+if [ "{{ _node.fqdn }}" != "$TIME_SERVER" ] ; then
+    ssh -o StrictHostKeyChecking=no {{ _node.name }} ./{{ chrony_script }} &
+fi
+{% endfor %}
+wait
 ceph orch apply mon "$MON_NODES_COMMA_SEPARATED_LIST"
 {% endif %} {# mon_nodes > 1 #}
 {% endif %} {# ceph_salt_deploy_mons #}

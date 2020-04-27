@@ -97,9 +97,12 @@ function try_wait {
 }
 
 systemctl start chronyd.service
+sleep 15
 chronyc makestep
+chronyc 'burst 4/4'
 stdbuf -o0 chronyc waitsync
 try_wait "chronyc -n sources" 10 5
+systemctl status --lines 20 chronyd.service | grep stepped
 EOF
 chmod 755 {{ chrony_script }}
 ./{{ chrony_script }}
