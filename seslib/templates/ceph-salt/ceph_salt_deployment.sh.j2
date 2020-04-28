@@ -6,7 +6,7 @@ set -ex
 cd /root
 git clone {{ ceph_salt_git_repo }}
 cd ceph-salt
-zypper -n in autoconf gcc python3-devel python3-pip python3-curses
+zypper --non-interactive install autoconf gcc python3-devel python3-pip python3-curses
 
 {% if ceph_salt_fetch_github_pr_heads %}
 # fetch the available PRs (HEAD) from github. With that, "ceph_salt_git_branch" can be something like "origin/pr/127" to checkout a github PR
@@ -25,7 +25,7 @@ cp -r ceph-salt-formula/salt/* /srv/salt/
 chown -R salt:salt /srv
 {% else %}
 # ceph-salt-formula is installed automatically as a dependency of ceph-salt
-zypper -n in ceph-salt
+zypper --non-interactive install ceph-salt
 {% endif %}
 
 systemctl restart salt-master
@@ -86,7 +86,7 @@ ceph-salt config ls
 ceph-salt export --pretty
 ceph-salt status
 
-zypper lr -upEP
+zypper repos -upEP
 zypper info cephadm | grep -E '(^Repo|^Version)'
 ceph-salt --version
 

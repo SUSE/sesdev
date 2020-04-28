@@ -1,4 +1,5 @@
-zypper -n install nginx
+
+zypper --non-interactive install nginx
 
 cat > /etc/nginx/nginx.conf << EOF
 user  nginx;

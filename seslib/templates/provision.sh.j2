@@ -13,14 +13,18 @@ echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/host
 {% endif %}
 {% endfor %}
 
+# do not exclude documentation files when installing RPM packages
 sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
 
+# enable autorefresh on all zypper repos
+find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/' {} \;
+
 # remove "which" RPM because testing environments typically don't have it installed
-zypper -n rm which || true
+zypper --non-interactive remove which || true
 
 # remove Python 2 so it doesn't pollute the environment
 {% if os != 'sles-12-sp3' %}
-zypper -n rm python-base || true
+zypper --non-interactive remove python-base || true
 {% endif %}
 
 # remove Non-OSS repos in openSUSE
@@ -33,11 +37,11 @@ zypper --non-interactive removerepo repo-source-non-oss || true
 {% endif %}
 
 {% for os_repo_name, os_repo_url in os_base_repos %}
-zypper addrepo {{ os_repo_url }} {{ os_repo_name }}
+zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
 {% for _repo in version_repos_prio %}
-zypper addrepo
+zypper addrepo --refresh
 {%- if _repo.priority %}
  --priority {{ _repo.priority }}
 {%- elif repo_priority %}
@@ -76,9 +80,9 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
        'command-not-found',
    ] %}
 {% if os == 'sles-12-sp3' %}
-zypper -n install {{ basic_pkgs_to_install | join(' ') }} ntp
+zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} ntp
 {% else %}
-zypper -n install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
+zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
 {% endif %}
 
 {% if os.startswith("sle") %}
@@ -87,13 +91,13 @@ zypper -n install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
        'supportutils',
        'supportutils-plugin-ses',
    ] %}
-zypper -n install {{ sle_pkgs_to_install | join(' ') }}
+zypper --non-interactive install {{ sle_pkgs_to_install | join(' ') }}
 {% endif %}
 
 {% for repo in node.repos %}
-zypper ar {{ repo.url }} {{ repo.name }}
+zypper addrepo --refresh {{ repo.url }} {{ repo.name }}
 {% if repo_priority and repo.priority %}
-zypper mr -p {{ repo.priority }} {{ repo.name }}
+zypper modifyrepo --priority {{ repo.priority }} {{ repo.name }}
 {% endif %}
 {% endfor %}
 {% if node.repos|length > 0 %}
@@ -116,7 +120,7 @@ hostnamectl set-hostname {{ node.name }}
 {% if version == 'makecheck' %}
 {% include "makecheck/provision.sh.j2" %}
 {% elif not suma %}
-zypper -n install salt-minion
+zypper --non-interactive install salt-minion
 sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
 
 # change salt log level to info
@@ -136,7 +140,7 @@ touch /tmp/ready
 {% if node == master or node == suma %}
 
 {% if node == master %}
-zypper -n install salt-master
+zypper --non-interactive install salt-master
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
 systemctl enable salt-master
 systemctl start salt-master

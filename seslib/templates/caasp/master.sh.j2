@@ -1,5 +1,5 @@
 
-zypper -n in -t pattern SUSE-CaaSP-Management
+zypper --non-interactive install --type pattern SUSE-CaaSP-Management
 
 {% if node.name == 'master1' %}
 
@@ -21,7 +21,7 @@ function wait_for_workers_ready {
     printf "\n"
 }
 
-zypper -n in skuba skuba-update
+zypper --non-interactive install skuba skuba-update
 
 touch /tmp/ready
 
@@ -146,7 +146,7 @@ rm ${MLBCONFIG}
 
 # deploy and configure rook + Ceph
 
-zypper -n in rook-k8s-yaml
+zypper --non-interactive install rook-k8s-yaml
 cd /usr/share/k8s-yaml/rook/ceph/
 
 {% if node_manager.get_by_role('worker') | length <3 %}
