@@ -15,6 +15,9 @@ echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/host
 
 sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
 
+# enable autorefresh on all zypper repos
+find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/' {} \;
+
 # remove "which" RPM because testing environments typically don't have it installed
 zypper -n rm which || true
 
