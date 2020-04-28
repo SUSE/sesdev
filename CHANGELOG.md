@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.12] - 2020-04-28
+
+### Added
+- provision.sh: enable autorefresh on all repos (PR #288)
+
+### Fixed
+- seslib: fix "Unused argument" linter warning (PR #286)
+- provision.sh.j2: Properly prepare CaaSP nodes (PR #283)
+- ceph_salt_deployment: really sync clocks (PR #285)
+
+### Changed
+- Rename 'ceph-salt deploy' to 'ceph-salt apply' (PR #280)
+
 ## [1.1.11] - 2020-04-24
 
 ### Added
@@ -329,7 +342,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.11...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.12...HEAD
+[1.1.12]: https://github.com/SUSE/sesdev/releases/tag/v1.1.12
 [1.1.11]: https://github.com/SUSE/sesdev/releases/tag/v1.1.11
 [1.1.10]: https://github.com/SUSE/sesdev/releases/tag/v1.1.10
 [1.1.9]: https://github.com/SUSE/sesdev/releases/tag/v1.1.9

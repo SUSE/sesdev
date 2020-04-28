@@ -12,7 +12,7 @@ These are the steps to make a release for version `<version_number>`:
     - Update the links at the bottom of the file.
 4. Update version number in `sesdev.spec` to `Version: <version_number>`
 5. Create a commit with title `Bump to v<version_number>` containing the
-   modifications to `CHANGELOG.md` made in the previous two steps.
+   modifications made in the previous two steps.
 6. Create an annotated tag for the above commit: `git tag -s -a v<version_number> -m"version <version_number>"`.
     - The message should be `version <version_number>`.
     - Using `git show v<version_number>`, review the commit message of the annotated tag.
