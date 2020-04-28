@@ -6,9 +6,9 @@ git checkout {{ deepsea_git_branch }}
 make install
 {% else %}
 {% if version == 'ses5' %}
-zypper -n install deepsea
+zypper --non-interactive install deepsea
 {% else %}
-zypper -n install deepsea deepsea-cli
+zypper --non-interactive install deepsea deepsea-cli
 {% endif %}
 {% endif %}
 deepsea --version

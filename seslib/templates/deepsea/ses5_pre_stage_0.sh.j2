@@ -6,7 +6,7 @@ if [ ! -e /etc/fstab ]; then
     echo "$uuid $partial" > /etc/fstab
 fi
 
-zypper -n install SuSEfirewall2
+zypper --non-interactive install SuSEfirewall2
 SuSEfirewall2 off
 
 sed -i 's/#worker_threads: 5/worker_threads: 10/g' /etc/salt/master

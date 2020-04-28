@@ -1,8 +1,9 @@
+
 systemctl stop firewalld
 
 sed -i 's/^.*onlyRequires = true$/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
 
-zypper -n in xfsprogs
+zypper --non-interactive install xfsprogs
 
 SW_DEV=`lsblk --nodeps -o name,size | grep ^vd | grep 101G | head -1 | cut -d' ' -f1`
 PG_DEV=`lsblk --nodeps -o name,size | grep ^vd | grep 51G | head -1 | cut -d' ' -f1`
@@ -17,7 +18,7 @@ mkdir -p /var/lib/pgsql
 mount /var/spacewalk
 mount /var/lib/pgsql
 
-zypper -n in -t pattern uyuni_server
+zypper --non-interactive install --type pattern uyuni_server
 
 cat > /root/setup_env.sh <<EOF
 MANAGER_FORCE_INSTALL='0'

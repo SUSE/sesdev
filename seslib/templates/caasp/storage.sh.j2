@@ -1,4 +1,5 @@
-zypper -n in nfs-kernel-server
+
+zypper --non-interactive install nfs-kernel-server
 
 mkdir /nfs
 echo '/nfs     *.{{ domain }}(rw,no_root_squash)' >/etc/exports
