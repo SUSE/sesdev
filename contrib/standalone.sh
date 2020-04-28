@@ -118,12 +118,13 @@ function tunnel_gone {
 }
 
 TEMP=$(getopt -o h \
---long "help,ceph-salt-from-source,full,makecheck,nautilus,octopus,pacific,ses5,ses6,ses7" \
+--long "help,caasp4,ceph-salt-from-source,full,makecheck,nautilus,octopus,pacific,ses5,ses6,ses7" \
 -n 'standalone.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
 # process command-line options
 NORMAL_OPERATION="not_empty"
+CAASP4=""
 CEPH_SALT_FROM_SOURCE=""
 FULL=""
 MAKECHECK=""
@@ -135,6 +136,7 @@ SES6=""
 SES7=""
 while true ; do
     case "$1" in
+        --caasp4)                CAASP4="--caasp4" ; shift ;;
         --ceph-salt-from-source) CEPH_SALT_FROM_SOURCE="--ceph-salt-branch=master" ; shift ;;
         --full)                  FULL="$1" ; shift ;;
         --makecheck)             MAKECHECK="$1" ; shift ;;
@@ -150,12 +152,15 @@ while true ; do
     esac
 done
 
-if [ "$FULL" ] || [ "$MAKECHECK" ] || [ "$NAUTILUS" ] || [ "$OCTOPUS" ] || [ "$PACIFIC" ] || [ "$SES5" ] || [ "$SES6" ] || [ "$SES7" ] ; then
+if [ "$CAASP4" ] || [ "$FULL" ] || [ "$MAKECHECK" ] || [ "$NAUTILUS" ] || [ "$OCTOPUS" ] || [ "$PACIFIC" ] || [ "$SES5" ] || [ "$SES6" ] || [ "$SES7" ] ; then
     NORMAL_OPERATION=""
 fi
 
 if [ "$FULL" ] || [ "$NORMAL_OPERATION" ] ; then
-    [ "$FULL" ] && MAKECHECK="--makecheck"
+    if [ "$FULL" ] ; then
+        CAASP4="--caasp4"
+        MAKECHECK="--makecheck"
+    fi
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
     PACIFIC="--pacific"
@@ -243,6 +248,11 @@ if [ "$MAKECHECK" ] ; then
     run_cmd sesdev destroy --non-interactive makecheck_sles-15-sp1
     run_cmd sesdev create makecheck --non-interactive --os sles-15-sp2 --ceph-repo https://github.com/SUSE/ceph --ceph-branch ses7 --stop-before-run-make-check --ram 4
     run_cmd sesdev destroy --non-interactive makecheck_sles-15-sp2
+fi
+
+if [ "$CAASP4" ] ; then
+    run_cmd sesdev create caasp4 --non-interactive caasp4_default
+    run_cmd sesdev destroy --non-interactive caasp4_default
 fi
 
 final_report
