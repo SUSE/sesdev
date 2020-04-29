@@ -182,8 +182,10 @@ if [ "$SES5" ] ; then
     run_cmd sesdev destroy --non-interactive ses5-1node
     run_cmd sesdev create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
     run_cmd sesdev qa-test ses5-4node
-    run_cmd test_tunnel ses5-4node openattic http 8080 Redirecting
-    # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
+    # consider uncommenting after the following bugs are fixed:
+    # - https://github.com/SUSE/sesdev/issues/276
+    # - https://github.com/SUSE/sesdev/issues/291
+    # run_cmd test_tunnel ses5-4node openattic http 8080 Redirecting
     # run_cmd tunnel_gone http 8080
     run_cmd sesdev destroy --non-interactive ses5-4node
 fi
@@ -203,8 +205,10 @@ if [ "$SES6" ] ; then
     run_cmd sesdev destroy --non-interactive ses6-1node
     run_cmd sesdev create ses6 --non-interactive ses6-4node
     run_cmd sesdev qa-test ses6-4node
-    run_cmd test_tunnel ses6-4node
-    # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
+    # consider uncommenting after the following bugs are fixed:
+    # - https://github.com/SUSE/sesdev/issues/276
+    # - https://github.com/SUSE/sesdev/issues/291
+    # run_cmd test_tunnel ses6-4node
     # run_cmd tunnel_gone
     run_cmd sesdev destroy --non-interactive ses6-4node
 fi
@@ -224,9 +228,11 @@ if [ "$SES7" ] ; then
     run_cmd sesdev destroy --non-interactive ses7-1node
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
     run_cmd sesdev qa-test ses7-4node
-    # revert back to default test_tunnel arguments after bsc#1170498 is fixed
-    run_cmd test_tunnel ses7-4node dashboard https 8443 "JavaScript required"
-    # uncomment when https://github.com/SUSE/sesdev/issues/276 is fixed
+    # consider uncommenting after the following bugs are fixed:
+    # - bsc#1170498
+    # - https://github.com/SUSE/sesdev/issues/276
+    # - https://github.com/SUSE/sesdev/issues/291
+    # run_cmd test_tunnel ses7-4node
     # run_cmd tunnel_gone
     run_cmd sesdev destroy --non-interactive ses7-4node
 fi
