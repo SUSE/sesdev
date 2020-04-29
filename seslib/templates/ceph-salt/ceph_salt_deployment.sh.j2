@@ -91,7 +91,7 @@ zypper repos -upEP
 zypper info cephadm | grep -E '(^Repo|^Version)'
 ceph-salt --version
 
-{% if stop_before_ceph_salt_deploy %}
+{% if stop_before_ceph_salt_apply %}
 exit 0
 {% endif %}
 

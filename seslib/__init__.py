@@ -518,9 +518,9 @@ SETTINGS = {
         'help': 'Stops deployment before ceph-salt config',
         'default': False,
     },
-    'stop_before_ceph_salt_deploy': {
+    'stop_before_ceph_salt_apply': {
         'type': bool,
-        'help': 'Stops deployment before ceph-salt deploy',
+        'help': 'Stops deployment before ceph-salt apply',
         'default': False,
     },
     'image_path': {
@@ -1266,7 +1266,7 @@ class Deployment():
             'ceph_salt_fetch_github_pr_heads': ceph_salt_fetch_github_pr_heads,
             'ceph_salt_fetch_github_pr_merges': ceph_salt_fetch_github_pr_merges,
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
-            'stop_before_ceph_salt_deploy': self.settings.stop_before_ceph_salt_deploy,
+            'stop_before_ceph_salt_apply': self.settings.stop_before_ceph_salt_apply,
             'image_path': self.settings.image_path,
             'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
             'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
