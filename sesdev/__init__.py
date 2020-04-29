@@ -67,9 +67,9 @@ def deepsea_options(func):
 def ceph_salt_options(func):
     click_options = [
         click.option('--stop-before-ceph-salt-config', is_flag=True, default=False,
-                     help='Allows to stop deployment configuring the cluster with ceph-salt'),
-        click.option('--stop-before-ceph-salt-deploy', is_flag=True, default=False,
-                     help='Allows to stop deployment deploying the cluster with ceph-salt'),
+                     help='Allows to stop deployment before creating ceph-salt configuration'),
+        click.option('--stop-before-ceph-salt-apply', is_flag=True, default=False,
+                     help='Allows to stop deployment before applying ceph-salt configuration'),
         click.option('--ceph-salt-repo', type=str, default=None,
                      help='ceph-salt Git repo URL'),
         click.option('--ceph-salt-branch', type=str, default=None,
@@ -469,7 +469,7 @@ def _gen_settings_dict(version,
                        ceph_salt_repo=None,
                        ceph_salt_branch=None,
                        stop_before_ceph_salt_config=False,
-                       stop_before_ceph_salt_deploy=False,
+                       stop_before_ceph_salt_apply=False,
                        image_path=None,
                        deploy_mons=None,
                        deploy_mgrs=None,
@@ -610,8 +610,8 @@ def _gen_settings_dict(version,
     if stop_before_ceph_salt_config is not None:
         settings_dict['stop_before_ceph_salt_config'] = stop_before_ceph_salt_config
 
-    if stop_before_ceph_salt_deploy is not None:
-        settings_dict['stop_before_ceph_salt_deploy'] = stop_before_ceph_salt_deploy
+    if stop_before_ceph_salt_apply is not None:
+        settings_dict['stop_before_ceph_salt_apply'] = stop_before_ceph_salt_apply
 
     if image_path:
         settings_dict['image_path'] = image_path
