@@ -1,0 +1,101 @@
+{% raw %}
+#!/bin/bash
+# create_all_pools_at_once.sh
+#
+# Script for pre-creating pools prior to Stage 4
+#
+# Pools are created with a number of PGs calculated to avoid health warnings
+# that can arise during/after Stage 4 due to "too few" or "too many" PGs per
+# OSD when DeepSea is allowed to create the pools with hard-coded number of
+# PGs.
+#
+# see also https://github.com/SUSE/DeepSea/issues/536
+#
+# args: pools to be created
+#
+# example invocation: ./create_all_pools_at_once.sh foo bar baz
+
+echo "Creating pools: $*"
+
+set -ex
+
+function json_total_osds {
+    ceph osd ls --format json | jq '. | length'
+}
+
+function power2 {
+    local pgs="$1"
+    echo "x=l($pgs)/l(2); scale=0; 2^((x+0.5)/1)" | bc -l
+}
+
+function pgs_per_pool {
+    local total_pools="$1"
+    test -n "$total_pools"
+    local pool_default_size
+    pool_default_size="$(ceph-conf -c /dev/null -D --format=json | jq -r .osd_pool_default_size)"
+    local total_osds
+    total_osds="$(json_total_osds)"
+    test -n "$total_osds"
+    # given the total number of pools and OSDs,
+    # assume triple replication and equal number of PGs per pool
+    # and aim for 100 PGs per OSD
+    local rough_pgs_per_pool
+    rough_pgs_per_pool="$((total_osds * 100 / pool_default_size / total_pools))"
+    power2 "$rough_pgs_per_pool"
+}
+
+function create_all_pools_at_once {
+    # sample usage: create_all_pools_at_once foo bar
+    local total_pools="${#@}"
+    test -n "$total_pools"
+    local num_pgs
+    num_pgs="$(pgs_per_pool "$total_pools")"
+    for pool in "$@" ; do
+        ceph osd pool create "$pool" "$num_pgs" "$num_pgs" replicated
+    done
+    ceph osd pool ls detail
+}
+
+CEPHFS=""
+OPENSTACK=""
+RBD=""
+OTHER=""
+for arg in "$@" ; do
+    arg="${arg,,}"
+    case "$arg" in
+        cephfs) CEPHFS="$arg" ;;
+        openstack) OPENSTACK="$arg" ;;
+        rbd) RBD="$arg" ;;
+        *) OTHER+=" $arg" ;;
+    esac
+done
+
+POOLS=""
+if [ "$CEPHFS" ] ; then
+    POOLS+=" cephfs_data cephfs_metadata"
+fi
+if [ "$OPENSTACK" ] ; then
+    POOLS+=" smoketest-cloud-backups smoketest-cloud-volumes smoketest-cloud-images"
+    POOLS+=" smoketest-cloud-vms cloud-backups cloud-volumes cloud-images cloud-vms"
+fi
+if [ "$RBD" ] ; then
+    POOLS+=" rbd"
+fi
+if [ "$OTHER" ] ; then
+    POOLS+="$OTHER"
+    APPLICATION_ENABLE="$OTHER"
+fi
+if [ -z "$POOLS" ] ; then
+    echo "create_all_pools_at_once: bad arguments"
+    exit 1
+fi
+echo "About to create pools ->$POOLS<-"
+# shellcheck disable=SC2086
+create_all_pools_at_once $POOLS
+if [ "$APPLICATION_ENABLE" ] ; then
+    for pool in $APPLICATION_ENABLE ; do
+        ceph osd pool application enable "$pool" deepsea_qa
+    done
+fi
+echo "OK" >/dev/null
+{% endraw %}

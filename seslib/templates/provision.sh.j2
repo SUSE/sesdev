@@ -78,6 +78,7 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
        'patch',
        'man',
        'command-not-found',
+       'bc',
    ] %}
 {% if os == 'sles-12-sp3' %}
 zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} ntp
