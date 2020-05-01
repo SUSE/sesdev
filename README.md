@@ -806,7 +806,7 @@ not currently know why, or under what conditions, this happens.
 If this behavior bothers you, `sesdev destroy` has a `--destroy-networks` option
 you can use. Of course, `sesdev destroy --destroy-networks` only works for the
 network(s) associated with the VMs in the deployment being destroyed. To quickly
-destroy a bunch of networks, construct a script like so:
+destroy a bunch of networks, construct a script like this one:
 
 ```
 #!/bin/bash
@@ -830,6 +830,9 @@ done
 ```
 
 The script should be run as root on the libvirt server.
+
+An unsupported, user-contributed version of this script -- `contrib/nukenetz.sh`
+-- can be found in the source-code tree.
 
 ### "Failed to connect socket" error when attempting to use remote libvirt server
 
