@@ -185,7 +185,7 @@ installed, first. Also, in order to clone the sesdev git repo, the "git-core"
 package is needed. So, before proceeding, make sure that all of these packages
 are installed in the system:
 
-#### openSUSE Leap 15.1 & Leap 15.2
+#### openSUSE
 
 ```
 zypper -n install gcc git-core libvirt-devel \
@@ -241,7 +241,7 @@ above, and the virtualenv is active. Then, follow the instructions below.
 
 First, install the "tox" package in your system:
 
-#### openSUSE Leap 15.1 & Leap 15.2
+#### openSUSE
 
 ```
 zypper -n install python3-tox
