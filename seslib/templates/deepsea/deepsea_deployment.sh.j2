@@ -131,6 +131,25 @@ exit 0
 {% endif %}
 
 {% if deepsea_need_stage_4 %}
+
+{% if mds_nodes > 0 or igw_nodes > 0 %}
+{% set create_pools_script = "/root/bin/create_all_pools_at_once.sh" %}
+cat > {{ create_pools_script }} << 'EOF'
+{% include "deepsea/create_all_pools_at_once.sh.j2" %}
+EOF
+chmod 0755 {{ create_pools_script }}
+
+# create_all_pools_at_once.sh invocation
+{{ create_pools_script }}
+{%- if mds_nodes > 0 %}
+ cephfs
+{%- endif %}
+{%- if igw_nodes > 0 %}
+ iscsi-images
+{%- endif %}
+
+{% endif %} {# mds_nodes > 0 or igw_nodes > 0 #}
+
 echo ""
 echo "***** RUNNING stage.4 *******"
 {% if use_salt %}
