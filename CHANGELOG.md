@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2020-05-04
+
+### Added
+- deepsea_deployment: pre-create Stage 4 pools (PR #298)
+
+### Fixed
+- setup.cfg: do not break Tumbleweed RPM install (PR #297)
+
+### Changed
+- ceph_salt_deployment.sh: rip out time sync code (PR #289)
+- Rename '--stop-before-ceph-salt-deploy' to '--stop-before-ceph-salt-apply' (PR
+  #290)
+
 ## [1.1.12] - 2020-04-28
 
 ### Added
@@ -342,7 +355,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.1.12...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/SUSE/sesdev/releases/tag/v1.2.0
 [1.1.12]: https://github.com/SUSE/sesdev/releases/tag/v1.1.12
 [1.1.11]: https://github.com/SUSE/sesdev/releases/tag/v1.1.11
 [1.1.10]: https://github.com/SUSE/sesdev/releases/tag/v1.1.10
