@@ -12,7 +12,7 @@ if [[ "$*" =~ "--non-interactive" ]] || [[ "$*" =~ "-f" ]] || [[ "$*" =~ "--forc
     INTERACTIVE=""
 fi
 
-NETZ="$(sudo virsh net-list | egrep -v '\-|Persistent|^$' | cut -d' ' -f2)"
+NETZ="$(sudo virsh net-list | egrep -v '\-\-\-|Persistent|vagrant-libvirt|^$' | cut -d' ' -f2)"
 YES="non_empty_value"
 if [ "$INTERACTIVE" ] ; then
     echo "Will nuke the following virtual networks:"
@@ -22,7 +22,7 @@ if [ "$INTERACTIVE" ] ; then
     echo -en "Are you sure? (y/N) "
     read YES
     ynlc="${YES,,}"
-    ynlcfc="${yrlc:0:1}"
+    ynlcfc="${ynlc:0:1}"
     if [ -z "$YES" ] || [ "$yrlcfc" = "n" ] ; then
         YES=""
     else
