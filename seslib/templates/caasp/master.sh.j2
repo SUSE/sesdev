@@ -1,11 +1,11 @@
 
 zypper --non-interactive install --type pattern SUSE-CaaSP-Management
 
-{% if node.name == 'master1' %}
+{% if node.name == 'master' %}
 
-function wait_for_masters_ready {
-    printf "Waiting for masters to be ready"
-    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "master[0-9]\s+Ready") -eq {{node_manager.get_by_role('master') | length}} ]]; do
+function wait_for_master_ready {
+    printf "Waiting for master to be ready"
+    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "master\s+Ready") -eq 1 ]]; do
          sleep 5
 		 printf "."
     done
@@ -67,7 +67,7 @@ kubectl get nodes -o wide
 skuba -v ${SKUBA_VERBOSITY} node join --role worker --user sles --sudo --target {{ _node.name }} {{ _node.name }}
 {% endfor %}
 
-wait_for_masters_ready
+wait_for_master_ready
 wait_for_workers_ready
 
 skuba -v ${SKUBA_VERBOSITY} cluster status
