@@ -13,6 +13,10 @@ if [[ "$*" =~ "--non-interactive" ]] || [[ "$*" =~ "-f" ]] || [[ "$*" =~ "--forc
 fi
 
 NETZ="$(sudo virsh net-list | egrep -v '\-\-\-|Persistent|vagrant-libvirt|^$' | cut -d' ' -f2)"
+if [ -z "$NETZ" ] ; then
+    echo "No netz to nuke"
+    exit 0
+fi
 YES="non_empty_value"
 if [ "$INTERACTIVE" ] ; then
     echo "Will nuke the following virtual networks:"
