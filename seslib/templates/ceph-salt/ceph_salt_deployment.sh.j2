@@ -101,29 +101,25 @@ salt -G 'ceph-salt:member' state.apply ceph-salt
 stdbuf -o0 ceph-salt -ldebug apply --non-interactive
 {% endif %}
 
-{% if ceph_salt_deploy_mons %}
+{% if stop_before_ceph_orch_apply %}
+exit 0
+{% endif %}
+
 {% if mon_nodes > 1 %}
 ceph orch apply mon "$MON_NODES_COMMA_SEPARATED_LIST"
 {% endif %} {# mon_nodes > 1 #}
-{% endif %} {# ceph_salt_deploy_mons #}
 
-{% if ceph_salt_deploy_mgrs %}
 {% if mgr_nodes > 1 %}
 ceph orch apply mgr "$MGR_NODES_COMMA_SEPARATED_LIST"
 {% endif %} {# mgr_nodes > 1 #}
-{% endif %} {# ceph_salt_deploy_mgrs #}
 
-{% if ceph_salt_deploy_osds %}
 ceph orch device ls --refresh
 {% for node in nodes %}
 {% if node.has_role('storage') %}
 echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}" | ceph orch apply osd -i -
 {% endif %}
 {% endfor %}
-{% endif %} {# if ceph_salt_deploy_osds #}
 
-{% if ceph_salt_deploy_mdss %}
 ceph fs volume create myfs "$MDS_NODES_COMMA_SEPARATED_LIST"
-{% endif %} {# if ceph_salt_deploy_mdss #}
 
 {% include "qa_test.sh.j2" %}

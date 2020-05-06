@@ -523,6 +523,11 @@ SETTINGS = {
         'help': 'Stops deployment before ceph-salt apply',
         'default': False,
     },
+    'stop_before_ceph_orch_apply': {
+        'type': bool,
+        'help': 'Stops deployment before ceph orch apply',
+        'default': False,
+    },
     'image_path': {
         'type': str,
         'help': 'Container image path for Ceph daemons',
@@ -557,26 +562,6 @@ SETTINGS = {
         'type': bool,
         'help': 'Stop before running run-make-check.sh (make check)',
         'default': False,
-    },
-    'ceph_salt_deploy_mons': {
-        'type': bool,
-        'help': 'Tell ceph-salt to deploy Ceph MONs',
-        'default': True,
-    },
-    'ceph_salt_deploy_mgrs': {
-        'type': bool,
-        'help': 'Tell ceph-salt to deploy Ceph MGRs',
-        'default': True,
-    },
-    'ceph_salt_deploy_osds': {
-        'type': bool,
-        'help': 'Tell ceph-salt to deploy Ceph OSDs',
-        'default': True,
-    },
-    'ceph_salt_deploy_mdss': {
-        'type': bool,
-        'help': 'Tell ceph-salt to deploy Ceph MDSs',
-        'default': True,
     },
     'use_salt': {
         'type': bool,
@@ -1267,11 +1252,8 @@ class Deployment():
             'ceph_salt_fetch_github_pr_merges': ceph_salt_fetch_github_pr_merges,
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_apply': self.settings.stop_before_ceph_salt_apply,
+            'stop_before_ceph_orch_apply': self.settings.stop_before_ceph_orch_apply,
             'image_path': self.settings.image_path,
-            'ceph_salt_deploy_mons': self.settings.ceph_salt_deploy_mons,
-            'ceph_salt_deploy_mgrs': self.settings.ceph_salt_deploy_mgrs,
-            'ceph_salt_deploy_osds': self.settings.ceph_salt_deploy_osds,
-            'ceph_salt_deploy_mdss': self.settings.ceph_salt_deploy_mdss,
             'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,

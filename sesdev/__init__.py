@@ -70,16 +70,14 @@ def ceph_salt_options(func):
                      help='Allows to stop deployment before creating ceph-salt configuration'),
         click.option('--stop-before-ceph-salt-apply', is_flag=True, default=False,
                      help='Allows to stop deployment before applying ceph-salt configuration'),
+        click.option('--stop-before-ceph-orch-apply', is_flag=True, default=False,
+                     help='Allows to stop deployment before applying ceph orch service spec'),
         click.option('--ceph-salt-repo', type=str, default=None,
                      help='ceph-salt Git repo URL'),
         click.option('--ceph-salt-branch', type=str, default=None,
                      help='ceph-salt Git branch'),
         click.option('--image-path', type=str, default=None,
                      help='registry path from which to download Ceph container image'),
-        click.option('--deploy-mons/--no-deploy-mons', default=True, help='Deploy Ceph MONs'),
-        click.option('--deploy-mgrs/--no-deploy-mgrs', default=True, help='Deploy Ceph MGRs'),
-        click.option('--deploy-osds/--no-deploy-osds', default=True, help='Deploy Ceph OSDs'),
-        click.option('--deploy-mdss/--no-deploy-mdss', default=True, help='Deploy Ceph MDSs'),
         click.option('--salt/--ceph-salt', default=False,
                      help='Use "salt" (instead of "ceph-salt") to run ceph-salt formula'),
     ]
@@ -470,11 +468,8 @@ def _gen_settings_dict(version,
                        ceph_salt_branch=None,
                        stop_before_ceph_salt_config=False,
                        stop_before_ceph_salt_apply=False,
+                       stop_before_ceph_orch_apply=False,
                        image_path=None,
-                       deploy_mons=None,
-                       deploy_mgrs=None,
-                       deploy_osds=None,
-                       deploy_mdss=None,
                        ceph_repo=None,
                        ceph_branch=None,
                        username=None,
@@ -613,6 +608,9 @@ def _gen_settings_dict(version,
     if stop_before_ceph_salt_apply is not None:
         settings_dict['stop_before_ceph_salt_apply'] = stop_before_ceph_salt_apply
 
+    if stop_before_ceph_orch_apply is not None:
+        settings_dict['stop_before_ceph_orch_apply'] = stop_before_ceph_orch_apply
+
     if image_path:
         settings_dict['image_path'] = image_path
 
@@ -633,18 +631,6 @@ def _gen_settings_dict(version,
 
     if stop_before_run_make_check is not None:
         settings_dict['makecheck_stop_before_run_make_check'] = stop_before_run_make_check
-
-    if deploy_mons is not None:
-        settings_dict['ceph_salt_deploy_mons'] = deploy_mons
-
-    if deploy_mgrs is not None:
-        settings_dict['ceph_salt_deploy_mgrs'] = deploy_mgrs
-
-    if deploy_osds is not None:
-        settings_dict['ceph_salt_deploy_osds'] = deploy_osds
-
-    if deploy_mdss is not None:
-        settings_dict['ceph_salt_deploy_mdss'] = deploy_mdss
 
     for folder in synced_folder:
         try:
