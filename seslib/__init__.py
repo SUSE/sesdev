@@ -142,10 +142,6 @@ OS_REPOS = {
                        'SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
         'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP2/'
                               'x86_64/update/',
-        'containers': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
-                      'x86_64/product/',
-        'containers-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/'
-                             '15-SP2/x86_64/update/',
         'storage7-media': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
                           'images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
     },
