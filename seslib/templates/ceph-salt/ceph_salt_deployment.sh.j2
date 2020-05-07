@@ -73,12 +73,10 @@ ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
 {% set external_timeserver = "pool.ntp.org" %}
 ceph-salt config /time_server/external_servers add {{ external_timeserver }}
 
-{% if ceph_salt_deploy_osds %}
 {% if storage_nodes < 3 %}
 ceph-salt config /cephadm_bootstrap/ceph_conf add global
 ceph-salt config /cephadm_bootstrap/ceph_conf/global set "osd crush chooseleaf type" 0
 {% endif %}
-{% endif %} {# if ceph_salt_deploy_osds #}
 
 ceph-salt config /cephadm_bootstrap/dashboard/username set admin
 ceph-salt config /cephadm_bootstrap/dashboard/password set admin
