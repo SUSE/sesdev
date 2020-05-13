@@ -21,8 +21,8 @@ zypper --non-interactive install --type pattern SUSE-CaaSP-Node
 {% include "caasp/loadbalancer.sh.j2" %}
 {% endif %}
 
-{% if node.has_role('storage') %}
-{% include "caasp/storage.sh.j2" %}
+{% if node.has_role('nfs') %}
+{% include "caasp/nfs.sh.j2" %}
 {% endif %}
 
 {% if node.has_role('worker') %}

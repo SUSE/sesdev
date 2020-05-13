@@ -329,24 +329,34 @@ The following roles can be assigned:
 * `admin` - signifying that the node should get ceph.conf and keyring [1]
 * `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
-* `nfs` - NFS (Ganesha) gateway
-* `grafana` - Grafana metrics visualization (requires Prometheus) [2]
+* `nfs` - NFS (Ganesha) gateway [2]
+* `grafana` - Grafana metrics visualization (requires Prometheus) [3]
 * `igw` - iSCSI target gateway
 * `mds` - CephFS MDS
 * `mgr` - Ceph Manager instance
 * `mon` - Ceph Monitor instance
-* `prometheus` - Prometheus monitoring [2]
+* `prometheus` - Prometheus monitoring [3]
 * `rgw` - Ceph Object Gateway
-* `storage` - OSD storage daemon
+* `storage` - OSD storage daemon [4]
 * `suma` - SUSE Manager (octopus only)
 
-[1] CAVEAT: sesdev applies the "admin" role to all nodes, regardless of whether
+[1] CAVEAT: sesdev applies the `admin` role to all nodes, regardless of whether
 or not the user specified it explicitly on the command line or in `config.yaml`.
 
-[2] CAVEAT: Do not specify "prometheus"/"grafana" roles for ses5 deployments.
+[2] The `nfs` role may also be used when deploying a CaaSP cluster. In that
+case we get a node acting as an NFS server as well as a pod running in the k8s
+cluster and acting as an NFS client, providing a persistent store for other
+(containerized) applications.
+
+[3] CAVEAT: Do not specify `prometheus`/`grafana` roles for ses5 deployments.
 The DeepSea version shipped with SES5 always deploys Prometheus and Grafana
-instances on the master node, but does not recognize "prometheus"/"grafana"
-roles in policy.cfg.
+instances on the master node, but does not recognize `prometheus`/`grafana`
+roles in `policy.cfg`.
+
+[4] Please note that we do not need the `storage` role when we plan to deploy
+Rook/Ceph over CaaSP. By default, Rook creates OSD pods which take over any
+spare block devices in worker nodes, i.e., all block devices but the first
+(OS disk) of any given worker.
 
 The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that
