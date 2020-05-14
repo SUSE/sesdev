@@ -20,7 +20,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         ServiceNotFound, ExclusiveRoles, RoleNotKnown, RoleNotSupported, \
                         CmdException, VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
                         UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
-                        NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes
+                        NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes, \
+                        DuplicateRolesNotSupported
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1532,6 +1533,11 @@ class Deployment():
                 raise RoleNotSupported('worker', self.settings.version)
             if self.node_counts['loadbalancer'] > 0:
                 raise RoleNotSupported('loadbalancer', self.settings.version)
+        # no node may have more than one of any role
+        for node in self.settings.roles:
+            for role in KNOWN_ROLES:
+                if node.count(role) > 1:
+                    raise DuplicateRolesNotSupported(role)
 
     def _vagrant_ssh_config(self, name):
         if name not in self.nodes:

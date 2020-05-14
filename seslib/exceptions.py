@@ -168,3 +168,11 @@ class BadMakeCheckRolesNodes(SesDevException):
             "\"makecheck\". Since this is the default, you can simply omit "
             "the --roles option when running \"sesdev create makecheck\"."
             )
+
+
+class DuplicateRolesNotSupported(SesDevException):
+    def __init__(self, role):
+        super(DuplicateRolesNotSupported, self).__init__(
+            "A node with more than one \"{r}\" role was detected. "
+            "sesdev does not support more than one \"{r}\" role per node.".format(r=role)
+            )
