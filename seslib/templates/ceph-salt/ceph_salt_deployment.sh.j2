@@ -80,6 +80,7 @@ ceph-salt config /cephadm_bootstrap/ceph_conf/global set "osd crush chooseleaf t
 
 ceph-salt config /cephadm_bootstrap/dashboard/username set admin
 ceph-salt config /cephadm_bootstrap/dashboard/password set admin
+ceph-salt config /cephadm_bootstrap/dashboard/force_password_update disable
 
 ceph-salt config ls
 ceph-salt export --pretty
