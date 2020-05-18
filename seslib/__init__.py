@@ -941,7 +941,7 @@ class Deployment():
         self._generate_nodes()
 
     @property
-    def dep_dir(self):
+    def _dep_dir(self):
         return os.path.join(GlobalSettings.A_WORKING_DIR, self.dep_id)
 
     def _needs_cluster_network(self):
@@ -1153,7 +1153,7 @@ class Deployment():
 
             self.nodes[node.name] = node
 
-    def generate_vagrantfile(self):
+    def _generate_vagrantfile(self):
         vagrant_box = self.settings.os
 
         try:
@@ -1276,13 +1276,13 @@ class Deployment():
         return scripts
 
     def save(self):
-        scripts = self.generate_vagrantfile()
+        scripts = self._generate_vagrantfile()
         key = RSA.generate(2048)
         private_key = key.exportKey('PEM')
         public_key = key.publickey().exportKey('OpenSSH')
 
-        os.makedirs(self.dep_dir, exist_ok=False)
-        metadata_file = os.path.join(self.dep_dir, METADATA_FILENAME)
+        os.makedirs(self._dep_dir, exist_ok=False)
+        metadata_file = os.path.join(self._dep_dir, METADATA_FILENAME)
         with open(metadata_file, 'w') as file:
             json.dump({
                 'id': self.dep_id,
@@ -1290,12 +1290,12 @@ class Deployment():
             }, file, cls=SettingsEncoder)
 
         for filename, script in scripts.items():
-            full_path = os.path.join(self.dep_dir, filename)
+            full_path = os.path.join(self._dep_dir, filename)
             with open(full_path, 'w') as file:
                 file.write(script)
 
         # generate ssh key pair
-        keys_dir = os.path.join(self.dep_dir, 'keys')
+        keys_dir = os.path.join(self._dep_dir, 'keys')
         os.makedirs(keys_dir)
 
         with open(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 'w') as file:
@@ -1307,10 +1307,10 @@ class Deployment():
         os.chmod(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 0o600)
 
         # bin dir with helper scripts
-        bin_dir = os.path.join(self.dep_dir, 'bin')
+        bin_dir = os.path.join(self._dep_dir, 'bin')
         os.makedirs(bin_dir)
 
-    def get_vagrant_box(self, log_handler):
+    def _get_vagrant_box(self, log_handler):
         if self.settings.vagrant_box:
             using_custom_box = True
             vagrant_box = self.settings.vagrant_box
@@ -1350,13 +1350,13 @@ class Deployment():
             tools.run_async(["vagrant", "box", "add", "--provider", "libvirt", "--name",
                              self.settings.os, OS_BOX_MAPPING[self.settings.os]], log_handler)
 
-    def vagrant_up(self, node, log_handler):
+    def _vagrant_up(self, node, log_handler):
         cmd = ["vagrant", "up"]
         if node is not None:
             cmd.append(node)
         if GlobalSettings.VAGRANT_DEBUG:
             cmd.append('--debug')
-        tools.run_async(cmd, log_handler, self.dep_dir)
+        tools.run_async(cmd, log_handler, self._dep_dir)
 
     def destroy(self, log_handler, destroy_networks=False):
 
@@ -1375,9 +1375,9 @@ class Deployment():
             cmd = ["vagrant", "destroy", node.name, "--force"]
             if GlobalSettings.VAGRANT_DEBUG:
                 cmd.append('--debug')
-            tools.run_async(cmd, log_handler, self.dep_dir)
+            tools.run_async(cmd, log_handler, self._dep_dir)
 
-        shutil.rmtree(self.dep_dir)
+        shutil.rmtree(self._dep_dir)
         # clean up any orphaned volumes
         images_to_remove = self.box.get_images_by_deployment(self.dep_id)
         if images_to_remove:
@@ -1425,19 +1425,19 @@ class Deployment():
             raise NodeDoesNotExist(node)
 
         if self.settings.vm_engine == 'libvirt':
-            self.get_vagrant_box(log_handler)
-        self.vagrant_up(node, log_handler)
+            self._get_vagrant_box(log_handler)
+        self._vagrant_up(node, log_handler)
 
     def __str__(self):
         return self.dep_id
 
     def load_status(self):
-        if not os.path.exists(os.path.join(self.dep_dir, '.vagrant')):
+        if not os.path.exists(os.path.join(self._dep_dir, '.vagrant')):
             for node in self.nodes.values():
                 node.status = "not deployed"
             return
 
-        out = tools.run_sync(["vagrant", "status"], cwd=self.dep_dir)
+        out = tools.run_sync(["vagrant", "status"], cwd=self._dep_dir)
         for line in [line.strip() for line in out.split('\n')]:
             if line:
                 line_arr = line.split(' ', 1)
@@ -1537,7 +1537,7 @@ class Deployment():
         if name not in self.nodes:
             raise NodeDoesNotExist(name)
 
-        out = tools.run_sync(["vagrant", "ssh-config", name], cwd=self.dep_dir)
+        out = tools.run_sync(["vagrant", "ssh-config", name], cwd=self._dep_dir)
 
         address = None
         proxycmd = None
@@ -1551,7 +1551,7 @@ class Deployment():
         if address is None:
             raise VagrantSshConfigNoHostName(name)
 
-        dep_private_key = os.path.join(self.dep_dir, str("keys/" + GlobalSettings.SSH_KEY_NAME))
+        dep_private_key = os.path.join(self._dep_dir, str("keys/" + GlobalSettings.SSH_KEY_NAME))
 
         return (address, proxycmd, dep_private_key)
 
@@ -1643,7 +1643,7 @@ class Deployment():
         tools.run_async(
             ["vagrant", "provision", "--provision-with", "qa-test"],
             log_handler,
-            self.dep_dir
+            self._dep_dir
             )
 
     def _find_service_node(self, service):
