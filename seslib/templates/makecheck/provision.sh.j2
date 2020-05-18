@@ -1,6 +1,19 @@
 
 set -ex
 
+# Compiling Ceph requires a number of "libfoo-devel" RPMs. These are typically
+# shipped in a different SLE Module than their corresponding library RPMs.
+# Sometimes, an update to a library RPM ("libfoo1") which is pre-installed 
+# in the Vagrant Box built in the IBS reaches the Vagrant Box before the
+# corresponding update to the "libfoo-devel" package reaches the IBS repos. This
+# state, which can last for days or even weeks, typically causes install-deps.sh
+# to fail on a zypper conflict.
+#
+# Possibly prophylactically downgrade libraries known to have caused this
+# problem in the past:
+#
+zypper --non-interactive install --force libudev1 || true
+
 useradd -m {{ makecheck_username }}
 echo "{{ makecheck_username }} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 pam-config -a --nullok
