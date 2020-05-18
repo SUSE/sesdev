@@ -359,6 +359,46 @@ function maybe_wait_for_mdss_test {
     fi
 }
 
+function maybe_wait_for_rgws_test {
+    local expected_rgws="$1"
+    local actual_rgws
+    local minutes_to_wait
+    minutes_to_wait="5"
+    local minute
+    local i
+    local success
+    echo
+    echo "WWWW: maybe_wait_for_rgws_test"
+    if [ "$expected_rgws" ] ; then
+        echo "Waiting up to $minutes_to_wait minutes for all $expected_rgws RGW(s) to show up..."
+        for minute in $(seq 1 "$minutes_to_wait") ; do
+            for i in $(seq 1 4) ; do
+                set -x
+                actual_rgws="$(json_total_rgws)"
+                set +x
+                if [ "$actual_rgws" = "$expected_rgws" ] ; then
+                    success="not_empty"
+                    break 2
+                else
+                    _grace_period 15 "$i"
+                fi
+            done
+            echo "Minutes left to wait: $((minutes_to_wait - minute))"
+        done
+    else
+        success="not_empty"
+        echo "No RGWs expected: nothing to wait for."
+    fi
+    if [ "$success" ] ; then
+        echo "maybe_wait_for_rgws_test: OK"
+        echo
+    else
+        echo "maybe_wait_for_rgws_test: FAIL"
+        echo
+        false
+    fi
+}
+
 function mgr_is_available_test {
     echo
     echo "WWWW: mgr_is_available_test"
@@ -379,6 +419,10 @@ function number_of_daemons_expected_vs_metadata_test {
     metadata_mdss="$(json_metadata_mdss)"
     local metadata_osds
     metadata_osds="$(json_metadata_osds)"
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        local metadata_rgws
+        metadata_rgws="$(json_metadata_rgws)"
+    fi
     set +x
     local success
     success="yes"
@@ -386,9 +430,11 @@ function number_of_daemons_expected_vs_metadata_test {
     local expected_mons
     local expected_mdss
     local expected_osds
+    local expected_rgws
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
+    [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
     [ "$OSDS" ]      && expected_osds="$OSDS"
     if [ "$expected_mons" ] ; then
         echo "MONs metadata/expected: $metadata_mons/$expected_mons"
@@ -405,6 +451,12 @@ function number_of_daemons_expected_vs_metadata_test {
     if [ "$expected_osds" ] ; then
         echo "OSDs metadata/expected: $metadata_osds/$expected_osds"
         [ "$metadata_osds" = "$expected_osds" ] || success=""
+    fi
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        if [ "$expected_rgws" ] ; then
+            echo "RGWs metadata/expected: $metadata_rgws/$expected_rgws"
+            [ "$metadata_rgws" = "$expected_rgws" ] || success=""
+        fi
     fi
     if [ "$success" ] ; then
         echo "number_of_daemons_expected_vs_metadata_test: OK"
@@ -429,6 +481,8 @@ function number_of_nodes_actual_vs_expected_test {
     actual_mon_nodes="$(json_total_mons)"
     local actual_mds_nodes
     actual_mds_nodes="$(json_total_mdss)"
+    local actual_rgw_nodes
+    actual_rgw_nodes="$(json_total_rgws)"
     local actual_osd_nodes
     actual_osd_nodes="$(json_osd_nodes)"
     local actual_osds
@@ -440,12 +494,14 @@ function number_of_nodes_actual_vs_expected_test {
     local expected_mgr_nodes
     local expected_mon_nodes
     local expected_mds_nodes
+    local expected_rgw_nodes
     local expected_osd_nodes
     local expected_osds
     [ "$TOTAL_NODES" ] && expected_total_nodes="$TOTAL_NODES"
     [ "$MGR_NODES" ]   && expected_mgr_nodes="$MGR_NODES"
     [ "$MON_NODES" ]   && expected_mon_nodes="$MON_NODES"
     [ "$MDS_NODES" ]   && expected_mds_nodes="$MDS_NODES"
+    [ "$RGW_NODES" ]   && expected_rgw_nodes="$RGW_NODES"
     [ "$OSD_NODES" ]   && expected_osd_nodes="$OSD_NODES"
     [ "$OSDS" ]        && expected_osds="$OSDS"
     if [ "$expected_total_nodes" ] ; then
@@ -464,6 +520,10 @@ function number_of_nodes_actual_vs_expected_test {
         echo "MDS nodes actual/expected:    $actual_mds_nodes/$expected_mds_nodes"
         [ "$actual_mds_nodes" = "$expected_mds_nodes" ] || success=""
     fi
+    if [ "$expected_rgw_nodes" ] ; then
+        echo "RGW nodes actual/expected:    $actual_rgw_nodes/$expected_rgw_nodes"
+        [ "$actual_rgw_nodes" = "$expected_rgw_nodes" ] || success=""
+    fi
     if [ "$expected_osd_nodes" ] ; then
         echo "OSD nodes actual/expected:    $actual_osd_nodes/$expected_osd_nodes"
         [ "$actual_osd_nodes" = "$expected_osd_nodes" ] || success=""
@@ -472,7 +532,6 @@ function number_of_nodes_actual_vs_expected_test {
         echo "total OSDs actual/expected:   $actual_osds/$expected_osds"
         [ "$actual_osds" = "$expected_osds" ] || success=""
     fi
-#    echo "RGW nodes expected:     $RGW_NODES"
 #    echo "IGW nodes expected:     $IGW_NODES"
 #    echo "NFS nodes expected:     $NFS_NODES"
     if [ "$success" ] ; then

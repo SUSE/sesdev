@@ -106,6 +106,14 @@ function json_total_mdss {
     fi
 }
 
+function json_metadata_rgws {
+    ceph orch ps -f json-pretty | jq '[.[] | select(.daemon_type=="rgw" and .status_desc=="running")] | length'
+}
+
+function json_total_rgws {
+    ceph status -f json-pretty | jq '.servicemap.services.rgw.daemons | del(.summary) | length'
+}
+
 function json_metadata_osds {
     ceph osd metadata | jq -r '. | length'
 }

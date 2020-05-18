@@ -27,7 +27,7 @@ if [ "$INTERACTIVE" ] ; then
     read YES
     ynlc="${YES,,}"
     ynlcfc="${ynlc:0:1}"
-    if [ -z "$YES" ] || [ "$yrlcfc" = "n" ] ; then
+    if [ -z "$YES" ] || [ "$ynlcfc" = "n" ] ; then
         YES=""
     else
         YES="non_empty_value"
