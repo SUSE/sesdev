@@ -220,7 +220,7 @@ VERSION_DEFAULT_ROLES = {
     'nautilus': NAUTILUS_DEFAULT_ROLES,
     'octopus': OCTOPUS_DEFAULT_ROLES,
     'pacific': OCTOPUS_DEFAULT_ROLES,
-    'caasp4': [["master"], ["worker"], ["loadbalancer"], ["storage"]],
+    'caasp4': [["master"], ["worker"], ["worker"], ["loadbalancer"]],
     'makecheck': [["makecheck"]],
 }
 
@@ -996,9 +996,8 @@ class Deployment():
     def _generate_nodes(self):
         node_id = 0
         worker_id = 0
-        storage_id = 0
         loadbl_id = 0
-        storage_id = 0
+        nfs_id = 0
         _log_debug("_generate_nodes: about to process cluster roles: {}"
                    .format(self.settings.roles))
         for node_roles in self.settings.roles:  # loop once for every node in cluster
@@ -1051,12 +1050,12 @@ class Deployment():
                     name = 'loadbl{}'.format(loadbl_id)
                     fqdn = 'loadbl{}.{}'.format(loadbl_id,
                                                 self.settings.domain.format(self.dep_id))
-                elif 'storage' in node_roles and self.settings.version == 'caasp4':
-                    storage_id += 1
+                elif 'nfs' in node_roles and self.settings.version == 'caasp4':
+                    nfs_id += 1
                     node_id += 1
-                    name = 'storage{}'.format(storage_id)
-                    fqdn = 'storage{}.{}'.format(storage_id,
-                                                 self.settings.domain.format(self.dep_id))
+                    name = 'nfs{}'.format(nfs_id)
+                    fqdn = 'nfs{}.{}'.format(nfs_id,
+                                             self.settings.domain.format(self.dep_id))
                 else:
                     node_id += 1
                     name = 'node{}'.format(node_id)

@@ -78,8 +78,10 @@ kubectl create serviceaccount --namespace kube-system tiller
 kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 helm init --service-account=tiller --wait
 
+{% if nfs_nodes > 0 %}
 # adding nfs storage class
-helm install --name=nfs-client --set nfs.server=storage1 --set nfs.path=/nfs --set storageClass.defaultClass=true stable/nfs-client-provisioner
+helm install --name=nfs-client --set nfs.server=nfs1 --set nfs.path=/nfs --set storageClass.defaultClass=true stable/nfs-client-provisioner
+{% endif %}
 
 # Installing Kubernetes Dashboard
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml
