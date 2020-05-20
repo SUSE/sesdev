@@ -54,6 +54,8 @@ function usage {
     echo "    --makecheck              Run makecheck (install-deps.sh, actually)"
     echo "                             tests"
     echo "    --nautilus               Run nautilus deployment tests"
+    echo "    --no-stop-on-failure     Continue script execution if there is a"
+    echo "                             failure (default: stop immediately)."
     echo "    --octopus                Run octopus deployment tests"
     echo "    --pacific                Run pacific deployment tests"
     echo "    --ses5                   Run ses5 deployment tests"
@@ -78,7 +80,7 @@ function run_cmd {
         echo -en "\nExit status: 0 (PASS)\n" >> "$FINAL_REPORT"
     else
         echo -en "\nExit status: $exit_status (FAIL)\n" >> "$FINAL_REPORT"
-        final_report
+        [ "$STOP_ON_FAILURE" ] && final_report
     fi  
 }
 
@@ -118,7 +120,7 @@ function tunnel_gone {
 }
 
 TEMP=$(getopt -o h \
---long "help,caasp4,ceph-salt-from-source,full,makecheck,nautilus,octopus,pacific,ses5,ses6,ses7" \
+--long "help,caasp4,ceph-salt-from-source,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7" \
 -n 'standalone.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -134,6 +136,7 @@ PACIFIC=""
 SES5=""
 SES6=""
 SES7=""
+STOP_ON_FAILURE="not_empty"
 while true ; do
     case "$1" in
         --caasp4)                CAASP4="--caasp4" ; shift ;;
@@ -141,6 +144,7 @@ while true ; do
         --full)                  FULL="$1" ; shift ;;
         --makecheck)             MAKECHECK="$1" ; shift ;;
         --nautilus)              NAUTILUS="$1" ; shift ;;
+        --no-stop-on-failure)    STOP_ON_FAILURE="" ; shift ;;
         --octopus)               OCTOPUS="$1" ; shift ;;
         --pacific)               PACIFIC="$1" ; shift ;;
         --ses5)                  SES5="$1" ; shift ;;
