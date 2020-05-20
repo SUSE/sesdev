@@ -1222,6 +1222,9 @@ class Deployment():
             'deepsea_git_repo': self.settings.deepsea_git_repo,
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
+            'deploy_salt': bool(self.settings.version != 'makecheck' and
+                                self.settings.version != 'caasp4' and
+                                not self.suma),
             'stop_before_stage': self.settings.stop_before_stage,
             'deployment_tool': self.settings.deployment_tool,
             'version_repos_prio': version_repos_prio,

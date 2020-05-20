@@ -119,13 +119,7 @@ ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
 cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
 hostnamectl set-hostname {{ node.name }}
 
-{% if version == 'caasp4' %}
-{% include "caasp/provision.sh.j2" %}
-{% endif %}
-
-{% if version == 'makecheck' %}
-{% include "makecheck/provision.sh.j2" %}
-{% elif not suma %}
+{% if deploy_salt %}
 zypper --non-interactive install salt-minion
 sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
 
@@ -139,9 +133,11 @@ systemctl start salt-minion
 {% include "sync_clocks.sh.j2" %}
 {% endif %}
 
-{% endif %} {# not suma #}
+{% endif %} {# deploy_salt #}
 
 touch /tmp/ready
+
+{% if deploy_salt or suma %}
 
 {% if node == master or node == suma %}
 
@@ -205,3 +201,11 @@ salt-key -Ay
 {% endif %}
 
 {% endif %} {# node == master or node == suma #}
+
+{% endif %} {# deploy_salt or suma #}
+
+{% if version == 'caasp4' %}
+{% include "caasp/provision.sh.j2" %}
+{% elif version == 'makecheck' %}
+{% include "makecheck/provision.sh.j2" %}
+{% endif %}
