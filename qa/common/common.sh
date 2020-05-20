@@ -442,7 +442,13 @@ function number_of_daemons_expected_vs_metadata_test {
     fi
     if [ "$expected_mgrs" ] ; then
         echo "MGRs metadata/expected: $metadata_mgrs/$expected_mgrs"
-        [ "$metadata_mgrs" = "$expected_mgrs" ] || success=""
+        if [ "$metadata_mgrs" = "$expected_mgrs" ] ; then
+            true  # normal success case
+        elif [ "$expected_mgrs" -gt "1" ] && [ "$metadata_mgrs" = "$((expected_mgrs + 1))" ] ; then
+            true  # workaround for https://tracker.ceph.com/issues/45093
+        else
+            success=""
+        fi
     fi
     if [ "$expected_mdss" ] ; then
         echo "MDSs metadata/expected: $metadata_mdss/$expected_mdss"
