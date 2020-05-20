@@ -176,3 +176,9 @@ class DuplicateRolesNotSupported(SesDevException):
             "A node with more than one \"{r}\" role was detected. "
             "sesdev does not support more than one \"{r}\" role per node.".format(r=role)
             )
+
+
+class NoSupportConfigTarballFound(SesDevException):
+    def __init__(self, node):
+        super(NoSupportConfigTarballFound, self).__init__(
+            "No supportconfig tarball found on node {}".format(node))

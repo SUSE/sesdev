@@ -21,7 +21,7 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         CmdException, VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
                         UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
                         NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes, \
-                        DuplicateRolesNotSupported
+                        DuplicateRolesNotSupported, NoSupportConfigTarballFound
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1577,7 +1577,7 @@ class Deployment():
         return _cmd
 
     def ssh(self, name, command):
-        tools.run_interactive(self._ssh_cmd(name, command))
+        return tools.run_interactive(self._ssh_cmd(name, command))
 
     def _scp_cmd(self, source, destination, recurse=False):
         host_is_source = False
@@ -1643,9 +1643,20 @@ class Deployment():
             ))
         self.ssh(name, ('supportconfig',))
         log_handler("=> Grabbing the resulting tarball from the cluster node\n")
-        self.scp(str(name) + ':/var/log/nts*', '.')
+        scc_exists = self.ssh(name, ('ls', '/var/log/scc*'))
+        nts_exists = self.ssh(name, ('ls', 'var/log/nts*'))
+        glob_to_get = None
+        if scc_exists == 0:
+            log_handler("Found /var/log/scc* (supportconfig) files on {}\n".format(name))
+            glob_to_get = 'scc*'
+        elif nts_exists == 0:
+            log_handler("Found /var/log/nts* (supportconfig) files on {}\n".format(name))
+            glob_to_get = 'nts*'
+        else:
+            raise NoSupportConfigTarballFound(name)
+        self.scp('{n}:/var/log/{g}'.format(n=name, g=glob_to_get), '.')
         log_handler("=> Deleting the tarball from the cluster node\n")
-        self.ssh(name, ('rm', '/var/log/nts*'))
+        self.ssh(name, ('rm', '/var/log/{}'.format(glob_to_get)))
 
     def qa_test(self, log_handler):
         tools.run_async(
