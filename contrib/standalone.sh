@@ -187,6 +187,7 @@ if [ "$SES5" ] ; then
     run_cmd sesdev create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
     run_cmd sesdev qa-test ses5-4node
     run_cmd sesdev supportconfig ses5-4node node1
+    rm -f scc*
     # consider uncommenting after the following bugs are fixed:
     # - https://github.com/SUSE/sesdev/issues/276
     # - https://github.com/SUSE/sesdev/issues/291
@@ -211,6 +212,7 @@ if [ "$SES6" ] ; then
     run_cmd sesdev create ses6 --non-interactive ses6-4node
     run_cmd sesdev qa-test ses6-4node
     run_cmd sesdev supportconfig ses6-4node node1
+    rm -f scc*
     # consider uncommenting after the following bugs are fixed:
     # - https://github.com/SUSE/sesdev/issues/276
     # - https://github.com/SUSE/sesdev/issues/291
@@ -235,6 +237,7 @@ if [ "$SES7" ] ; then
     run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
     run_cmd sesdev qa-test ses7-4node
     run_cmd sesdev supportconfig ses7-4node node1
+    rm -f scc*
     # consider uncommenting after the following bugs are fixed:
     # - bsc#1170498
     # - https://github.com/SUSE/sesdev/issues/276
