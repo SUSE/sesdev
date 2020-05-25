@@ -7,6 +7,35 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.3.0] - 2020-05-25
+
+### Added
+- octopus/ses7: added "--stop-before-ceph-orch-apply" function (PR #301)
+- Implement RGW deployment in octopus, ses7 (PR #314)
+- ceph_salt_deployment: do not force user to change dashboard pw (PR #315)
+- makecheck: possibly prophylactically downgrade libudev1 (PR #317)
+- contrib/standalone.sh: --no-stop-on-failure option (PR #318)
+- ceph_salt_deployment: make use of 'cephadm' role (PR #319)
+
+### Removed
+- octopus/ses7: removed "--deploy-mons", "--deploy-mgrs", "--deploy-osds",
+  "--deploy-mdss" (replaced by "--stop-before-ceph-orch-apply") (PR #301)
+- seslib: drop Containers module from SES7 deployment (PR #303)
+- provision.sh: remove curl RPM from the environment (PR #311)
+
+### Fixed
+- Fixed "sesdev create caasp4" default deployment by disabling multi-master
+  (PR #302)
+- ceph_salt_deployment: do not deploy MDS if no mds roles present (PR #313)
+- caasp: do not install salt (PR #320)
+- supportconfig: handle both scc and nts tarball prefixes (PR #323)
+- qa: work around cephadm MGR co-location issue (PR #324)
+
+### Changed
+- seslib: convert certain public methods into private (PR #309)
+- caasp4: rename "storage" role to "nfs" and drop it from default 4-node
+  deployment (PR #310)
+
 ## [1.2.0] - 2020-05-04
 
 ### Added
@@ -355,7 +384,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.2.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/SUSE/sesdev/releases/tag/v1.3.0
 [1.2.0]: https://github.com/SUSE/sesdev/releases/tag/v1.2.0
 [1.1.12]: https://github.com/SUSE/sesdev/releases/tag/v1.1.12
 [1.1.11]: https://github.com/SUSE/sesdev/releases/tag/v1.1.11
