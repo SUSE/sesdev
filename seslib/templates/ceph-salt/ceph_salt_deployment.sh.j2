@@ -31,10 +31,11 @@ zypper --non-interactive install ceph-salt
 systemctl restart salt-master
 {% include "wait_for_minions.sh.j2" %}
 
+{% if use_salt %}
 salt '*' saltutil.pillar_refresh
 salt '*' saltutil.sync_all
-
 sleep 2
+{% endif %}
 
 {% if stop_before_ceph_salt_config %}
 exit 0
