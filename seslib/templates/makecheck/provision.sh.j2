@@ -13,6 +13,7 @@ set -ex
 # problem in the past:
 #
 zypper --non-interactive install --force libudev1 || true
+zypper --non-interactive install --force libncurses6 || true
 
 useradd -m {{ makecheck_username }}
 echo "{{ makecheck_username }} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
