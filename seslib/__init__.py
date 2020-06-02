@@ -21,7 +21,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         CmdException, VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
                         UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
                         NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes, \
-                        DuplicateRolesNotSupported, NoSupportConfigTarballFound
+                        DuplicateRolesNotSupported, NoSupportConfigTarballFound, \
+                        ExplicitAdminRoleNotAllowed
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -896,9 +897,10 @@ class NodeManager:
 
 
 class Deployment():
-    def __init__(self, dep_id, settings):
+    def __init__(self, dep_id, settings, existing=False):
         self.dep_id = dep_id
         self.settings = settings
+        self.existing = existing  # True: we are loading, False: we are creating
         self.nodes = {}
         self.node_counts = {}
         for role in KNOWN_ROLES:
@@ -1063,7 +1065,7 @@ class Deployment():
                                               self.settings.domain.format(self.dep_id))
             else:
                 admin_node_processed = False
-                if 'admin' in node_roles and not admin_node_processed:
+                if self.existing and 'admin' in node_roles and not admin_node_processed:
                     admin_node_processed = True  # only do this once, for backwards compatibility
                     name = 'admin'
                     fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
@@ -1500,6 +1502,10 @@ class Deployment():
         return result
 
     def vet_configuration(self):
+        # "admin" role exists for backwards compatibility with existing
+        # deployments only, and should not be used for new deployments
+        if self.node_counts['admin'] != 0:
+            raise ExplicitAdminRoleNotAllowed()
         # all deployment versions except "makecheck" require one, and only one, master role
         if self.settings.version == 'makecheck':
             if len(self.nodes) == 1 and self.node_counts['makecheck'] == 1:
@@ -1778,7 +1784,7 @@ class Deployment():
         with open(metadata_file, 'r') as file:
             metadata = json.load(file)
 
-        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']))
+        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']), existing=True)
         if load_status:
             dep.load_status()
         return dep
