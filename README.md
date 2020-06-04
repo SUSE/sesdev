@@ -64,6 +64,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [Run "make check" on openSUSE Leap 15.2 from upstream "octopus" branch](#run-make-check-on-opensuse-leap-152-from-upstream-octopus-branch)
       * [Run "make check" on SLE-15-SP2 from downstream "ses7" branch](#run-make-check-on-sle-15-sp2-from-downstream-ses7-branch)
       * [Other "make check" scenarios](#other-make-check-scenarios)
+   * [Replace ceph-salt](#replace-ceph-salt)
 * [Common pitfalls](#common-pitfalls)
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
@@ -599,6 +600,19 @@ $ sesdev tunnel <deployment_id> dashboard
 ```
 
 The command will output the URL that you can use to access the dashboard.
+
+### Replace ceph-salt
+
+For deployments that used ceph-salt, it's possible to replace the ceph-salt
+installed by sesdev with a different one:
+
+```
+$ sesdev replace-ceph-salt --local <path> <deployment_id>
+```
+
+Assuming `<path>` points to ceph-salt source code, the command will work
+regardless of whether ceph-salt was originally installed from source or
+from RPM.
 
 ### Temporarily stop a cluster
 
