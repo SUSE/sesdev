@@ -520,7 +520,13 @@ function number_of_nodes_actual_vs_expected_test {
     fi
     if [ "$expected_mgr_nodes" ] ; then
         echo "MGR nodes actual/expected:    $actual_mgr_nodes/$expected_mgr_nodes"
-        [ "$actual_mgr_nodes" = "$expected_mgr_nodes" ] || success=""
+        if [ "$actual_mgr_nodes" = "$expected_mgr_nodes" ] ; then
+            true  # normal success case
+        elif [ "$expected_mgr_nodes" -gt "1" ] && [ "$actual_mgr_nodes" = "$((expected_mgr_nodes + 1))" ] ; then
+            true  # workaround for https://tracker.ceph.com/issues/45093
+        else
+            success=""
+        fi
     fi
     if [ "$expected_mds_nodes" ] ; then
         echo "MDS nodes actual/expected:    $actual_mds_nodes/$expected_mds_nodes"
