@@ -1563,23 +1563,8 @@ class Deployment():
 
         return (address, proxycmd, dep_private_key)
 
-    def _ssh_cmd(self, name, command=None):
-        (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
-
-        _cmd = ["ssh", "root@{}".format(address),
-                "-i", dep_private_key,
-                "-o", "IdentitiesOnly yes", "-o", "StrictHostKeyChecking no",
-                "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no"]
-        if proxycmd is not None:
-            _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
-        if command:
-            _cmd.extend(command)
-        return _cmd
-
-    def ssh(self, name, command):
-        return tools.run_interactive(self._ssh_cmd(name, command))
-
-    def _scp_cmd(self, source, destination, recurse=False):
+    @staticmethod
+    def _parse_source_destination(source, destination):
         host_is_source = False
         host_is_destination = False
         name = None
@@ -1608,6 +1593,31 @@ class Deployment():
             (name, source_path) = source.split(':')
             destination_path = destination
 
+        return (host_is_source, host_is_destination, name, source_path, destination_path)
+
+    def _ssh_cmd(self, name, command=None):
+        (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
+
+        _cmd = ["ssh", "root@{}".format(address),
+                "-i", dep_private_key,
+                "-o", "IdentitiesOnly yes", "-o", "StrictHostKeyChecking no",
+                "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no"]
+        if proxycmd is not None:
+            _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
+        if command:
+            _cmd.extend(command)
+        return _cmd
+
+    def ssh(self, name, command):
+        return tools.run_interactive(self._ssh_cmd(name, command))
+
+    def _scp_cmd(self, source, destination, recurse=False):
+        (host_is_source,
+         host_is_destination,
+         name,
+         source_path,
+         destination_path) = self._parse_source_destination(source, destination)
+
         # build up scp command
         (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
         _cmd = ['scp']
@@ -1629,6 +1639,40 @@ class Deployment():
 
     def scp(self, source, destination, recurse=False):
         tools.run_interactive(self._scp_cmd(source, destination, recurse=recurse))
+
+    def _rsync_cmd(self, source, destination, excludes=None, recurse=False):
+        (host_is_source,
+         host_is_destination,
+         name,
+         source_path,
+         destination_path) = self._parse_source_destination(source, destination)
+
+        # build up rsync command
+        (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
+        _cmd = ['rsync']
+        if recurse:
+            _cmd.extend(['-r'])
+        if excludes:
+            for exclude in excludes:
+                _cmd.extend(['--exclude={}'.format(exclude)])
+        proxycmd_opt = ''
+        if proxycmd is not None:
+            proxycmd_opt = " -o 'ProxyCommand={}'".format(proxycmd)
+        _cmd.extend(["-e",
+                     "ssh -i {}"
+                     " -o 'IdentitiesOnly yes'"
+                     " -o 'StrictHostKeyChecking no'"
+                     " -o 'UserKnownHostsFile /dev/null'"
+                     " -o 'PasswordAuthentication no'{}".format(dep_private_key, proxycmd_opt)])
+        if host_is_source:
+            _cmd.extend([source_path, 'root@{}:{}'.format(address, destination_path)])
+        elif host_is_destination:
+            _cmd.extend(['root@{}:{}'.format(address, source_path), destination_path])
+
+        return _cmd
+
+    def rsync(self, source, destination, excludes=None, recurse=False):
+        tools.run_interactive(self._rsync_cmd(source, destination, excludes, recurse=recurse))
 
     def supportconfig(self, log_handler, name):
         if self.settings.os.startswith("sle"):
@@ -1751,6 +1795,43 @@ class Deployment():
                                              remote_port)])
         _log_debug("About to run: {}".format(ssh_cmd))
         print("You can now access the service in: {}".format(service_url))
+        tools.run_sync(ssh_cmd)
+
+    def replace_ceph_salt(self, local=None):
+        root = '/root'
+        ceph_salt_src = '{}/ceph-salt'.format(root)
+        master_node = 'master'
+
+        print("Fetching ceph-salt...")
+        if local:
+            self.rsync(local,
+                       '{}:{}'.format(master_node, root),
+                       excludes=['.git', '.tox', '.idea', 'venv'],
+                       recurse=True)
+
+        print("Installing ceph-salt...")
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("cp -r {}/ceph-salt-formula/salt/* /srv/salt/".format(ceph_salt_src))
+        tools.run_sync(ssh_cmd)
+
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("zypper --non-interactive refresh")
+        tools.run_sync(ssh_cmd)
+
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("zypper --non-interactive install python3-pip")
+        tools.run_sync(ssh_cmd)
+
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("zypper --non-interactive remove ceph-salt ceph-salt-formula || true")
+        tools.run_sync(ssh_cmd)
+
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("pip install --prefix /usr {}".format(ceph_salt_src))
+        tools.run_sync(ssh_cmd)
+
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("salt '*' saltutil.sync_all")
         tools.run_sync(ssh_cmd)
 
     @classmethod

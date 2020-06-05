@@ -1140,5 +1140,17 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
     dep.start_port_forwarding(service, node, remote_port, local_port, local_address)
 
 
+@cli.command(name='replace-ceph-salt')
+@click.argument('deployment_id')
+@click.option('--local', default=None, type=str, show_default=True,
+              help='The local path for "ceph-salt" source')
+def replace_ceph_salt(deployment_id, local=None):
+    """
+    Install ceph-salt from source
+    """
+    dep = seslib.Deployment.load(deployment_id)
+    dep.replace_ceph_salt(local)
+
+
 if __name__ == '__main__':
     sys.exit(sesdev_main())
