@@ -182,3 +182,13 @@ class NoSupportConfigTarballFound(SesDevException):
     def __init__(self, node):
         super(NoSupportConfigTarballFound, self).__init__(
             "No supportconfig tarball found on node {}".format(node))
+
+
+class ExplicitAdminRoleNotAllowed(SesDevException):
+    def __init__(self):
+        super(ExplicitAdminRoleNotAllowed, self).__init__(
+            "Though it is still recognized in existing deployments, the explicit "
+            "\"admin\" role is deprecated and new deployments are not allowed to "
+            "have it. When sesdev deploys Ceph/SES versions that use an \"admin\" "
+            "role, all nodes in the deployment will get that role implicitly. "
+            "(TL;DR remove the \"admin\" role and try again!)")
