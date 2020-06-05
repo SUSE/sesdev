@@ -79,29 +79,42 @@ cat > {{ chrony_script }} << 'EOF'
 set -x
 
 function try_wait {
-    local cmd="$1"
-    local tries="$2"
-    local sleep_secs="$3"
+    local tries="$1"
+    shift
+    local sleep_secs="$1"
+    shift
+    local cmd="$*"
+    local success=""
     set +x
     for i in $(seq 1 "$tries") ; do
         set -x
         $cmd
-        set +x
         SAVED_STATUS="$?"
-        test "$SAVED_STATUS" = "0" && break
+        set +x
+        if [ "$SAVED_STATUS" = "0" ] ; then
+            success="non_empty_value"
+            break
+        fi
         set -x
         sleep "$sleep_secs"
         set +x
     done
+    if [ "$success" ] ; then
+        true
+    else
+        echo "Something is not right. Bailing out!"
+        exit 1
+    fi
     set -x
 }
 
 systemctl start chronyd.service
-sleep 15
-chronyc makestep
-chronyc 'burst 4/4'
+sleep 10
+try_wait 10 5 chronyc burst 4/4
+sleep 10
+try_wait 10 5 chronyc makestep
 stdbuf -o0 chronyc waitsync
-try_wait "chronyc -n sources" 10 5
+try_wait 10 5 chronyc -n sources
 systemctl status --lines 20 chronyd.service | grep stepped
 EOF
 chmod 755 {{ chrony_script }}
