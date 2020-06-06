@@ -1601,13 +1601,33 @@ class Deployment():
 
         return (host_is_source, host_is_destination, name, source_path, destination_path)
 
+    @staticmethod
+    def __boilerplate_ssh_options(string=False):
+        retval = None
+        if string:
+            retval = (
+                " -o 'IdentitiesOnly yes'"
+                " -o 'StrictHostKeyChecking no'"
+                " -o 'UserKnownHostsFile /dev/null'"
+                " -o 'PasswordAuthentication no'"
+                )
+        else:
+            retval = [
+                "-o", "IdentitiesOnly yes",
+                "-o", "StrictHostKeyChecking no",
+                "-o", "UserKnownHostsFile /dev/null",
+                "-o", "PasswordAuthentication no",
+                ]
+        return retval
+
     def _ssh_cmd(self, name, command=None):
         (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
-
-        _cmd = ["ssh", "root@{}".format(address),
-                "-i", dep_private_key,
-                "-o", "IdentitiesOnly yes", "-o", "StrictHostKeyChecking no",
-                "-o", "UserKnownHostsFile /dev/null", "-o", "PasswordAuthentication no"]
+        _cmd = [
+            "ssh",
+            "root@{}".format(address),
+            "-i", dep_private_key
+            ]
+        _cmd.extend(self.__boilerplate_ssh_options())
         if proxycmd is not None:
             _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
         if command:
@@ -1629,11 +1649,8 @@ class Deployment():
         _cmd = ['scp']
         if recurse:
             _cmd.extend(['-r'])
-        _cmd.extend(["-i", dep_private_key,
-                     "-o", "IdentitiesOnly yes",
-                     "-o", "StrictHostKeyChecking no",
-                     "-o", "UserKnownHostsFile /dev/null",
-                     "-o", "PasswordAuthentication no"])
+        _cmd.extend(["-i", dep_private_key])
+        _cmd.extend(self.__boilerplate_ssh_options())
         if proxycmd is not None:
             _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
         if host_is_source:
@@ -1664,12 +1681,11 @@ class Deployment():
         proxycmd_opt = ''
         if proxycmd is not None:
             proxycmd_opt = " -o 'ProxyCommand={}'".format(proxycmd)
-        _cmd.extend(["-e",
-                     "ssh -i {}"
-                     " -o 'IdentitiesOnly yes'"
-                     " -o 'StrictHostKeyChecking no'"
-                     " -o 'UserKnownHostsFile /dev/null'"
-                     " -o 'PasswordAuthentication no'{}".format(dep_private_key, proxycmd_opt)])
+        _cmd.extend(["-e", "ssh -i {}{}{}".format(
+            dep_private_key,
+            self.__boilerplate_ssh_options(string=True),
+            proxycmd_opt
+            )])
         if host_is_source:
             _cmd.extend([source_path, 'root@{}:{}'.format(address, destination_path)])
         elif host_is_destination:
