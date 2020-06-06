@@ -458,7 +458,7 @@ SETTINGS = {
     },
     'deployment_tool': {
         'type': str,
-        'help': 'Deployment tool to deploy the Ceph cluster. Currently only deepsea is supported',
+        'help': 'Deployment tool (deepsea, cephadm) to deploy the Ceph cluster',
         'default': '',
     },
     'deepsea_git_repo': {
@@ -1489,8 +1489,7 @@ class Deployment():
                 result += "     - encrypted OSDs:   {}\n".format(self.settings.encrypted_osds)
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test)
-            if self.settings.version in ['octopus', 'ses7', 'master'] \
-                    and self.settings.deployment_tool == 'cephadm':
+            if self.settings.version in ['octopus', 'ses7', 'pacific']:
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             for synced_folder in self.settings.synced_folder:
                 result += "     - synced_folder:    {}\n".format(' -> '.join(synced_folder))

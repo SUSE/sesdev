@@ -744,9 +744,7 @@ def ses6(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-cephadm", default=False,
-              help="Use deepsea to deploy SES7 instead of cephadm")
-def ses7(deployment_id, deploy, use_deepsea, **kwargs):
+def ses7(deployment_id, deploy, **kwargs):
     """
     Creates a SES7 cluster using SLES-15-SP2 and packages (and container image)
     from the Devel:Storage:7.0 IBS project
@@ -754,8 +752,6 @@ def ses7(deployment_id, deploy, use_deepsea, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses7', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses7', deployment_id, settings_dict)
-    if use_deepsea:
-        settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
@@ -781,9 +777,7 @@ def nautilus(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-cephadm", default=False,
-              help="Use deepsea to deploy Ceph Octopus instead of cephadm")
-def octopus(deployment_id, deploy, use_deepsea, **kwargs):
+def octopus(deployment_id, deploy, **kwargs):
     """
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages
     (and container image) from filesystems:ceph:octopus:upstream OBS project
@@ -791,8 +785,6 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('octopus', **kwargs)
     deployment_id = _maybe_gen_dep_id('octopus', deployment_id, settings_dict)
-    if use_deepsea:
-        settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
@@ -802,9 +794,7 @@ def octopus(deployment_id, deploy, use_deepsea, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
-@click.option("--use-deepsea/--use-cephadm", default=False,
-              help="Use deepsea to deploy Ceph Master Branch instead of cephadm")
-def pacific(deployment_id, deploy, use_deepsea, **kwargs):
+def pacific(deployment_id, deploy, **kwargs):
     """
     Creates a Ceph Pacific cluster using openSUSE Leap 15.2 and packages
     (and container image) from filesystems:ceph:master:upstream OBS project
@@ -812,8 +802,6 @@ def pacific(deployment_id, deploy, use_deepsea, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('pacific', **kwargs)
     deployment_id = _maybe_gen_dep_id('pacific', deployment_id, settings_dict)
-    if use_deepsea:
-        settings_dict['deployment_tool'] = 'deepsea'
     _create_command(deployment_id, deploy, settings_dict)
 
 
