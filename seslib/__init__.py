@@ -22,7 +22,7 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
                         NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes, \
                         DuplicateRolesNotSupported, NoSupportConfigTarballFound, \
-                        ExplicitAdminRoleNotAllowed
+                        ExplicitAdminRoleNotAllowed, SubcommandNotSupportedInVersion
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1839,6 +1839,148 @@ class Deployment():
         ssh_cmd = self._ssh_cmd(master_node)
         ssh_cmd.append("salt '*' saltutil.sync_all")
         tools.run_sync(ssh_cmd)
+
+    def replace_mgr_modules(self, local=None, pr=None, branch=None, repo=None, langs=None):
+        if self.settings.version in ['nautilus', 'ses6', 'octopus', 'ses7', 'pacific']:
+            pass  # replace-mgr-modules is expected to work with these
+        else:
+            raise SubcommandNotSupportedInVersion('replace-mgr-modules', self.settings.version)
+
+        if local:
+            print("Using local repository '{}' ...".format(local))
+        elif pr:
+            print("Fetching PR '{}' from '{}'...".format(pr, repo))
+        elif branch:
+            print("Fetching branch '{}' from '{}'...".format(branch, repo))
+
+        master_node = 'master'
+        mgr_nodes = []
+
+        for _node in self.nodes.values():
+            if _node.has_role('mgr'):
+                mgr_nodes.append(_node.name)
+
+        print("Disabling modules...")
+        ssh_cmd = self._ssh_cmd(mgr_nodes[0])
+        ssh_cmd.append("ceph mgr module ls | jq -r '.enabled_modules | .[]'")
+        modules = tools.run_sync(ssh_cmd)
+        if modules:
+            modules = modules.strip().split('\n')
+        print("{}".format(modules))
+        for module in modules:
+            ssh_cmd = self._ssh_cmd(mgr_nodes[0])
+            ssh_cmd.append("ceph mgr module disable {}".format(module))
+            tools.run_sync(ssh_cmd)
+
+        print("Fetching...")
+        if local:
+            local_path = "{}/src/pybind/mgr".format(local)
+            master_path = "/root/local/ceph/src/pybind"
+
+            ssh_cmd = self._ssh_cmd(master_node)
+            ssh_cmd.append("rm -rf {0} && mkdir -p {0}".format(master_path))
+            tools.run_sync(ssh_cmd)
+
+            self.rsync(local_path,
+                       '{}:{}'.format(master_node, master_path),
+                       excludes=['.git', '.tox', '.idea', 'venv', 'build',
+                                 'node_modules', 'cypress', 'frontend/src'],
+                       recurse=True)
+        else:
+            master_path = "/root/remote/ceph/src/pybind"
+
+            if pr:
+                remote_branch = 'pull/{}/head'.format(pr)
+            else:
+                remote_branch = branch
+
+            local_branch = '{}/{}'.format(repo, remote_branch)
+
+            if "//" not in repo:
+                repo = "https://github.com/{0}/ceph.git".format(repo)
+
+            ssh_cmd = self._ssh_cmd(master_node)
+            ssh_cmd.append(
+                "cd ~/ && \
+                [ -d 'remote' ] || mkdir remote && \
+                cd remote && \
+                [ -d 'ceph' ] || git clone --depth 1 {0} && \
+                cd ceph && \
+                git checkout master && \
+                git fetch --depth 1 {0} {1}:{2} -f && \
+                git checkout {2}"
+                .format(repo, remote_branch, local_branch))
+            tools.run_sync(ssh_cmd)
+
+            print("Building...")
+            npm_build = "build:localize"
+            node_version = "12.18.0"
+            if self.settings.version in ['nautilus', 'ses6', 'octopus', 'ses7']:
+                npm_build = "build"
+                node_version = "10.18.1"
+
+            ssh_cmd = self._ssh_cmd(master_node)
+            ssh_cmd.append(
+                "cd ~/ && \
+                zypper -n in python2-pip python3-pip && \
+                pip install nodeenv && \
+                nodeenv env --node={} --force && \
+                . ~/env/bin/activate && \
+                cd {}/mgr/dashboard/frontend && \
+                export DASHBOARD_FRONTEND_LANGS='{}' && \
+                export NG_CLI_ANALYTICS=false && \
+                npm ci --unsafe-perm && \
+                npm run {} && \
+                rm -rf node_modules"
+                .format(node_version, master_path, langs, npm_build))
+            tools.run_sync(ssh_cmd)
+
+        for node in mgr_nodes:
+            if self.settings.version in ['nautilus', 'ses6']:
+                print("Copying to node {}".format(node))
+                self.rsync(
+                    '{}:{}/mgr'.format(master_node, master_path),
+                    "{}:/usr/share/ceph/".format(node),
+                    excludes=['.git', '.tox', '.idea', 'venv', 'build',
+                              'node_modules', 'cypress'],
+                    recurse=True)
+
+                ssh_cmd = self._ssh_cmd(master_node)
+                ssh_cmd.append("scp -r {}/mgr/ {}:/usr/share/ceph/"
+                               .format(master_path, node))
+                tools.run_sync(ssh_cmd)
+            else:
+                ssh_cmd = self._ssh_cmd(node)
+                ssh_cmd.append('podman ps --format "{}" -f name=mgr.{}'.format("{{.ID}}", node))
+                containers = tools.run_sync(ssh_cmd)
+                containers = containers.strip().split('\n')
+
+                print("Copying to node {}".format(node))
+                ssh_cmd = self._ssh_cmd(node)
+                ssh_cmd.append("rm -rf ~/mgr")
+                tools.run_sync(ssh_cmd)
+
+                ssh_cmd = self._ssh_cmd(master_node)
+                ssh_cmd.append("scp -r {}/mgr/ {}:~/".format(master_path, node))
+                tools.run_sync(ssh_cmd)
+
+                for container in containers:
+                    print("Copying to the container {}".format(container))
+                    ssh_cmd = self._ssh_cmd(node)
+                    ssh_cmd.append("podman exec {}".format(container))
+                    ssh_cmd.append("rm -rf /usr/share/ceph/mgr/dashboard/frontend/dist/")
+                    tools.run_sync(ssh_cmd)
+
+                    ssh_cmd = self._ssh_cmd(node)
+                    ssh_cmd.append("podman cp ~/mgr {}:/usr/share/ceph/"
+                                   .format(container))
+                    tools.run_sync(ssh_cmd)
+
+        print("Enabling modules...")
+        for module in modules:
+            ssh_cmd = self._ssh_cmd(mgr_nodes[0])
+            ssh_cmd.append("ceph mgr module enable {}".format(module))
+            tools.run_sync(ssh_cmd)
 
     @classmethod
     def create(cls, dep_id, settings):

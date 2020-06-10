@@ -192,3 +192,9 @@ class ExplicitAdminRoleNotAllowed(SesDevException):
             "have it. When sesdev deploys Ceph/SES versions that use an \"admin\" "
             "role, all nodes in the deployment will get that role implicitly. "
             "(TL;DR remove the \"admin\" role and try again!)")
+
+
+class SubcommandNotSupportedInVersion(SesDevException):
+    def __init__(self, subcmd, version):
+        super(SubcommandNotSupportedInVersion, self).__init__(
+            "Subcommand {} not supported in '{}'".format(subcmd, version))

@@ -58,6 +58,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [Copy files into and out of a cluster](#copy-files-into-and-out-of-a-cluster)
    * [Services port-forwarding](#services-port-forwarding)
    * [Replace ceph-salt](#replace-ceph-salt)
+   * [Replace MGR modules](#replacing-mgr-modules)
    * [Temporarily stop a cluster](#temporarily-stop-a-cluster)
    * [Destroy a cluster](#destroy-a-cluster)
    * [Run "make check"](#run-make-check)
@@ -613,6 +614,18 @@ $ sesdev replace-ceph-salt --local <path> <deployment_id>
 Assuming `<path>` points to ceph-salt source code, the command will work
 regardless of whether ceph-salt was originally installed from source or
 from RPM.
+
+### Replace MGR modules
+
+It's possible to replace Ceph MGR modules with a version found in a github PR,
+git branch or in a local repository.
+
+This can be helpful to test PRs in a cluster with all services enabled.
+
+```
+$ sesdev replace-mgr-modules <deployment_id> <pr>
+```
+
 
 ### Temporarily stop a cluster
 
