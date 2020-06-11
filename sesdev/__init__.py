@@ -180,7 +180,7 @@ def _maybe_gen_dep_id(version, dep_id, settings_dict):
         single_node = settings_dict['single_node'] if 'single_node' in settings_dict else False
         dep_id = version
         if single_node:
-            dep_id += "_mini"
+            dep_id += "-mini"
     return dep_id
 
 
@@ -849,7 +849,7 @@ def makecheck(deployment_id, deploy, **kwargs):
     settings_dict = _gen_settings_dict('makecheck', **kwargs)
     if not deployment_id:
         os = settings_dict['os'] if 'os' in settings_dict else 'tumbleweed'
-        deployment_id = 'makecheck_{}'.format(os)
+        deployment_id = 'makecheck-{}'.format(os)
     _create_command(deployment_id, deploy, settings_dict)
 
 

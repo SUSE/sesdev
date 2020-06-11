@@ -22,7 +22,8 @@ from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingT
                         UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
                         NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes, \
                         DuplicateRolesNotSupported, NoSupportConfigTarballFound, \
-                        ExplicitAdminRoleNotAllowed, SubcommandNotSupportedInVersion
+                        ExplicitAdminRoleNotAllowed, SubcommandNotSupportedInVersion, \
+                        DepIDWrongLength, DepIDIllegalChars
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -896,9 +897,32 @@ class NodeManager:
         return len(self.get_by_role(role))
 
 
+def _vet_dep_id(dep_id):
+    # from hostname(7) - Linux manual page
+    #
+    # Each element of the hostname must be from 1 to 63 characters long and the
+    # entire hostname, including the dots, can be at most 253 characters long.
+    # Valid characters for hostnames are ASCII(7) letters from a to z, the digits
+    # from 0 to 9, and the hyphen (-).
+    #
+    # The dep_id can be interpreted as an "element of the hostname"...
+    length = len(dep_id)
+    if length < 1 or length > 63:
+        raise DepIDWrongLength(length)
+    valid_host_regex = r'^[a-z0-9\-]+$'
+    if re.search(valid_host_regex, dep_id):
+        pass
+    else:
+        raise DepIDIllegalChars(dep_id)
+    return dep_id
+
+
 class Deployment():
     def __init__(self, dep_id, settings, existing=False):
-        self.dep_id = dep_id
+        if existing:
+            self.dep_id = dep_id
+        else:
+            self.dep_id = _vet_dep_id(dep_id)
         self.settings = settings
         self.existing = existing  # True: we are loading, False: we are creating
         self.nodes = {}

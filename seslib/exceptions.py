@@ -198,3 +198,18 @@ class SubcommandNotSupportedInVersion(SesDevException):
     def __init__(self, subcmd, version):
         super(SubcommandNotSupportedInVersion, self).__init__(
             "Subcommand {} not supported in '{}'".format(subcmd, version))
+
+
+class DepIDWrongLength(SesDevException):
+    def __init__(self, length):
+        super(DepIDWrongLength, self).__init__(
+            "Deployment ID must be from 1 to 63 characters in length "
+            "(yours had {} characters)".format(length))
+
+
+class DepIDIllegalChars(SesDevException):
+    def __init__(self, dep_id):
+        super(DepIDIllegalChars, self).__init__(
+            "dep_id \"{}\" contains illegal characters. Valid characters for hostnames "
+            "are ASCII(7) letters from a to z, the digits from 0 to 9, and the "
+            "hyphen (-).".format(dep_id))
