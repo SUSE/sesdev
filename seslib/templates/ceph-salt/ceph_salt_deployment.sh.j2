@@ -104,12 +104,26 @@ ceph orch apply mon "{{ mon_node_list }}"
 ceph orch apply mgr "{{ mgr_node_list }}"
 {% endif %} {# mgr_nodes > 1 #}
 
-ceph orch device ls --refresh
+{% if storage_nodes > 0 %}
+{% set service_spec_osd = "service_spec_osd.yml" %}
+cat > {{ service_spec_osd }} << EOF
+service_type: osd
+placement:
+    hosts:
 {% for node in nodes %}
 {% if node.has_role('storage') %}
-echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.name }}*\"}, \"service_id\": \"testing_dg_{{ node.name }}\", \"data_devices\": {\"all\": True}}" | ceph orch apply osd -i -
+        - '{{ node.name }}'
 {% endif %}
 {% endfor %}
+service_id: generic_osd_deployment
+data_devices:
+    all: True
+EOF
+cat {{ service_spec_osd }}
+
+ceph orch device ls --refresh
+ceph orch apply osd -i {{ service_spec_osd }}
+{% endif %} {# storage_nodes > 0 #}
 
 {% if mds_nodes > 0 %}
 ceph fs volume create myfs "{{ mds_node_list }}"

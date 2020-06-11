@@ -14,16 +14,35 @@ from jinja2 import Environment, PackageLoader
 import libvirt
 
 from . import tools
-from .exceptions import DeploymentDoesNotExists, VersionOSNotSupported, SettingTypeError, \
-                        VagrantBoxDoesNotExist, NodeDoesNotExist, NoSourcePortForPortForwarding, \
-                        ServicePortForwardingNotSupported, DeploymentAlreadyExists, \
-                        ServiceNotFound, ExclusiveRoles, RoleNotKnown, RoleNotSupported, \
-                        CmdException, VagrantSshConfigNoHostName, ScpInvalidSourceOrDestination, \
-                        UniqueRoleViolation, SettingNotKnown, SupportconfigOnlyOnSLE, \
-                        NoPrometheusGrafanaInSES5, BadMakeCheckRolesNodes, \
-                        DuplicateRolesNotSupported, NoSupportConfigTarballFound, \
-                        ExplicitAdminRoleNotAllowed, SubcommandNotSupportedInVersion, \
-                        DepIDWrongLength, DepIDIllegalChars
+from .exceptions import \
+                        BadMakeCheckRolesNodes, \
+                        CmdException, \
+                        DeploymentAlreadyExists, \
+                        DeploymentDoesNotExists, \
+                        DepIDWrongLength, \
+                        DepIDIllegalChars, \
+                        DuplicateRolesNotSupported, \
+                        ExclusiveRoles, \
+                        ExplicitAdminRoleNotAllowed, \
+                        NodeDoesNotExist, \
+                        NoPrometheusGrafanaInSES5, \
+                        NoSourcePortForPortForwarding, \
+                        NoStorageRolesDeepsea, \
+                        NoStorageRolesCephadm, \
+                        NoSupportConfigTarballFound, \
+                        RoleNotKnown, \
+                        RoleNotSupported, \
+                        ScpInvalidSourceOrDestination, \
+                        ServiceNotFound, \
+                        ServicePortForwardingNotSupported, \
+                        SettingNotKnown, \
+                        SettingTypeError, \
+                        SubcommandNotSupportedInVersion, \
+                        SupportconfigOnlyOnSLE, \
+                        VagrantBoxDoesNotExist, \
+                        VagrantSshConfigNoHostName, \
+                        VersionOSNotSupported, \
+                        UniqueRoleViolation
 
 
 JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -1551,9 +1570,23 @@ class Deployment():
             if self.node_counts['master'] != 1:
                 raise UniqueRoleViolation('master', self.node_counts['master'])
         # octopus and beyond require one, and only one, bootstrap role
-        if self.settings.version in ['ses7', 'octopus']:
+        if self.settings.version in ['ses7', 'octopus', 'pacific']:
             if self.node_counts['bootstrap'] != 1:
                 raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
+        # clusters with no OSDs can be deployed only in certain circumstances
+        if self.settings.version in ['ses5', 'nautilus', 'ses6']:
+            if self.node_counts['storage'] == 0:
+                raise NoStorageRolesDeepsea(self.settings.version)
+        if self.settings.version in ['octopus', 'ses7', 'pacific']:
+            if self.node_counts['storage'] == 0:
+                if self.node_counts['rgw'] > 0:
+                    raise NoStorageRolesCephadm('rgw')
+                if self.node_counts['igw'] > 0:
+                    raise NoStorageRolesCephadm('igw')
+                if self.node_counts['nfs'] > 0:
+                    raise NoStorageRolesCephadm('nfs')
+                if self.node_counts['mds'] > 0:
+                    raise NoStorageRolesCephadm('mds')
         # there must not be more than one suma role:
         if self.node_counts['suma'] > 1:
             raise UniqueRoleViolation('suma', self.node_counts['suma'])
