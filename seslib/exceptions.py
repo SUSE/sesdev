@@ -210,6 +210,6 @@ class DepIDWrongLength(SesDevException):
 class DepIDIllegalChars(SesDevException):
     def __init__(self, dep_id):
         super(DepIDIllegalChars, self).__init__(
-            "dep_id \"{}\" contains illegal characters. Valid characters for hostnames "
-            "are ASCII(7) letters from a to z, the digits from 0 to 9, and the "
-            "hyphen (-).".format(dep_id))
+            "Deployment ID \"{}\" contains illegal characters. Valid characters for "
+            "hostnames are ASCII(7) letters from a to z, the digits from 0 to 9, and "
+            "the hyphen (-).".format(dep_id))
