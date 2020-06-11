@@ -19,6 +19,9 @@
     ~ " --rgw-node-list=" ~ rgw_node_list
     ~ " --osds=" ~ total_osds
 -%}
+{% if filestore_osds %}
+{% set qa_test_cmd = qa_test_cmd ~ " --filestore-osds" %}
+{% endif %}
 
 cat > {{ qa_test_script }} << EOF
 #!/bin/bash

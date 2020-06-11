@@ -117,7 +117,13 @@ placement:
 {% endfor %}
 service_id: generic_osd_deployment
 data_devices:
-    all: True
+    all: true
+{% if encrypted_osds %}
+encrypted: true
+{% endif %}
+{% if filestore_osds %}
+objectstore: filestore
+{% endif %}
 EOF
 cat {{ service_spec_osd }}
 

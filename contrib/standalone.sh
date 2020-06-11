@@ -199,7 +199,7 @@ fi
 
 if [ "$NAUTILUS" ] ; then
     sesdev box remove --non-interactive leap-15.1
-    run_cmd sesdev create nautilus --non-interactive --single-node --qa-test nautilus-1node
+    run_cmd sesdev create nautilus --non-interactive --single-node --filestore --qa-test nautilus-1node
     run_cmd sesdev destroy --non-interactive nautilus-1node
     run_cmd sesdev create nautilus --non-interactive nautilus-4node
     run_cmd sesdev qa-test nautilus-4node
