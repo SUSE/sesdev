@@ -280,15 +280,15 @@ function ceph_health_test {
 
 function maybe_wait_for_osd_nodes_test {
     local expected_osd_nodes="$1"
-    local actual_osd_nodes
-    local minutes_to_wait
-    minutes_to_wait="5"
-    local minute
-    local i
-    local success
     echo
     echo "WWWW: maybe_wait_for_osd_nodes_test"
     if [ "$expected_osd_nodes" ] ; then
+        local actual_osd_nodes
+        local minutes_to_wait
+        minutes_to_wait="5"
+        local minute
+        local i
+        local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_osd_nodes OSD node(s) to show up..."
         for minute in $(seq 1 "$minutes_to_wait") ; do
             for i in $(seq 1 4) ; do
@@ -304,32 +304,35 @@ function maybe_wait_for_osd_nodes_test {
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
+        if [ "$success" ] ; then
+            echo "maybe_wait_for_osd_nodes_test: OK"
+            echo
+        else
+            echo "$expected_osd_nodes OSD nodes did not appear even after waiting $minutes_to_wait minutes. Giving up."
+            echo "maybe_wait_for_osd_nodes_test: FAIL"
+            echo
+            false
+        fi
     else
-        success="not_empty"
         echo "No OSD nodes expected: nothing to wait for."
-    fi
-    if [ "$success" ] ; then
-        echo "maybe_wait_for_osd_nodes_test: OK"
+        echo "maybe_wait_for_osd_nodes_test: SKIPPED"
         echo
-    else
-        echo "maybe_wait_for_osd_nodes_test: FAIL"
-        false
     fi
 }
 
 function maybe_wait_for_mdss_test {
     local expected_mdss="$1"
-    local actual_mdss
-    local minutes_to_wait
-    minutes_to_wait="5"
-    local metadata_mdss
-    local minute
-    local i
-    local success
     echo
     echo "WWWW: maybe_wait_for_mdss_test"
     if [ "$expected_mdss" ] ; then
-        echo "Waiting up to $minutes_to_wait minutes for all $expected_mdss MDS(s) to show up..."
+        local actual_mdss
+        local minutes_to_wait
+        minutes_to_wait="5"
+        local metadata_mdss
+        local minute
+        local i
+        local success
+        echo "Waiting up to $minutes_to_wait minutes for all $expected_mdss MDS daemon(s) to show up..."
         for minute in $(seq 1 "$minutes_to_wait") ; do
             for i in $(seq 1 4) ; do
                 set -x
@@ -345,32 +348,34 @@ function maybe_wait_for_mdss_test {
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
+        if [ "$success" ] ; then
+            echo "maybe_wait_for_mdss_test: OK"
+            echo
+        else
+            echo "$expected_mdss MDS daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
+            echo "maybe_wait_for_mdss_test: FAIL"
+            echo
+            false
+        fi
     else
-        success="not_empty"
         echo "No MDSs expected: nothing to wait for."
-    fi
-    if [ "$success" ] ; then
-        echo "maybe_wait_for_mdss_test: OK"
+        echo "maybe_wait_for_mdss_test: SKIPPED"
         echo
-    else
-        echo "maybe_wait_for_mdss_test: FAIL"
-        echo
-        false
     fi
 }
 
 function maybe_wait_for_rgws_test {
     local expected_rgws="$1"
-    local actual_rgws
-    local minutes_to_wait
-    minutes_to_wait="5"
-    local minute
-    local i
-    local success
     echo
     echo "WWWW: maybe_wait_for_rgws_test"
     if [ "$expected_rgws" ] ; then
-        echo "Waiting up to $minutes_to_wait minutes for all $expected_rgws RGW(s) to show up..."
+        local actual_rgws
+        local minutes_to_wait
+        minutes_to_wait="5"
+        local minute
+        local i
+        local success
+        echo "Waiting up to $minutes_to_wait minutes for all $expected_rgws RGW daemon(s) to show up..."
         for minute in $(seq 1 "$minutes_to_wait") ; do
             for i in $(seq 1 4) ; do
                 set -x
@@ -385,17 +390,67 @@ function maybe_wait_for_rgws_test {
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
+        if [ "$success" ] ; then
+            echo "maybe_wait_for_rgws_test: OK"
+            echo
+        else
+            echo "$expected_rgws RGW daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
+            echo "maybe_wait_for_rgws_test: FAIL"
+            echo
+            false
+        fi
     else
-        success="not_empty"
         echo "No RGWs expected: nothing to wait for."
+        echo "maybe_wait_for_rgws_test: SKIPPED"
+        echo
     fi
-    if [ "$success" ] ; then
-        echo "maybe_wait_for_rgws_test: OK"
+}
+
+function maybe_wait_for_nfss_test {
+    # this function uses json_ses7_orch_{ls,ps}, which only work in
+    # {octopus,ses7,pacific}
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        local expected_nfss="$1"
         echo
-    else
-        echo "maybe_wait_for_rgws_test: FAIL"
-        echo
-        false
+        echo "WWWW: maybe_wait_for_nfss_test"
+        if [ "$expected_nfss" ] ; then
+            local orch_ps_nfss
+            local orch_ls_nfss
+            local minutes_to_wait
+            minutes_to_wait="5"
+            local minute
+            local i
+            local success
+            echo "Waiting up to $minutes_to_wait minutes for all $expected_nfss NFS daemon(s) to show up..."
+            for minute in $(seq 1 "$minutes_to_wait") ; do
+                for i in $(seq 1 4) ; do
+                    set -x
+                    orch_ls_nfss="$(json_ses7_orch_ls nfs)"
+                    orch_ps_nfss="$(json_ses7_orch_ps nfs)"
+                    set +x
+                    if [ "$orch_ls_nfss" = "$expected_nfss" ] && [ "$orch_ps_nfss" = "$expected_nfss" ] ; then
+                        success="not_empty"
+                        break 2
+                    else
+                        _grace_period 15 "$i"
+                    fi
+                done
+                echo "Minutes left to wait: $((minutes_to_wait - minute))"
+            done
+            if [ "$success" ] ; then
+                echo "maybe_wait_for_nfss_test: OK"
+                echo
+            else
+                echo "$expected_nfss NFS daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
+                echo "maybe_wait_for_nfss_test: FAIL"
+                echo
+                false
+            fi
+        else
+            echo "No NFSs expected: nothing to wait for."
+            echo "maybe_wait_for_nfss_test: SKIPPED"
+            echo
+        fi
     fi
 }
 
@@ -408,9 +463,9 @@ function mgr_is_available_test {
 }
 
 function number_of_daemons_expected_vs_metadata_test {
+    # only works for core daemons
     echo
     echo "WWWW: number_of_daemons_expected_vs_metadata_test"
-    set -x
     local metadata_mgrs
     metadata_mgrs="$(json_metadata_mgrs)"
     local metadata_mons
@@ -419,29 +474,22 @@ function number_of_daemons_expected_vs_metadata_test {
     metadata_mdss="$(json_metadata_mdss)"
     local metadata_osds
     metadata_osds="$(json_metadata_osds)"
-    if [ "$VERSION_ID" = "15.2" ] ; then
-        local metadata_rgws
-        metadata_rgws="$(json_metadata_rgws)"
-    fi
-    set +x
     local success
     success="yes"
     local expected_mgrs
     local expected_mons
     local expected_mdss
     local expected_osds
-    local expected_rgws
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
-    [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
     [ "$OSDS" ]      && expected_osds="$OSDS"
     if [ "$expected_mons" ] ; then
-        echo "MONs metadata/expected: $metadata_mons/$expected_mons"
+        echo "MON daemons (metadata/expected): $metadata_mons/$expected_mons"
         [ "$metadata_mons" = "$expected_mons" ] || success=""
     fi
     if [ "$expected_mgrs" ] ; then
-        echo "MGRs metadata/expected: $metadata_mgrs/$expected_mgrs"
+        echo "MGR daemons (metadata/expected): $metadata_mgrs/$expected_mgrs"
         if [ "$metadata_mgrs" = "$expected_mgrs" ] ; then
             true  # normal success case
         elif [ "$expected_mgrs" -gt "1" ] && [ "$metadata_mgrs" = "$((expected_mgrs + 1))" ] ; then
@@ -451,18 +499,12 @@ function number_of_daemons_expected_vs_metadata_test {
         fi
     fi
     if [ "$expected_mdss" ] ; then
-        echo "MDSs metadata/expected: $metadata_mdss/$expected_mdss"
+        echo "MDS daemons (metadata/expected): $metadata_mdss/$expected_mdss"
         [ "$metadata_mdss" = "$expected_mdss" ] || success=""
     fi
     if [ "$expected_osds" ] ; then
-        echo "OSDs metadata/expected: $metadata_osds/$expected_osds"
+        echo "OSD daemons (metadata/expected): $metadata_osds/$expected_osds"
         [ "$metadata_osds" = "$expected_osds" ] || success=""
-    fi
-    if [ "$VERSION_ID" = "15.2" ] ; then
-        if [ "$expected_rgws" ] ; then
-            echo "RGWs metadata/expected: $metadata_rgws/$expected_rgws"
-            [ "$metadata_rgws" = "$expected_rgws" ] || success=""
-        fi
     fi
     if [ "$success" ] ; then
         echo "number_of_daemons_expected_vs_metadata_test: OK"
@@ -475,10 +517,165 @@ function number_of_daemons_expected_vs_metadata_test {
     fi
 }
 
-function number_of_nodes_actual_vs_expected_test {
+function number_of_services_expected_vs_orch_ls_test {
+    echo
+    echo "WWWW: number_of_services_expected_vs_orch_ls_test"
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        local orch_ls_mgrs
+        orch_ls_mgrs="$(json_ses7_orch_ls mgr)"
+        local orch_ls_mons
+        orch_ls_mons="$(json_ses7_orch_ls mon)"
+        local orch_ls_mdss
+        orch_ls_mdss="$(json_ses7_orch_ls mds)"
+        ## commented-out osds pending resolution of
+        ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
+        ## - https://github.com/SUSE/sesdev/pull/203
+        # local orch_ls_osds
+        # orch_ls_osds="$(json_ses7_orch_ls osd)"
+        local orch_ls_rgws
+        orch_ls_rgws="$(json_ses7_orch_ls rgw)"
+        local orch_ls_nfss
+        orch_ls_nfss="$(json_ses7_orch_ls nfs)"
+        local success
+        success="yes"
+        local expected_mgrs
+        local expected_mons
+        local expected_mdss
+        local expected_osds
+        local expected_rgws
+        local expected_nfss
+        [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
+        [ "$MON_NODES" ] && expected_mons="$MON_NODES"
+        [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
+        [ "$OSDS" ]      && expected_osds="$OSDS"
+        [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
+        [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
+        if [ "$expected_mgrs" ] ; then
+            echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
+            if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
+                true  # normal success case
+            elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ls_mgrs" = "$((expected_mgrs + 1))" ] ; then
+                true  # workaround for https://tracker.ceph.com/issues/45093
+            else
+                success=""
+            fi
+        fi
+        if [ "$expected_mons" ] ; then
+            echo "MON services (orch ls/expected): $orch_ls_mons/$expected_mons"
+            [ "$orch_ls_mons" = "$expected_mons" ] || success=""
+        fi
+        if [ "$expected_mdss" ] ; then
+            echo "MDS services (orch ls/expected): $orch_ls_mdss/$expected_mdss"
+            [ "$orch_ls_mdss" = "$expected_mdss" ] || success=""
+        fi
+        # if [ "$expected_osds" ] ; then
+        #     echo "OSDs orch ls/expected: $orch_ls_osds/$expected_osds"
+        #     [ "$orch_ls_osds" = "$expected_osds" ] || success=""
+        # fi
+        if [ "$expected_rgws" ] ; then
+            echo "RGW services (orch ls/expected): $orch_ls_rgws/$expected_rgws"
+            [ "$orch_ls_rgws" = "$expected_rgws" ] || success=""
+        fi
+        if [ "$expected_nfss" ] ; then
+            echo "NFS services (orch ls/expected): $orch_ls_nfss/$expected_nfss"
+            [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
+        fi
+        if [ "$success" ] ; then
+            echo "number_of_services_expected_vs_orch_ls_test: OK"
+            echo
+        else
+            echo "ERROR: Detected disparity between expected number of services and \"ceph orch ls\"!"
+            echo "number_of_services_expected_vs_orch_ls_test: FAIL"
+            echo
+            false
+        fi
+    else
+        echo "number_of_services_expected_vs_orch_ls_test: SKIPPED"
+        echo
+    fi
+}
+
+function number_of_services_expected_vs_orch_ps_test {
+    echo
+    echo "WWWW: number_of_services_expected_vs_orch_ps_test"
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        local orch_ps_mgrs
+        orch_ps_mgrs="$(json_ses7_orch_ps mgr)"
+        local orch_ps_mons
+        orch_ps_mons="$(json_ses7_orch_ps mon)"
+        local orch_ps_mdss
+        orch_ps_mdss="$(json_ses7_orch_ps mds)"
+        ## commented-out osds pending resolution of
+        ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
+        ## - https://github.com/SUSE/sesdev/pull/203
+        # local orch_ps_osds
+        # orch_ps_osds="$(json_ses7_orch_ps osd)"
+        local orch_ps_rgws
+        orch_ps_rgws="$(json_ses7_orch_ps rgw)"
+        local orch_ps_nfss
+        orch_ps_nfss="$(json_ses7_orch_ps nfs)"
+        local success
+        success="yes"
+        local expected_mgrs
+        local expected_mons
+        local expected_mdss
+        local expected_osds
+        local expected_rgws
+        local expected_nfss
+        [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
+        [ "$MON_NODES" ] && expected_mons="$MON_NODES"
+        [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
+        [ "$OSDS" ]      && expected_osds="$OSDS"
+        [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
+        [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
+        if [ "$expected_mgrs" ] ; then
+            echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
+            if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
+                true  # normal success case
+            elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ps_mgrs" = "$((expected_mgrs + 1))" ] ; then
+                true  # workaround for https://tracker.ceph.com/issues/45093
+            else
+                success=""
+            fi
+        fi
+        if [ "$expected_mons" ] ; then
+            echo "MON daemons (orch ps/expected): $orch_ps_mons/$expected_mons"
+            [ "$orch_ps_mons" = "$expected_mons" ] || success=""
+        fi
+        if [ "$expected_mdss" ] ; then
+            echo "MDS daemons (orch ps/expected): $orch_ps_mdss/$expected_mdss"
+            [ "$orch_ps_mdss" = "$expected_mdss" ] || success=""
+        fi
+        # if [ "$expected_osds" ] ; then
+        #     echo "OSDs orch ps/expected: $orch_ps_osds/$expected_osds"
+        #     [ "$orch_ps_osds" = "$expected_osds" ] || success=""
+        # fi
+        if [ "$expected_rgws" ] ; then
+            echo "RGW daemons (orch ps/expected): $orch_ps_rgws/$expected_rgws"
+            [ "$orch_ps_rgws" = "$expected_rgws" ] || success=""
+        fi
+        if [ "$expected_nfss" ] ; then
+            echo "NFS daemons (orch ps/expected): $orch_ps_nfss/$expected_nfss"
+            [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
+        fi
+        if [ "$success" ] ; then
+            echo "number_of_services_expected_vs_orch_ps_test: OK"
+            echo
+        else
+            echo "ERROR: Detected disparity between expected number of services and \"ceph orch ps\"!"
+            echo "number_of_services_expected_vs_orch_ps_test: FAIL"
+            echo
+            false
+        fi
+    else
+        echo "number_of_services_expected_vs_orch_ps_test: SKIPPED"
+        echo
+    fi
+}
+
+function number_of_daemons_expected_vs_actual {
     echo
     echo "WWWW: number_of_nodes_actual_vs_expected_test"
-    set -x
     local actual_total_nodes
     actual_total_nodes="$(json_total_nodes)"
     local actual_mgr_nodes
@@ -493,7 +690,6 @@ function number_of_nodes_actual_vs_expected_test {
     actual_osd_nodes="$(json_osd_nodes)"
     local actual_osds
     actual_osds="$(json_total_osds)"
-    set +x
     local success
     success="yes"
     local expected_total_nodes
@@ -511,15 +707,15 @@ function number_of_nodes_actual_vs_expected_test {
     [ "$OSD_NODES" ]   && expected_osd_nodes="$OSD_NODES"
     [ "$OSDS" ]        && expected_osds="$OSDS"
     if [ "$expected_total_nodes" ] ; then
-        echo "total nodes actual/expected:  $actual_total_nodes/$expected_total_nodes"
+        echo "total nodes (actual/expected):  $actual_total_nodes/$expected_total_nodes"
         [ "$actual_total_nodes" = "$expected_total_nodes" ] || success=""
     fi
     if [ "$expected_mon_nodes" ] ; then
-        echo "MON nodes actual/expected:    $actual_mon_nodes/$expected_mon_nodes"
+        echo "MON nodes (actual/expected):    $actual_mon_nodes/$expected_mon_nodes"
         [ "$actual_mon_nodes" = "$expected_mon_nodes" ] || success=""
     fi
     if [ "$expected_mgr_nodes" ] ; then
-        echo "MGR nodes actual/expected:    $actual_mgr_nodes/$expected_mgr_nodes"
+        echo "MGR nodes (actual/expected):    $actual_mgr_nodes/$expected_mgr_nodes"
         if [ "$actual_mgr_nodes" = "$expected_mgr_nodes" ] ; then
             true  # normal success case
         elif [ "$expected_mgr_nodes" -gt "1" ] && [ "$actual_mgr_nodes" = "$((expected_mgr_nodes + 1))" ] ; then
@@ -529,23 +725,21 @@ function number_of_nodes_actual_vs_expected_test {
         fi
     fi
     if [ "$expected_mds_nodes" ] ; then
-        echo "MDS nodes actual/expected:    $actual_mds_nodes/$expected_mds_nodes"
+        echo "MDS nodes (actual/expected):    $actual_mds_nodes/$expected_mds_nodes"
         [ "$actual_mds_nodes" = "$expected_mds_nodes" ] || success=""
     fi
     if [ "$expected_rgw_nodes" ] ; then
-        echo "RGW nodes actual/expected:    $actual_rgw_nodes/$expected_rgw_nodes"
+        echo "RGW nodes (actual/expected):    $actual_rgw_nodes/$expected_rgw_nodes"
         [ "$actual_rgw_nodes" = "$expected_rgw_nodes" ] || success=""
     fi
     if [ "$expected_osd_nodes" ] ; then
-        echo "OSD nodes actual/expected:    $actual_osd_nodes/$expected_osd_nodes"
+        echo "OSD nodes (actual/expected):    $actual_osd_nodes/$expected_osd_nodes"
         [ "$actual_osd_nodes" = "$expected_osd_nodes" ] || success=""
     fi
     if [ "$expected_osds" ] ; then
-        echo "total OSDs actual/expected:   $actual_osds/$expected_osds"
+        echo "total OSDs (actual/expected):   $actual_osds/$expected_osds"
         [ "$actual_osds" = "$expected_osds" ] || success=""
     fi
-#    echo "IGW nodes expected:     $IGW_NODES"
-#    echo "NFS nodes expected:     $NFS_NODES"
     if [ "$success" ] ; then
         echo "number_of_nodes_actual_vs_expected_test: OK"
         echo

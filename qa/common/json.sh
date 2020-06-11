@@ -6,17 +6,35 @@
 
 set -e
 
-function _json_total_svcs_ses7 {
-    local svc_type="$1"
-    local ceph_orch_ls
-    local running
-    ceph_orch_ls="$(ceph orch ls --service-type "$svc_type" --format json)"
-    running="$(echo "$ceph_orch_ls" | jq -r '.[] | .running')"
-    if [ "$running" = "null" ] ; then
-        # we have fallen victim to ongoing Orchestrator refactoring
-        running="$(echo "$ceph_orch_ls" | jq -r '.[] | .status.running')"
+function json_ses7_orch_ls {
+    # returns number of deployed services of a given type, according to "ceph orch ls"
+    if [ "$VERSION_ID" = "15.2" ] ; then  # SES7
+        local service_type="$1"
+        local ceph_orch_ls
+        local running
+        ceph_orch_ls="$(ceph orch ls --service-type "$service_type" --format json)"
+        running="$(echo "$ceph_orch_ls" | jq -r '.[] | .running')"
+        if [ "$running" = "null" ] ; then
+            # we have fallen victim to ongoing Orchestrator refactoring
+            running="$(echo "$ceph_orch_ls" | jq -r '.[] | .status.running')"
+        fi
+        echo "$running"
+    else
+        echo "ERROR"
     fi
-    echo "$running"
+}
+
+function json_ses7_orch_ps {
+    # returns number of running daemons of a given type, according to "ceph orch ps"
+    if [ "$VERSION_ID" = "15.2" ] ; then  # SES7
+        local daemon_type="$1"
+        local retval
+        retval=$(ceph orch ps -f json-pretty | jq "[.[] | select(.daemon_type==\"$daemon_type\" and .status_desc==\"running\")] | length")
+        [ "$retval" ] || retval="0"
+        echo "$retval"
+    else
+        echo "ERROR"
+    fi
 }
 
 function json_total_nodes {
@@ -42,13 +60,13 @@ function json_metadata_mgrs {
 
 function json_total_mgrs {
     local ceph_status_json
-    ceph_status_json="$(ceph status --format json)"
     local active_mgrs
     if [ "$VERSION_ID" = "15.2" ] ; then
         # SES7
-        _json_total_svcs_ses7 mgr
+        json_ses7_orch_ls mgr
     elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
         # SES6, SES5
+        ceph_status_json="$(ceph status --format json)"
         if [ "$(echo "$ceph_status_json" | jq -r .mgrmap.available)" = "true" ] ; then
             active_mgrs="1"
         else
@@ -65,12 +83,14 @@ function json_metadata_mons {
 }
 
 function json_total_mons {
+    local ceph_status_json
     if [ "$VERSION_ID" = "15.2" ] ; then
         # SES7
-        _json_total_svcs_ses7 mon
+        json_ses7_orch_ls mon
     elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
         # SES6, SES5
-        ceph status --format json | jq -r ".monmap.mons | length"
+        ceph_status_json="$(ceph status --format json)"
+        echo "$ceph_status_json" | jq -r ".monmap.mons | length"
     else
         echo "ERROR"
     fi
@@ -82,16 +102,16 @@ function json_metadata_mdss {
 
 function json_total_mdss {
     local ceph_status_json
-    ceph_status_json="$(ceph status --format json)"
     local ins
     local ups
     local standbys
     local actives
     if [ "$VERSION_ID" = "15.2" ] ; then
         # SES7
-        _json_total_svcs_ses7 mds
+        json_ses7_orch_ls mds
     elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
         # SES6, SES5
+        ceph_status_json="$(ceph status --format json)"
         ins="$(echo "$ceph_status_json" | jq -r .fsmap.in)"
         ups="$(echo "$ceph_status_json" | jq -r .fsmap.up)"
         standbys="$(echo "$ceph_status_json" | jq -r '."fsmap"."up:standby"')"
@@ -104,10 +124,6 @@ function json_total_mdss {
     else
         echo "ERROR"
     fi
-}
-
-function json_metadata_rgws {
-    ceph orch ps -f json-pretty | jq '[.[] | select(.daemon_type=="rgw" and .status_desc=="running")] | length'
 }
 
 function json_total_rgws {

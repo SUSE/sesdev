@@ -118,6 +118,9 @@ mgr_is_available_test
 maybe_wait_for_osd_nodes_test "$OSD_NODES"  # it might take a long time for OSD nodes to show up
 maybe_wait_for_mdss_test "$MDS_NODES"  # it might take a long time for MDSs to be ready
 maybe_wait_for_rgws_test "$RGW_NODES"  # it might take a long time for RGWs to be ready
+maybe_wait_for_nfss_test "$NFS_NODES"  # it might take a long time for NFSs to be ready
 number_of_daemons_expected_vs_metadata_test
-number_of_nodes_actual_vs_expected_test
+number_of_services_expected_vs_orch_ls_test
+number_of_services_expected_vs_orch_ps_test
+number_of_daemons_expected_vs_actual
 ceph_health_test
