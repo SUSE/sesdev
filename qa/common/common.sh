@@ -769,9 +769,9 @@ function maybe_rgw_smoke_test {
         IFS=","
         read -r -a rgw_nodes_arr <<<"$RGW_NODE_LIST"
         for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
-            set -x
             rgw_node_under_test="${rgw_nodes_arr[n]}"
             rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
+            set -x
             rgw_curl_test "$rgw_node_under_test"
             set +x
             rgw_node_count="$((rgw_node_count + 1))"
@@ -788,5 +788,69 @@ function maybe_rgw_smoke_test {
     else
         echo "WWWW: maybe_rgw_smoke_test: SKIPPED"
         echo
+    fi
+}
+
+function cluster_json_test {
+    echo "WWWW: cluster_json_test"
+    local nodes_arr
+    local node_count
+    node_count="0"
+    local node_under_test
+    local n
+    local IFS
+    IFS=","
+    read -r -a nodes_arr <<<"$NODE_LIST"
+    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+        node_under_test="${nodes_arr[n]}"
+        node_under_test="${node_under_test//[$'\t\r\n']}"
+        set -x
+        ssh "$node_under_test" test -s /home/vagrant/cluster.json
+        set +x
+        node_count="$((node_count + 1))"
+    done
+    echo "Total nodes expected/tested: $node_count/${#nodes_arr[*]}"
+    if [ "$node_count" = "${#nodes_arr[*]}" ] ; then
+        echo "WWWW: cluster_json_test: OK"
+        echo
+    else
+        echo "WWWW: cluster_json_test: FAIL"
+        echo
+        false
+    fi
+}
+
+function systemctl_list_units_test {
+    echo "WWWW: systemctl_list_units_test"
+    # no "readarray -d" in SLE-12-SP3
+    local nodes_arr
+    local node_count
+    node_count="0"
+    local node_under_test
+    local n
+    local fsid
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        fsid="$(_fsid)"
+    fi
+    local IFS
+    IFS=","
+    read -r -a nodes_arr <<<"$NODE_LIST"
+    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+        node_under_test="${nodes_arr[n]}"
+        node_under_test="${node_under_test//[$'\t\r\n']}"
+        set -x
+        # shellcheck disable=SC2029
+        ssh "$node_under_test" /home/vagrant/systemctl_test.sh "$fsid"
+        set +x
+        node_count="$((node_count + 1))"
+    done
+    echo "Total nodes expected/tested: $node_count/${#nodes_arr[*]}"
+    if [ "$node_count" = "${#nodes_arr[*]}" ] ; then
+        echo "WWWW: systemctl_list_units_test: OK"
+        echo
+    else
+        echo "WWWW: systemctl_list_units_test: FAIL"
+        echo
+        false
     fi
 }

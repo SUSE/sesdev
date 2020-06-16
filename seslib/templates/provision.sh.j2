@@ -139,6 +139,8 @@ touch /tmp/ready
 
 {% if deploy_salt or suma %}
 
+{% include "cluster_json.sh.j2" %}
+
 {% if node == master or node == suma %}
 
 {% if node == master %}
