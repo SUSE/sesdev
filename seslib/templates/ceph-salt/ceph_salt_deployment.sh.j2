@@ -119,13 +119,13 @@ ceph fs volume create myfs "{{ mds_node_list }}"
 radosgw-admin realm create --rgw-realm=default --default
 radosgw-admin zonegroup create --rgw-zonegroup=default> --master --default
 radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=default --master --default
-ceph orch apply rgw default default --placement="{{ rgw_nodes }} {{ rgw_node_list }}"
+ceph orch apply rgw default default --placement="{{ rgw_node_list }}"
 {% endif %}
 
 {% if nfs_nodes > 0 %}
 ceph osd pool create rbd
 ceph osd pool application enable rbd nfs
-ceph orch apply nfs default rbd nfs --placement="{{ nfs_nodes }} {{ nfs_node_list }}"
+ceph orch apply nfs default rbd nfs --placement="{{ nfs_node_list }}"
 {% endif %}
 
 {% include "qa_test.sh.j2" %}
