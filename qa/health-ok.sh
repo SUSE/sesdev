@@ -44,15 +44,16 @@ function usage {
     echo "    --mon-nodes          expected number of nodes with MON"
     echo "    --nfs-nodes          expected number of nodes with NFS"
     echo "    --osd-nodes          expected number of nodes with OSD"
+    echo "    --rgw-nodes          expected number of nodes with RGW"
     echo "    --igw-node-list      comma-separated list of nodes with iSCSI Gateway"
     echo "    --mds-node-list      comma-separated list of nodes with MDS"
     echo "    --mgr-node-list      comma-separated list of nodes with MGR"
     echo "    --mon-node-list      comma-separated list of nodes with MON"
     echo "    --nfs-node-list      comma-separated list of nodes with NFS"
     echo "    --osd-node-list      comma-separated list of nodes with OSD"
+    echo "    --rgw-node-list      comma-separated list of nodes with RGW"
     echo "    --osds               expected total number of OSDs in cluster"
     echo "    --strict-versions    Insist that daemon versions match \"ceph --version\""
-    echo "    --rgw-nodes          expected number of nodes with RGW"
     echo "    --total-nodes        expected total number of nodes in cluster"
     exit 1
 }
@@ -60,7 +61,7 @@ function usage {
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,mds-nodes:,mgr-nodes:,mon-nodes:,nfs-nodes:,osd-nodes:,osds:,strict-versions,rgw-nodes:,total-nodes:" \
+--long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,rgw-nodes:,rgw-node-list:,osds:,strict-versions,total-nodes:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -151,3 +152,4 @@ number_of_services_expected_vs_orch_ls_test
 number_of_services_expected_vs_orch_ps_test
 number_of_daemons_expected_vs_actual
 ceph_health_test
+maybe_rgw_smoke_test

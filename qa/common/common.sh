@@ -15,6 +15,9 @@ source "$BASEDIR/common/json.sh"
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
 source "$BASEDIR/common/zypper.sh"
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+source "$BASEDIR/common/rgw.sh"
 
 
 #
@@ -124,7 +127,7 @@ function support_cop_out_test {
             ;;
     esac
     set +x
-    echo "support_cop_out_test: OK"
+    echo "WWWW: support_cop_out_test: OK"
     echo
 }
 
@@ -148,10 +151,10 @@ function no_non_oss_repos_test {
             ;;
     esac
     if [ "$success" ] ; then
-        echo "no_non_oss_repos_test: OK"
+        echo "WWWW: no_non_oss_repos_test: OK"
         echo
     else
-        echo "no_non_oss_repos_test: FAIL"
+        echo "WWWW: no_non_oss_repos_test: FAIL"
         echo
         false
     fi
@@ -181,7 +184,7 @@ function make_salt_master_an_admin_node_test {
     test -f "$ADMIN_KEYRING"
     test -f "$CEPH_CONF"
     set +x
-    echo "make_salt_master_an_admin_node_test: OK"
+    echo "WWWW: make_salt_master_an_admin_node_test: OK"
     echo
 }
 
@@ -211,7 +214,7 @@ function ceph_rpm_version_test {
     set -x
     test "$rpm_ceph_version" = "$ceph_ceph_version"
     set +x
-    echo "ceph_rpm_version_test: OK"
+    echo "WWWW: ceph_rpm_version_test: OK"
     echo
 }
 
@@ -232,7 +235,7 @@ function ceph_daemon_versions_test {
         test "$version_host" = "$version_daemon"
     fi
     set +x
-    echo "ceph_daemon_versions_test: OK"
+    echo "WWWW: ceph_daemon_versions_test: OK"
     echo
 }
 
@@ -240,42 +243,8 @@ function ceph_cluster_running_test {
     echo
     echo "WWWW: ceph_cluster_running_test"
     _ceph_cluster_running
-    echo "ceph_cluster_running_test: OK"
+    echo "WWWW: ceph_cluster_running_test: OK"
     echo
-}
-
-function ceph_health_test {
-# wait for up to some minutes for cluster to reach HEALTH_OK
-    echo
-    echo "WWWW: ceph_health_test"
-    local minutes_to_wait
-    minutes_to_wait="5"
-    local cluster_status
-    local minute
-    local i
-    for minute in $(seq 1 "$minutes_to_wait") ; do
-        for i in $(seq 1 4) ; do
-            set -x
-            ceph status
-            cluster_status="$(ceph health detail --format json | jq -r .status)"
-            set +x
-            if [ "$cluster_status" = "HEALTH_OK" ] ; then
-                break 2
-            else
-                _grace_period 15 "$i"
-            fi
-        done
-        echo "Minutes left to wait: $((minutes_to_wait - minute))"
-    done
-    if [ "$cluster_status" = "HEALTH_OK" ] ; then
-        echo "ceph_health_test: OK"
-        echo
-    else
-        echo "HEALTH_OK not reached even after waiting for $minutes_to_wait minutes"
-        echo "ceph_health_test: FAIL"
-        echo
-        false
-    fi
 }
 
 function maybe_wait_for_osd_nodes_test {
@@ -305,11 +274,11 @@ function maybe_wait_for_osd_nodes_test {
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
         if [ "$success" ] ; then
-            echo "maybe_wait_for_osd_nodes_test: OK"
+            echo "WWWW: maybe_wait_for_osd_nodes_test: OK"
             echo
         else
             echo "$expected_osd_nodes OSD nodes did not appear even after waiting $minutes_to_wait minutes. Giving up."
-            echo "maybe_wait_for_osd_nodes_test: FAIL"
+            echo "WWWW: maybe_wait_for_osd_nodes_test: FAIL"
             echo
             false
         fi
@@ -349,11 +318,11 @@ function maybe_wait_for_mdss_test {
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
         if [ "$success" ] ; then
-            echo "maybe_wait_for_mdss_test: OK"
+            echo "WWWW: maybe_wait_for_mdss_test: OK"
             echo
         else
             echo "$expected_mdss MDS daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
-            echo "maybe_wait_for_mdss_test: FAIL"
+            echo "WWWW: maybe_wait_for_mdss_test: FAIL"
             echo
             false
         fi
@@ -391,11 +360,11 @@ function maybe_wait_for_rgws_test {
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
         done
         if [ "$success" ] ; then
-            echo "maybe_wait_for_rgws_test: OK"
+            echo "WWWW: maybe_wait_for_rgws_test: OK"
             echo
         else
             echo "$expected_rgws RGW daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
-            echo "maybe_wait_for_rgws_test: FAIL"
+            echo "WWWW: maybe_wait_for_rgws_test: FAIL"
             echo
             false
         fi
@@ -438,17 +407,17 @@ function maybe_wait_for_nfss_test {
                 echo "Minutes left to wait: $((minutes_to_wait - minute))"
             done
             if [ "$success" ] ; then
-                echo "maybe_wait_for_nfss_test: OK"
+                echo "WWWW: maybe_wait_for_nfss_test: OK"
                 echo
             else
                 echo "$expected_nfss NFS daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
-                echo "maybe_wait_for_nfss_test: FAIL"
+                echo "WWWW: maybe_wait_for_nfss_test: FAIL"
                 echo
                 false
             fi
         else
             echo "No NFSs expected: nothing to wait for."
-            echo "maybe_wait_for_nfss_test: SKIPPED"
+            echo "WWWW: maybe_wait_for_nfss_test: SKIPPED"
             echo
         fi
     fi
@@ -458,7 +427,7 @@ function mgr_is_available_test {
     echo
     echo "WWWW: mgr_is_available_test"
     test "$(json_mgr_is_available)"
-    echo "mgr_is_available_test: OK"
+    echo "WWWW: mgr_is_available_test: OK"
     echo
 }
 
@@ -507,11 +476,11 @@ function number_of_daemons_expected_vs_metadata_test {
         [ "$metadata_osds" = "$expected_osds" ] || success=""
     fi
     if [ "$success" ] ; then
-        echo "number_of_daemons_expected_vs_metadata_test: OK"
+        echo "WWWW: number_of_daemons_expected_vs_metadata_test: OK"
         echo
     else
         echo "ERROR: Detected disparity between expected number of daemons and cluster metadata!"
-        echo "number_of_daemons_expected_vs_metadata_test: FAIL"
+        echo "WWWW: number_of_daemons_expected_vs_metadata_test: FAIL"
         echo
         false
     fi
@@ -581,16 +550,16 @@ function number_of_services_expected_vs_orch_ls_test {
             [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
         fi
         if [ "$success" ] ; then
-            echo "number_of_services_expected_vs_orch_ls_test: OK"
+            echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
         else
             echo "ERROR: Detected disparity between expected number of services and \"ceph orch ls\"!"
-            echo "number_of_services_expected_vs_orch_ls_test: FAIL"
+            echo "WWWW: number_of_services_expected_vs_orch_ls_test: FAIL"
             echo
             false
         fi
     else
-        echo "number_of_services_expected_vs_orch_ls_test: SKIPPED"
+        echo "WWWW: number_of_services_expected_vs_orch_ls_test: SKIPPED"
         echo
     fi
 }
@@ -659,16 +628,16 @@ function number_of_services_expected_vs_orch_ps_test {
             [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
         fi
         if [ "$success" ] ; then
-            echo "number_of_services_expected_vs_orch_ps_test: OK"
+            echo "WWWW: number_of_services_expected_vs_orch_ps_test: OK"
             echo
         else
             echo "ERROR: Detected disparity between expected number of services and \"ceph orch ps\"!"
-            echo "number_of_services_expected_vs_orch_ps_test: FAIL"
+            echo "WWWW: number_of_services_expected_vs_orch_ps_test: FAIL"
             echo
             false
         fi
     else
-        echo "number_of_services_expected_vs_orch_ps_test: SKIPPED"
+        echo "WWWW: number_of_services_expected_vs_orch_ps_test: SKIPPED"
         echo
     fi
 }
@@ -741,12 +710,91 @@ function number_of_daemons_expected_vs_actual {
         [ "$actual_osds" = "$expected_osds" ] || success=""
     fi
     if [ "$success" ] ; then
-        echo "number_of_nodes_actual_vs_expected_test: OK"
+        echo "WWWW: number_of_nodes_actual_vs_expected_test: OK"
         echo
     else
         echo "ERROR: Detected disparity between expected and actual numbers of nodes/daemons"
-        echo "number_of_nodes_actual_vs_expected_test: FAIL"
+        echo "WWWW: number_of_nodes_actual_vs_expected_test: FAIL"
         echo
         false
+    fi
+}
+
+function ceph_health_test {
+# wait for up to some minutes for cluster to reach HEALTH_OK
+    echo
+    echo "WWWW: ceph_health_test"
+    local minutes_to_wait
+    minutes_to_wait="5"
+    local cluster_status
+    local minute
+    local i
+    for minute in $(seq 1 "$minutes_to_wait") ; do
+        for i in $(seq 1 4) ; do
+            set -x
+            ceph status
+            cluster_status="$(ceph health detail --format json | jq -r .status)"
+            set +x
+            if [ "$cluster_status" = "HEALTH_OK" ] ; then
+                break 2
+            else
+                _grace_period 15 "$i"
+            fi
+        done
+        echo "Minutes left to wait: $((minutes_to_wait - minute))"
+    done
+    if [ "$cluster_status" = "HEALTH_OK" ] ; then
+        echo "WWWW: ceph_health_test: OK"
+        echo
+    else
+        echo "HEALTH_OK not reached even after waiting for $minutes_to_wait minutes"
+        echo "WWWW: ceph_health_test: FAIL"
+        echo
+        false
+    fi
+}
+
+function maybe_rgw_smoke_test {
+# assert that the Object Gateway is alive on the node where it is expected to be
+    echo
+    echo "WWWW: maybe_rgw_smoke_test"
+    if [ "$RGW_NODE_LIST" ] ; then
+        install_rgw_test_dependencies
+        if [ "$VERSION_ID" = "12.3" ] ; then
+            # no "readarray -d" in SLE-12-SP3: use a simpler version of the test
+            local rgw_node_name
+            rgw_node_name="$(_first_x_node rgw)"
+            set -x
+            rgw_curl_test "$rgw_node_name"
+            set +x
+            echo "WWWW: maybe_rgw_smoke_test: OK"
+            echo
+        else
+            local rgw_nodes_arr
+            local rgw_node_count
+            rgw_node_count="0"
+            local rgw_node_under_test
+            readarray -d , -t rgw_nodes_arr <<<"$RGW_NODE_LIST"
+            for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
+                set -x
+                rgw_node_under_test="${rgw_nodes_arr[n]}"
+                rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
+                rgw_curl_test "$rgw_node_under_test"
+                set +x
+                rgw_node_count="$((rgw_node_count + 1))"
+            done
+            echo "RGW nodes expected/tested: $rgw_node_count/${#rgw_nodes_arr[*]}"
+            if [ "$rgw_node_count" = "${#rgw_nodes_arr[*]}" ] ; then
+                echo "WWWW: maybe_rgw_smoke_test: OK"
+                echo
+            else
+                echo "WWWW: maybe_rgw_smoke_test: FAIL"
+                echo
+                false
+            fi
+        fi
+    else
+        echo "WWWW: maybe_rgw_smoke_test: SKIPPED"
+        echo
     fi
 }
