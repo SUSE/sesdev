@@ -73,3 +73,12 @@ function _extract_ceph_version {
     # shellcheck disable=SC2003
     expr match "$full_version_string" '\(ceph version [^[:space:]]\+\)'
 }
+
+function _fsid {
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        ceph status --format=json | jq -r '.fsid'
+    else
+        echo "ERROR: _fsid needs Octopus or newer"
+        false
+    fi
+}
