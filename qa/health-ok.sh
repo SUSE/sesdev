@@ -44,6 +44,12 @@ function usage {
     echo "    --mon-nodes          expected number of nodes with MON"
     echo "    --nfs-nodes          expected number of nodes with NFS"
     echo "    --osd-nodes          expected number of nodes with OSD"
+    echo "    --igw-node-list      comma-separated list of nodes with iSCSI Gateway"
+    echo "    --mds-node-list      comma-separated list of nodes with MDS"
+    echo "    --mgr-node-list      comma-separated list of nodes with MGR"
+    echo "    --mon-node-list      comma-separated list of nodes with MON"
+    echo "    --nfs-node-list      comma-separated list of nodes with NFS"
+    echo "    --osd-node-list      comma-separated list of nodes with OSD"
     echo "    --osds               expected total number of OSDs in cluster"
     echo "    --strict-versions    Insist that daemon versions match \"ceph --version\""
     echo "    --rgw-nodes          expected number of nodes with RGW"
@@ -62,28 +68,42 @@ eval set -- "$TEMP"
 ADMIN_KEYRING="/etc/ceph/ceph.client.admin.keyring"
 CEPH_CONF="/etc/ceph/ceph.conf"
 IGW_NODES=""
+IGW_NODE_LIST=""
 MDS_NODES=""
+MDS_NODE_LIST=""
 MGR_NODES=""
+MGR_NODE_LIST=""
 MON_NODES=""
+MON_NODE_LIST=""
 NFS_NODES=""
+NFS_NODE_LIST=""
 OSD_NODES=""
+OSD_NODE_LIST=""
+RGW_NODES=""
+RGW_NODE_LIST=""
 OSDS=""
 STRICT_VERSIONS=""
-RGW_NODES=""
 TOTAL_NODES=""
 
 # process command-line options
 while true ; do
     case "$1" in
         --igw-nodes) shift ; IGW_NODES="$1" ; shift ;;
+        --igw-node-list) shift ; IGW_NODE_LIST="$1" ; shift ;;
         --mds-nodes) shift ; MDS_NODES="$1" ; shift ;;
+        --mds-node-list) shift ; MDS_NODE_LIST="$1" ; shift ;;
         --mgr-nodes) shift ; MGR_NODES="$1" ; shift ;;
+        --mgr-node-list) shift ; MGR_NODE_LIST="$1" ; shift ;;
         --mon-nodes) shift ; MON_NODES="$1" ; shift ;;
+        --mon-node-list) shift ; MON_NODE_LIST="$1" ; shift ;;
         --nfs-nodes) shift ; NFS_NODES="$1" ; shift ;;
+        --nfs-node-list) shift ; NFS_NODE_LIST="$1" ; shift ;;
         --osd-nodes) shift ; OSD_NODES="$1" ; shift ;;
+        --osd-node-list) shift ; OSD_NODE_LIST="$1" ; shift ;;
+        --rgw-nodes) shift ; RGW_NODES="$1" ; shift ;;
+        --rgw-node-list) shift ; RGW_NODE_LIST="$1" ; shift ;;
         --osds) shift ; OSDS="$1" ; shift ;;
         --strict-versions) STRICT_VERSIONS="$1"; shift ;;
-        --rgw-nodes) shift ; RGW_NODES="$1" ; shift ;;
         --total-nodes) shift ; TOTAL_NODES="$1" ; shift ;;
         -h|--help) usage ;;    # does not return
         --) shift ; break ;;
@@ -101,9 +121,16 @@ test "$MGR_NODES"
 test "$MON_NODES"
 test "$NFS_NODES"
 test "$OSD_NODES"
+test "$RGW_NODES"
+test "$IGW_NODE_LIST"
+test "$MDS_NODE_LIST"
+test "$MGR_NODE_LIST"
+test "$MON_NODE_LIST"
+test "$NFS_NODE_LIST"
+test "$OSD_NODE_LIST"
+test "$RGW_NODE_LIST"
 test "$OSDS"
 test "$STRICT_VERSIONS"
-test "$RGW_NODES"
 test "$TOTAL_NODES"
 set -e
 

@@ -21,7 +21,23 @@ function _copy_file_from_minion_to_master {
 
 function _first_x_node {
     local ROLE=$1
-    salt --static --out json -G "ceph-salt:roles:$ROLE" test.true 2>/dev/null | jq -r 'keys[0]'
+    if [ "$ROLE" = "igw" ] ; then
+        echo "${IGW_NODE_LIST%%,*}"
+    elif [ "$ROLE" = "mds" ] ; then
+        echo "${MDS_NODE_LIST%%,*}"
+    elif [ "$ROLE" = "mgr" ] ; then
+        echo "${MGR_NODE_LIST%%,*}"
+    elif [ "$ROLE" = "mon" ] ; then
+        echo "${MON_NODE_LIST%%,*}"
+    elif [ "$ROLE" = "nfs" ] ; then
+        echo "${NFS_NODE_LIST%%,*}"
+    elif [ "$ROLE" = "osd" ] ; then
+        echo "${OSD_NODE_LIST%%,*}"
+    elif [ "$ROLE" = "rgw" ] ; then
+        echo "${RGW_NODE_LIST%%,*}"
+    else
+        echo ""
+    fi
 }
 
 function _grace_period {
