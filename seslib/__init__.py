@@ -445,7 +445,7 @@ SETTINGS = {
     'domain': {
         'type': str,
         'help': 'The domain name for nodes',
-        'default': '{}.com',
+        'default': '{}.test',
     },
     'non_interactive': {
         'type': bool,

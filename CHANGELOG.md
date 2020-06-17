@@ -7,6 +7,10 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+- If not provided explicitly via the "--domain" option, new deployments now
+  default to ".test" instead of ".com" as the cluster TLD.
+
 ## [1.3.0] - 2020-05-25
 
 ### Added
