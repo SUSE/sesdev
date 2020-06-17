@@ -106,23 +106,24 @@ function support_cop_out_test {
     local supported
     supported="sesdev-qa supports this OS"
     local not_supported
-    not_supported="ERROR: sesdev-qa does not currently support this OS"
+    not_supported="sesdev-qa does not currently support this OS"
     echo
     echo "WWWW: support_cop_out_test"
     echo "Detected operating system $NAME $VERSION_ID"
     case "$ID" in
         opensuse*|suse|sles)
             case "$VERSION_ID" in
-                15*)
-                    echo "$supported"
-                    ;;
-                *)
-                    echo "$not_supported"
+                12.3) echo "$supported" ;;
+                15.1) echo "$supported" ;;
+                15.2) echo "$supported" ;;
+                *) 
+                    echo "WARNING: $not_supported"
+                    echo "But we'll let it slide this time ;-)"
                     ;;
             esac
             ;;
         *)
-            echo "$not_supported"
+            echo "ERROR: $not_supported"
             false
             ;;
     esac
