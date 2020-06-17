@@ -927,8 +927,10 @@ class Deployment():
         self.existing = existing  # True: we are loading, False: we are creating
         self.nodes = {}
         self.node_counts = {}
+        self.nodes_with_role = {}
         for role in KNOWN_ROLES:
             self.node_counts[role] = 0
+            self.nodes_with_role[role] = []
         _log_debug("Deployment ctor: node_counts: {}".format(self.node_counts))
         self.master = None
         self.suma = None
@@ -1129,6 +1131,9 @@ class Deployment():
                         cpus=self.settings.cpus,
                         repo_priority=self.settings.repo_priority)
 
+            for role in node_roles:
+                self.nodes_with_role[role].append(name)
+
             if 'master' in node_roles:
                 self.master = node
 
@@ -1258,12 +1263,19 @@ class Deployment():
             'repo_priority': self.settings.repo_priority,
             'qa_test': self.settings.qa_test,
             'nfs_nodes': self.node_counts["nfs"],
+            'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],
+            'igw_node_list': ','.join(self.nodes_with_role["igw"]),
             'mds_nodes': self.node_counts["mds"],
+            'mds_node_list': ','.join(self.nodes_with_role["mds"]),
             'mgr_nodes': self.node_counts["mgr"],
+            'mgr_node_list': ','.join(self.nodes_with_role["mgr"]),
             'mon_nodes': self.node_counts["mon"],
+            'mon_node_list': ','.join(self.nodes_with_role["mon"]),
             'rgw_nodes': self.node_counts["rgw"],
+            'rgw_node_list': ','.join(self.nodes_with_role["rgw"]),
             'storage_nodes': self.node_counts["storage"],
+            'storage_node_list': ','.join(self.nodes_with_role["storage"]),
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
                                          or self.node_counts["mds"] or self.node_counts["rgw"]
                                          or self.node_counts["openattic"]),

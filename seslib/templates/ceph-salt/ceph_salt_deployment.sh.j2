@@ -44,11 +44,6 @@ exit 0
 echo "PATH is $PATH"
 type ceph-salt
 
-MON_NODES_COMMA_SEPARATED_LIST=""
-MGR_NODES_COMMA_SEPARATED_LIST=""
-MDS_NODES_COMMA_SEPARATED_LIST=""
-RGW_NODES_SPACE_SEPARATED_LIST=""
-NFS_NODES_SPACE_SEPARATED_LIST=""
 {% for node in nodes %}
 {% if node.has_roles() and not node.has_exclusive_role('client') %}
 ceph-salt config /ceph_cluster/minions add {{ node.fqdn }}
@@ -58,27 +53,7 @@ ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
 {% if node.has_role('bootstrap') %}
 ceph-salt config /ceph_cluster/roles/bootstrap set {{ node.fqdn }}
 {% endif %}
-{% if node.has_role('mon') %}
-MON_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
-{% endif %}
-{% if node.has_role('mgr') %}
-MGR_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
-{% endif %}
-{% if node.has_role('mds') %}
-MDS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
-{% endif %}
-{% if node.has_role('rgw') %}
-RGW_NODES_SPACE_SEPARATED_LIST+="{{ node.name }} "
-{% endif %}
-{% if node.has_role('nfs') %}
-NFS_NODES_SPACE_SEPARATED_LIST+="{{ node.name }} "
-{% endif %}
 {% endfor %}
-MON_NODES_COMMA_SEPARATED_LIST="${MON_NODES_COMMA_SEPARATED_LIST%,*}"
-MGR_NODES_COMMA_SEPARATED_LIST="${MGR_NODES_COMMA_SEPARATED_LIST%,*}"
-MDS_NODES_COMMA_SEPARATED_LIST="${MDS_NODES_COMMA_SEPARATED_LIST%,*}"
-RGW_NODES_SPACE_SEPARATED_LIST="${RGW_NODES_SPACE_SEPARATED_LIST%"${RGW_NODES_SPACE_SEPARATED_LIST##*[![:space:]]}"}"
-NFS_NODES_SPACE_SEPARATED_LIST="${NFS_NODES_SPACE_SEPARATED_LIST%"${NFS_NODES_SPACE_SEPARATED_LIST##*[![:space:]]}"}"
 
 ceph-salt config /system_update/packages disable
 ceph-salt config /system_update/reboot disable
@@ -122,11 +97,11 @@ exit 0
 {% endif %}
 
 {% if mon_nodes > 1 %}
-ceph orch apply mon "$MON_NODES_COMMA_SEPARATED_LIST"
+ceph orch apply mon "{{ mon_node_list }}"
 {% endif %} {# mon_nodes > 1 #}
 
 {% if mgr_nodes > 1 %}
-ceph orch apply mgr "$MGR_NODES_COMMA_SEPARATED_LIST"
+ceph orch apply mgr "{{ mgr_node_list }}"
 {% endif %} {# mgr_nodes > 1 #}
 
 ceph orch device ls --refresh
@@ -137,20 +112,20 @@ echo "{\"service_type\": \"osd\", \"placement\": {\"host_pattern\": \"{{ node.na
 {% endfor %}
 
 {% if mds_nodes > 0 %}
-ceph fs volume create myfs "$MDS_NODES_COMMA_SEPARATED_LIST"
+ceph fs volume create myfs "{{ mds_node_list }}"
 {% endif %}
 
 {% if rgw_nodes > 0 %}
 radosgw-admin realm create --rgw-realm=default --default
 radosgw-admin zonegroup create --rgw-zonegroup=default> --master --default
 radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=default --master --default
-ceph orch apply rgw default default --placement="{{ rgw_nodes }} $RGW_NODES_SPACE_SEPARATED_LIST"
+ceph orch apply rgw default default --placement="{{ rgw_node_list }}"
 {% endif %}
 
 {% if nfs_nodes > 0 %}
 ceph osd pool create rbd
 ceph osd pool application enable rbd nfs
-ceph orch apply nfs default rbd nfs --placement="{{ nfs_nodes }} $NFS_NODES_SPACE_SEPARATED_LIST"
+ceph orch apply nfs default rbd nfs --placement="{{ nfs_node_list }}"
 {% endif %}
 
 {% include "qa_test.sh.j2" %}
