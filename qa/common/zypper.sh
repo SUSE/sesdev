@@ -21,9 +21,8 @@ function _zypper_ref_on_master {
 }
 
 function _zypper_install_on_master {
-    local PACKAGE=$1
     set -x
-    zypper --non-interactive install --no-recommends "$PACKAGE"
+    zypper --non-interactive install --no-recommends $@
     set +x
 }
 

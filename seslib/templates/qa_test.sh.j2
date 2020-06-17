@@ -8,8 +8,15 @@
     ~ " --mgr-nodes=" ~ mgr_nodes
     ~ " --mon-nodes=" ~ mon_nodes
     ~ " --osd-nodes=" ~ storage_nodes
-    ~ " --osds=" ~ total_osds
     ~ " --rgw-nodes=" ~ rgw_nodes
+    ~ " --nfs-node-list=" ~ nfs_node_list
+    ~ " --igw-node-list=" ~ igw_node_list
+    ~ " --mds-node-list=" ~ mds_node_list
+    ~ " --mgr-node-list=" ~ mgr_node_list
+    ~ " --mon-node-list=" ~ mon_node_list
+    ~ " --osd-node-list=" ~ storage_node_list
+    ~ " --rgw-node-list=" ~ rgw_node_list
+    ~ " --osds=" ~ total_osds
 -%}
 
 cat > {{ qa_test_script }} << EOF
