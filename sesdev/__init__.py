@@ -116,7 +116,7 @@ def common_create_options(func):
                      help='SCC organization username'),
         click.option('--scc-pass', type=str, default=None,
                      help='SCC organization password'),
-        click.option('--domain', type=str, default='{}.com',
+        click.option('--domain', type=str, default='{}.test',
                      help='Domain name to use'),
         click.option('--non-interactive', '-n', '--force', '-f', is_flag=True, default=False,
                      help='Do not ask the user if they really want to'),
