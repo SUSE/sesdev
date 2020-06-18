@@ -10,7 +10,11 @@ import pkg_resources
 from prettytable import PrettyTable
 
 import seslib
-from seslib.exceptions import SesDevException, OptionFormatError, OptionValueError, \
+from seslib.exceptions import \
+                              SesDevException, \
+                              OptionFormatError, \
+                              OptionNotSupportedInVersion, \
+                              OptionValueError, \
                               VersionNotKnown
 
 
@@ -110,6 +114,8 @@ def common_create_options(func):
                      help='Custom zypper repo URL. The repo will be added to each node.'),
         click.option('--repo-priority/--no-repo-priority', default=True,
                      help="Automatically set priority on custom zypper repos"),
+        click.option('--devel/--product', default=True,
+                     help="Include devel repo, if applicable"),
         click.option('--qa-test/--no-qa-test', 'qa_test_opt', default=False,
                      help="Automatically run integration tests on the deployed cluster"),
         click.option('--scc-user', type=str, default=None,
@@ -449,6 +455,7 @@ def _gen_settings_dict(version,
                        ram,
                        disk_size,
                        repo_priority,
+                       devel,
                        qa_test_opt,
                        vagrant_box,
                        scc_user,
@@ -557,6 +564,9 @@ def _gen_settings_dict(version,
     if repo_priority is not None:
         settings_dict['repo_priority'] = repo_priority
 
+    if devel is not None:
+        settings_dict['devel_repo'] = devel
+
     if qa_test_opt is not None:
         settings_dict['qa_test'] = qa_test_opt
 
@@ -654,6 +664,9 @@ def _create_command(deployment_id, deploy, settings_dict):
     interactive = not settings_dict.get('non_interactive', False)
     settings = seslib.Settings(**settings_dict)
     dep = seslib.Deployment.create(deployment_id, settings)
+    if not dep.settings.devel_repo:
+        if dep.settings.version not in seslib.GlobalSettings.CORE_VERSIONS:
+            raise OptionNotSupportedInVersion('--product', dep.settings.version)
     really_want_to = None
     click.echo("=== Creating deployment \"{}\" with the following configuration ==="
                .format(deployment_id)
@@ -766,6 +779,9 @@ def nautilus(deployment_id, deploy, **kwargs):
     from filesystems:ceph:nautilus OBS project
     """
     _prep_kwargs(kwargs)
+    if not kwargs['devel']:
+        # nautilus requires devel repo for deepsea
+        raise OptionNotSupportedInVersion('--product', 'nautilus')
     settings_dict = _gen_settings_dict('nautilus', **kwargs)
     deployment_id = _maybe_gen_dep_id('nautilus', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
@@ -927,11 +943,11 @@ def ssh(deployment_id, node=None, command=None):
     "sesdev show <deployment_id>"
     """
     dep = seslib.Deployment.load(deployment_id)
-    _node = 'master' if node is None else node
+    node_name = 'master' if node is None else node
     if command:
-        log_msg = "SSH command: {}".format(command)
+        log_msg = "Running SSH command on {}: {}".format(node_name, command)
         logger.info(log_msg)
-    dep.ssh(_node, command)
+    dep.ssh(node_name, command)
 
 
 @cli.command()
@@ -983,6 +999,22 @@ def qa_test(deployment_id):
     """
     dep = seslib.Deployment.load(deployment_id)
     dep.qa_test(_print_log)
+
+
+@cli.command(name='add-repo')
+@click.option('--update/--no-update', is_flag=True,
+              help='Update packages after adding devel repo')
+@click.argument('deployment_id')
+@click.argument('custom_repo', required=False)
+def add_repo(update, deployment_id, custom_repo):
+    """
+    Add a custom repo to all nodes of an already-deployed cluster. The repo
+    should be specified in the form of an URL, but it is optional: if it is
+    omitted, the "devel" repo (which has a specific meaning depending on the
+    deployment version) will be added.
+    """
+    dep = seslib.Deployment.load(deployment_id)
+    dep.add_repo_subcommand(custom_repo, update, _print_log)
 
 
 @cli.command()

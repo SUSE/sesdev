@@ -74,20 +74,6 @@ class ExplicitAdminRoleNotAllowed(SesDevException):
             "(TL;DR remove the \"admin\" role and try again!)")
 
 
-class OptionFormatError(SesDevException):
-    def __init__(self, option, expected_type, value):
-        super(OptionFormatError, self).__init__(
-            "Wrong format for option '{}': expected format: '{}', actual format: '{}'"
-            .format(option, expected_type, value))
-
-
-class OptionValueError(SesDevException):
-    def __init__(self, option, message, value):
-        super(OptionValueError, self).__init__(
-            "Wrong value for option '{}'. {}. Actual value: '{}'"
-            .format(option, message, value))
-
-
 class NodeDoesNotExist(SesDevException):
     def __init__(self, node):
         super(NodeDoesNotExist, self).__init__(
@@ -130,6 +116,26 @@ class NoSupportConfigTarballFound(SesDevException):
     def __init__(self, node):
         super(NoSupportConfigTarballFound, self).__init__(
             "No supportconfig tarball found on node {}".format(node))
+
+
+class OptionFormatError(SesDevException):
+    def __init__(self, option, expected_type, value):
+        super(OptionFormatError, self).__init__(
+            "Wrong format for option '{}': expected format: '{}', actual format: '{}'"
+            .format(option, expected_type, value))
+
+
+class OptionNotSupportedInVersion(SesDevException):
+    def __init__(self, option, version):
+        super(OptionNotSupportedInVersion, self).__init__(
+            "Option '{}' not supported with version '{}'".format(option, version))
+
+
+class OptionValueError(SesDevException):
+    def __init__(self, option, message, value):
+        super(OptionValueError, self).__init__(
+            "Wrong value for option '{}'. {}. Actual value: '{}'"
+            .format(option, message, value))
 
 
 class RoleNotKnown(SesDevException):
