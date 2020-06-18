@@ -238,10 +238,6 @@ VERSION_OS_REPO_MAPPING = {
             'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
             'openSUSE_Leap_15.1/'
         ],
-        'tumbleweed': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
-            'openSUSE_Tumbleweed'
-        ],
     },
     'ses6': {
         'sles-15-sp1': [
@@ -255,7 +251,7 @@ VERSION_OS_REPO_MAPPING = {
             'openSUSE_Leap_15.1'
         ],
         'leap-15.2': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/'
+            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
             'openSUSE_Leap_15.2'
         ],
         'tumbleweed': [
