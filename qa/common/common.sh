@@ -761,38 +761,29 @@ function maybe_rgw_smoke_test {
     echo "WWWW: maybe_rgw_smoke_test"
     if [ "$RGW_NODE_LIST" ] ; then
         install_rgw_test_dependencies
-        if [ "$VERSION_ID" = "12.3" ] ; then
-            # no "readarray -d" in SLE-12-SP3: use a simpler version of the test
-            local rgw_node_name
-            rgw_node_name="$(_first_x_node rgw)"
+        local rgw_nodes_arr
+        local rgw_node_count
+        rgw_node_count="0"
+        local rgw_node_under_test
+        local IFS
+        IFS=","
+        read -r -a rgw_nodes_arr <<<"$RGW_NODE_LIST"
+        for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
             set -x
-            rgw_curl_test "$rgw_node_name"
+            rgw_node_under_test="${rgw_nodes_arr[n]}"
+            rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
+            rgw_curl_test "$rgw_node_under_test"
             set +x
+            rgw_node_count="$((rgw_node_count + 1))"
+        done
+        echo "RGW nodes expected/tested: $rgw_node_count/${#rgw_nodes_arr[*]}"
+        if [ "$rgw_node_count" = "${#rgw_nodes_arr[*]}" ] ; then
             echo "WWWW: maybe_rgw_smoke_test: OK"
             echo
         else
-            local rgw_nodes_arr
-            local rgw_node_count
-            rgw_node_count="0"
-            local rgw_node_under_test
-            readarray -d , -t rgw_nodes_arr <<<"$RGW_NODE_LIST"
-            for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
-                set -x
-                rgw_node_under_test="${rgw_nodes_arr[n]}"
-                rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
-                rgw_curl_test "$rgw_node_under_test"
-                set +x
-                rgw_node_count="$((rgw_node_count + 1))"
-            done
-            echo "RGW nodes expected/tested: $rgw_node_count/${#rgw_nodes_arr[*]}"
-            if [ "$rgw_node_count" = "${#rgw_nodes_arr[*]}" ] ; then
-                echo "WWWW: maybe_rgw_smoke_test: OK"
-                echo
-            else
-                echo "WWWW: maybe_rgw_smoke_test: FAIL"
-                echo
-                false
-            fi
+            echo "WWWW: maybe_rgw_smoke_test: FAIL"
+            echo
+            false
         fi
     else
         echo "WWWW: maybe_rgw_smoke_test: SKIPPED"
