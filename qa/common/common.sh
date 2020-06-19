@@ -564,74 +564,99 @@ function number_of_services_expected_vs_orch_ls_test {
     fi
 }
 
+function _orch_ps_test {
+    local success
+    success="yes"
+    local orch_ps_mgrs
+    orch_ps_mgrs="$(json_ses7_orch_ps mgr)"
+    local orch_ps_mons
+    orch_ps_mons="$(json_ses7_orch_ps mon)"
+    local orch_ps_mdss
+    orch_ps_mdss="$(json_ses7_orch_ps mds)"
+    local orch_ps_rgws
+    orch_ps_rgws="$(json_ses7_orch_ps rgw)"
+    local orch_ps_nfss
+    orch_ps_nfss="$(json_ses7_orch_ps nfs)"
+    ## commented-out osds pending resolution of
+    ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
+    ## - https://github.com/SUSE/sesdev/pull/203
+    # local orch_ps_osds
+    # orch_ps_osds="$(json_ses7_orch_ps osd)"
+    local expected_mgrs
+    local expected_mons
+    local expected_mdss
+    local expected_osds
+    local expected_rgws
+    local expected_nfss
+    [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
+    [ "$MON_NODES" ] && expected_mons="$MON_NODES"
+    [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
+    [ "$OSDS" ]      && expected_osds="$OSDS"
+    [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
+    [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
+    if [ "$expected_mgrs" ] ; then
+        echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
+        if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
+            true  # normal success case
+        elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ps_mgrs" = "$((expected_mgrs + 1))" ] ; then
+            true  # workaround for https://tracker.ceph.com/issues/45093
+        else
+            success=""
+        fi
+    fi
+    if [ "$expected_mons" ] ; then
+        echo "MON daemons (orch ps/expected): $orch_ps_mons/$expected_mons"
+        [ "$orch_ps_mons" = "$expected_mons" ] || success=""
+    fi
+    if [ "$expected_mdss" ] ; then
+        echo "MDS daemons (orch ps/expected): $orch_ps_mdss/$expected_mdss"
+        [ "$orch_ps_mdss" = "$expected_mdss" ] || success=""
+    fi
+    # if [ "$expected_osds" ] ; then
+    #     echo "OSDs orch ps/expected: $orch_ps_osds/$expected_osds"
+    #     [ "$orch_ps_osds" = "$expected_osds" ] || success=""
+    # fi
+    if [ "$expected_rgws" ] ; then
+        echo "RGW daemons (orch ps/expected): $orch_ps_rgws/$expected_rgws"
+        [ "$orch_ps_rgws" = "$expected_rgws" ] || success=""
+    fi
+    if [ "$expected_nfss" ] ; then
+        echo "NFS daemons (orch ps/expected): $orch_ps_nfss/$expected_nfss"
+        [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
+    fi
+    if [ "$success" ] ; then
+        return 0
+    else
+        echo "ERROR: Detected disparity between expected number of services and \"ceph orch ps\"!"
+        return 1
+    fi
+}
+
 function number_of_services_expected_vs_orch_ps_test {
     echo
     echo "WWWW: number_of_services_expected_vs_orch_ps_test"
     if [ "$VERSION_ID" = "15.2" ] ; then
-        local orch_ps_mgrs
-        orch_ps_mgrs="$(json_ses7_orch_ps mgr)"
-        local orch_ps_mons
-        orch_ps_mons="$(json_ses7_orch_ps mon)"
-        local orch_ps_mdss
-        orch_ps_mdss="$(json_ses7_orch_ps mds)"
-        ## commented-out osds pending resolution of
-        ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
-        ## - https://github.com/SUSE/sesdev/pull/203
-        # local orch_ps_osds
-        # orch_ps_osds="$(json_ses7_orch_ps osd)"
-        local orch_ps_rgws
-        orch_ps_rgws="$(json_ses7_orch_ps rgw)"
-        local orch_ps_nfss
-        orch_ps_nfss="$(json_ses7_orch_ps nfs)"
+        local minutes_to_wait
+        minutes_to_wait="5"
+        local minute
+        local i
         local success
-        success="yes"
-        local expected_mgrs
-        local expected_mons
-        local expected_mdss
-        local expected_osds
-        local expected_rgws
-        local expected_nfss
-        [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
-        [ "$MON_NODES" ] && expected_mons="$MON_NODES"
-        [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
-        [ "$OSDS" ]      && expected_osds="$OSDS"
-        [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
-        [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
-        if [ "$expected_mgrs" ] ; then
-            echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
-            if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
-                true  # normal success case
-            elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ps_mgrs" = "$((expected_mgrs + 1))" ] ; then
-                true  # workaround for https://tracker.ceph.com/issues/45093
-            else
-                success=""
-            fi
-        fi
-        if [ "$expected_mons" ] ; then
-            echo "MON daemons (orch ps/expected): $orch_ps_mons/$expected_mons"
-            [ "$orch_ps_mons" = "$expected_mons" ] || success=""
-        fi
-        if [ "$expected_mdss" ] ; then
-            echo "MDS daemons (orch ps/expected): $orch_ps_mdss/$expected_mdss"
-            [ "$orch_ps_mdss" = "$expected_mdss" ] || success=""
-        fi
-        # if [ "$expected_osds" ] ; then
-        #     echo "OSDs orch ps/expected: $orch_ps_osds/$expected_osds"
-        #     [ "$orch_ps_osds" = "$expected_osds" ] || success=""
-        # fi
-        if [ "$expected_rgws" ] ; then
-            echo "RGW daemons (orch ps/expected): $orch_ps_rgws/$expected_rgws"
-            [ "$orch_ps_rgws" = "$expected_rgws" ] || success=""
-        fi
-        if [ "$expected_nfss" ] ; then
-            echo "NFS daemons (orch ps/expected): $orch_ps_nfss/$expected_nfss"
-            [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
-        fi
+        echo "Waiting up to $minutes_to_wait minutes for \"ceph orch ps\" to list all expected daemons"
+        for minute in $(seq 1 "$minutes_to_wait") ; do
+            for i in $(seq 1 4) ; do
+                if _orch_ps_test ; then
+                    success="not_empty"
+                    break 2
+                else
+                    _grace_period 15 "$i"
+                fi
+            done
+            echo "Minutes left to wait: $((minutes_to_wait - minute))"
+        done
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ps_test: OK"
             echo
         else
-            echo "ERROR: Detected disparity between expected number of services and \"ceph orch ps\"!"
             echo "WWWW: number_of_services_expected_vs_orch_ps_test: FAIL"
             echo
             false
