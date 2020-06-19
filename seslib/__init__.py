@@ -2046,7 +2046,8 @@ class Deployment():
                 ssh_cmd = self._ssh_cmd(node)
                 ssh_cmd.append('podman ps --format "{}" -f name=mgr.{}'.format("{{.ID}}", node))
                 containers = tools.run_sync(ssh_cmd)
-                containers = containers.strip().split('\n')
+                containers = containers.strip()
+                containers = containers.split('\n') if containers else []
 
                 print("Copying to node {}".format(node))
                 ssh_cmd = self._ssh_cmd(node)
