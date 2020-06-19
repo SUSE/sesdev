@@ -14,11 +14,11 @@ function rgw_curl_test {
     local protocol
     local curl_opts
     local rgwxmlout
-    curl_opts="--silent --show-error"
+    curl_opts=( --silent --show-error )
     # 
     # We are not currently testing RGW-over-HTTPS
     # test "$RGW_SSL" && protocol="https" || protocol="http"
-    # test "$RGW_SSL" && curl_opts+=" --insecure"
+    # test "$RGW_SSL" && curl_opts+=( --insecure )
     protocol="http"
     #
     # If rgw_dns_name is configured, we must use it. Currently this is a problem
@@ -31,7 +31,7 @@ function rgw_curl_test {
     # valid XML containing the word "anonymous"
     #
     # shellcheck disable=SC2086
-    curl $curl_opts "${protocol}://${rgw_dns_name}" | tee $rgwxmlout
+    curl "${curl_opts[@]}" "${protocol}://${rgw_dns_name}" | tee $rgwxmlout
     test -f $rgwxmlout
     xmllint $rgwxmlout
     grep anonymous $rgwxmlout

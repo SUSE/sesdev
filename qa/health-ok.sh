@@ -45,6 +45,7 @@ function usage {
     echo "    --nfs-nodes          expected number of nodes with NFS"
     echo "    --osd-nodes          expected number of nodes with OSD"
     echo "    --rgw-nodes          expected number of nodes with RGW"
+    echo "    --node-list          comma-separate list of all nodes in cluster"
     echo "    --igw-node-list      comma-separated list of nodes with iSCSI Gateway"
     echo "    --mds-node-list      comma-separated list of nodes with MDS"
     echo "    --mgr-node-list      comma-separated list of nodes with MGR"
@@ -61,7 +62,7 @@ function usage {
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,rgw-nodes:,rgw-node-list:,osds:,strict-versions,total-nodes:" \
+--long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,rgw-nodes:,rgw-node-list:,osds:,strict-versions,total-nodes:,node-list:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -85,6 +86,7 @@ RGW_NODE_LIST=""
 OSDS=""
 STRICT_VERSIONS=""
 TOTAL_NODES=""
+NODE_LIST=""
 
 # process command-line options
 while true ; do
@@ -106,6 +108,7 @@ while true ; do
         --osds) shift ; OSDS="$1" ; shift ;;
         --strict-versions) STRICT_VERSIONS="$1"; shift ;;
         --total-nodes) shift ; TOTAL_NODES="$1" ; shift ;;
+        --node-list) shift ; NODE_LIST="$1" ; shift ;;
         -h|--help) usage ;;    # does not return
         --) shift ; break ;;
         *) echo "Internal error" ; exit 1 ;;
@@ -133,6 +136,7 @@ test "$RGW_NODE_LIST"
 test "$OSDS"
 test "$STRICT_VERSIONS"
 test "$TOTAL_NODES"
+test "$NODE_LIST"
 set -e
 
 # run tests
@@ -153,3 +157,5 @@ number_of_services_expected_vs_orch_ps_test
 number_of_daemons_expected_vs_actual
 ceph_health_test
 maybe_rgw_smoke_test
+cluster_json_test
+systemctl_list_units_test

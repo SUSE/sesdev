@@ -106,23 +106,24 @@ function support_cop_out_test {
     local supported
     supported="sesdev-qa supports this OS"
     local not_supported
-    not_supported="ERROR: sesdev-qa does not currently support this OS"
+    not_supported="sesdev-qa does not currently support this OS"
     echo
     echo "WWWW: support_cop_out_test"
     echo "Detected operating system $NAME $VERSION_ID"
     case "$ID" in
         opensuse*|suse|sles)
             case "$VERSION_ID" in
-                15*)
-                    echo "$supported"
-                    ;;
-                *)
-                    echo "$not_supported"
+                12.3) echo "$supported" ;;
+                15.1) echo "$supported" ;;
+                15.2) echo "$supported" ;;
+                *) 
+                    echo "WARNING: $not_supported"
+                    echo "But we'll let it slide this time ;-)"
                     ;;
             esac
             ;;
         *)
-            echo "$not_supported"
+            echo "ERROR: $not_supported"
             false
             ;;
     esac
@@ -785,41 +786,96 @@ function maybe_rgw_smoke_test {
     echo "WWWW: maybe_rgw_smoke_test"
     if [ "$RGW_NODE_LIST" ] ; then
         install_rgw_test_dependencies
-        if [ "$VERSION_ID" = "12.3" ] ; then
-            # no "readarray -d" in SLE-12-SP3: use a simpler version of the test
-            local rgw_node_name
-            rgw_node_name="$(_first_x_node rgw)"
+        local rgw_nodes_arr
+        local rgw_node_count
+        rgw_node_count="0"
+        local rgw_node_under_test
+        local IFS
+        IFS=","
+        read -r -a rgw_nodes_arr <<<"$RGW_NODE_LIST"
+        for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
+            rgw_node_under_test="${rgw_nodes_arr[n]}"
+            rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
             set -x
-            rgw_curl_test "$rgw_node_name"
+            rgw_curl_test "$rgw_node_under_test"
             set +x
+            rgw_node_count="$((rgw_node_count + 1))"
+        done
+        echo "RGW nodes expected/tested: $rgw_node_count/${#rgw_nodes_arr[*]}"
+        if [ "$rgw_node_count" = "${#rgw_nodes_arr[*]}" ] ; then
             echo "WWWW: maybe_rgw_smoke_test: OK"
             echo
         else
-            local rgw_nodes_arr
-            local rgw_node_count
-            rgw_node_count="0"
-            local rgw_node_under_test
-            readarray -d , -t rgw_nodes_arr <<<"$RGW_NODE_LIST"
-            for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
-                set -x
-                rgw_node_under_test="${rgw_nodes_arr[n]}"
-                rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
-                rgw_curl_test "$rgw_node_under_test"
-                set +x
-                rgw_node_count="$((rgw_node_count + 1))"
-            done
-            echo "RGW nodes expected/tested: $rgw_node_count/${#rgw_nodes_arr[*]}"
-            if [ "$rgw_node_count" = "${#rgw_nodes_arr[*]}" ] ; then
-                echo "WWWW: maybe_rgw_smoke_test: OK"
-                echo
-            else
-                echo "WWWW: maybe_rgw_smoke_test: FAIL"
-                echo
-                false
-            fi
+            echo "WWWW: maybe_rgw_smoke_test: FAIL"
+            echo
+            false
         fi
     else
         echo "WWWW: maybe_rgw_smoke_test: SKIPPED"
         echo
+    fi
+}
+
+function cluster_json_test {
+    echo "WWWW: cluster_json_test"
+    local nodes_arr
+    local node_count
+    node_count="0"
+    local node_under_test
+    local n
+    local IFS
+    IFS=","
+    read -r -a nodes_arr <<<"$NODE_LIST"
+    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+        node_under_test="${nodes_arr[n]}"
+        node_under_test="${node_under_test//[$'\t\r\n']}"
+        set -x
+        ssh "$node_under_test" test -s /home/vagrant/cluster.json
+        set +x
+        node_count="$((node_count + 1))"
+    done
+    echo "Total nodes expected/tested: $node_count/${#nodes_arr[*]}"
+    if [ "$node_count" = "${#nodes_arr[*]}" ] ; then
+        echo "WWWW: cluster_json_test: OK"
+        echo
+    else
+        echo "WWWW: cluster_json_test: FAIL"
+        echo
+        false
+    fi
+}
+
+function systemctl_list_units_test {
+    echo "WWWW: systemctl_list_units_test"
+    # no "readarray -d" in SLE-12-SP3
+    local nodes_arr
+    local node_count
+    node_count="0"
+    local node_under_test
+    local n
+    local fsid
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        fsid="$(_fsid)"
+    fi
+    local IFS
+    IFS=","
+    read -r -a nodes_arr <<<"$NODE_LIST"
+    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+        node_under_test="${nodes_arr[n]}"
+        node_under_test="${node_under_test//[$'\t\r\n']}"
+        set -x
+        # shellcheck disable=SC2029
+        ssh "$node_under_test" /home/vagrant/systemctl_test.sh "$fsid"
+        set +x
+        node_count="$((node_count + 1))"
+    done
+    echo "Total nodes expected/tested: $node_count/${#nodes_arr[*]}"
+    if [ "$node_count" = "${#nodes_arr[*]}" ] ; then
+        echo "WWWW: systemctl_list_units_test: OK"
+        echo
+    else
+        echo "WWWW: systemctl_list_units_test: FAIL"
+        echo
+        false
     fi
 }

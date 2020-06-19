@@ -1,0 +1,63 @@
+
+# files created on all nodes for QA testing purposes:
+# - /home/vagrant/cluster.json
+# - /home/vagrant/systemctl_test.sh
+
+{% set cluster_json_file = "/home/vagrant/cluster.json" %}
+cat > {{ cluster_json_file }} << EOF
+{{ cluster_json }}
+EOF
+
+{% set systemctl_test_script = "/home/vagrant/systemctl_test.sh" %}
+cat > {{ systemctl_test_script }} << 'EOF'
+#!/bin/bash
+FSID="$1"
+OS="{{ os }}"
+NUM_DISKS="$(cat /home/vagrant/cluster.json | jq -r '.num_disks')"
+ROLES_OF_NODES="$(cat /home/vagrant/cluster.json | jq -r '.roles_of_nodes')"
+ROLES_OF_THIS_NODE="$(echo "$ROLES_OF_NODES" | jq -r '.{{ node.name }}[]')"
+SUCCESS="yes"
+for role in $ROLES_OF_THIS_NODE ; do
+    [ "$role" = "storage" ] && role="osd"
+    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] ; then
+        if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] ; then
+            if [ "$OS" = "leap-15.2" ] || [ "$OS" = "sles-15-sp2" ] ; then
+                REGEX="^ceph-$FSID@$role.+loaded active running"
+            else
+                REGEX="^ceph-$role@.+loaded active running"
+            fi
+        elif [ "$role" = "rgw" ] ; then
+            if [ "$OS" = "leap-15.2" ] || [ "$OS" = "sles-15-sp2" ] ; then
+                REGEX="^ceph-$FSID@$role.+loaded active running"
+            else
+                REGEX="^ceph-radosgw@.+loaded active running"
+            fi
+        elif [ "$role" = "nfs" ] ; then
+            if [ "$OS" = "leap-15.2" ] || [ "$OS" = "sles-15-sp2" ] ; then
+                REGEX="^ceph-$FSID@$role.+loaded active running"
+            else
+                REGEX="^nfs-ganesha\.service.+loaded active running"
+            fi
+        fi
+        running_instances="$(systemctl list-units --type=service --state=running | grep -E "$REGEX"  | wc --lines)"
+        if [ "$role" = "osd" ] ; then
+            expected_instances="$NUM_DISKS"
+        else
+            expected_instances="1"
+        fi
+        echo "running instances of $role systemd unit on node {{ node.name }} (systemctl/expected): ${running_instances}/${expected_instances}"
+        if [ "$running_instances" = "$expected_instances" ] ; then
+            true
+        else
+            echo "TEST FAILURE"
+            SUCCESS=""
+        fi
+    fi  
+done
+if [ "$SUCCESS" ] ; then
+    exit 0
+else
+    exit 1
+fi
+EOF
+chmod 755 {{ systemctl_test_script }}

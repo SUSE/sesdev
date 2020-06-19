@@ -947,6 +947,7 @@ class Deployment():
         self.nodes = {}
         self.node_counts = {}
         self.nodes_with_role = {}
+        self.roles_of_nodes = {}
         for role in KNOWN_ROLES:
             self.node_counts[role] = 0
             self.nodes_with_role[role] = []
@@ -1153,6 +1154,8 @@ class Deployment():
             for role in node_roles:
                 self.nodes_with_role[role].append(name)
 
+            self.roles_of_nodes[name] = node_roles
+
             if 'master' in node_roles:
                 self.master = node
 
@@ -1202,6 +1205,7 @@ class Deployment():
                 node.add_repo(ZypperRepo(r_name.format(idx+1), repo_url))
 
             self.nodes[node.name] = node
+        self.node_list = ','.join(self.nodes.keys())
 
     def _generate_vagrantfile(self):
         vagrant_box = self.settings.os
@@ -1266,6 +1270,10 @@ class Deployment():
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
             'vagrant_box': vagrant_box,
             'nodes': list(self.nodes.values()),
+            'cluster_json': json.dumps({
+                "num_disks": self.settings.num_disks,
+                "roles_of_nodes": self.roles_of_nodes
+                }, sort_keys=True, indent=4),
             'master': self.master,
             'suma': self.suma,
             'domain': self.settings.domain.format(self.dep_id),
@@ -1281,6 +1289,7 @@ class Deployment():
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
             'qa_test': self.settings.qa_test,
+            'node_list': self.node_list,
             'nfs_nodes': self.node_counts["nfs"],
             'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],
