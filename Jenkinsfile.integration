@@ -23,7 +23,6 @@ def repos = [
 ]
 
 def sesdev_deps = [
-    'bridge-utils',
     'gcc',
     'git-core',
     'libvirt',
