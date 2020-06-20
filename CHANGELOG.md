@@ -7,9 +7,32 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.4.0] - 2020-06-20
+
+### Added
+- "replace-mgr-modules" subcommand (PR #24)
+- "replace-ceph-salt" subcommand (PR #331)
+- NFS (Ganesha) server deployment in {octopus,ses7,pacific} (PR #337)
+- qa: curl-based RGW smoke test (PR #344)
+- qa: systemctl-based smoke test (PR #347)
+
+### Removed
+- "--use-deepsea" option for {ses7,octopus,pacific} (PR #334)
+
+### Fixed
+- ceph_salt_deployment: fix use_salt=True deployment (PR #326)
+- sync_clocks.sh: put chronyc calls in try_wait (PR #328)
+- qa: tolerate +1 MGRs in number_of_nodes_actual_vs_expected_test (PR #332)
+
 ### Changed
+- ceph_salt_deployment: deploy OSDs from YAML (ServiceSpec) file (PR #203)
+- makecheck: possibly prophylactically downgrade libncurses6 (PR #325)
+- explicit "admin" role no longer allowed (PR #330)
+- seslib: move boilerplate ssh options into a staticmethod (PR #333)
+- deployment IDs are now vetted for correctness (PR #335)
+- seslib: generate comma-separated lists of nodes with each role (PR #345)
 - If not provided explicitly via the "--domain" option, new deployments now
-  default to ".test" instead of ".com" as the cluster TLD.
+  default to ".test" instead of ".com" as the cluster TLD (PR #350)
 
 ## [1.3.0] - 2020-05-25
 
@@ -388,7 +411,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.3.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/SUSE/sesdev/releases/tag/v1.4.0
 [1.3.0]: https://github.com/SUSE/sesdev/releases/tag/v1.3.0
 [1.2.0]: https://github.com/SUSE/sesdev/releases/tag/v1.2.0
 [1.1.12]: https://github.com/SUSE/sesdev/releases/tag/v1.1.12
