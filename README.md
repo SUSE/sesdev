@@ -29,7 +29,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
 [//]: # (the new TOC will appear on stdout: the expectation is that the maintainer will do the rest.)
 
 * [Installation](#installation)
-   * [Install sesdev on openSUSE](#install-sesdev-on-opensuse)
+   * [Install sesdev on openSUSE or SUSE Linux Enterprise](#install-sesdev-on-opensuse-or-suse-linux-enterprise)
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt)
       * [Add user to libvirt group](#add-user-to-libvirt-group)
       * [Install Vagrant](#install-vagrant)
@@ -85,15 +85,16 @@ Installable packages for various Linux distributions like Fedora or openSUSE can
 be found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=filesystems%3Aceph&package=sesdev)
 (OBS).
 
-### Install sesdev on openSUSE
+### Install sesdev on openSUSE or SUSE Linux Enterprise
 
 #### Install KVM/QEMU and Libvirt
 
+Run the following commands as root:
+
 ```
-$ sudo zypper -n install patterns-openSUSE-kvm_server \
-patterns-server-kvm_tools bridge-utils
-$ sudo systemctl enable libvirtd
-$ sudo systemctl restart libvirtd
+# zypper -n install -t pattern kvm_server kvm_tools
+# systemctl enable libvirtd
+# systemctl restart libvirtd
 ```
 
 #### Add user to libvirt group
@@ -103,9 +104,9 @@ your user to the "libvirt" group to avoid "no polkit agent available" errors
 when vagrant attempts to connect to the libvirt daemon:
 
 ```
-$ sudo groupadd libvirt
+# groupadd libvirt
 groupadd: group 'libvirt' already exists
-$ sudo usermod -a -G libvirt $USER
+# usermod -a -G libvirt $USER
 ```
 
 Log out, and then log back in. You should now be a member of the "libvirt"
@@ -113,12 +114,13 @@ group.
 
 #### Install Vagrant
 
-sesdev needs Vagrant to work.
+sesdev needs Vagrant to work. To install Vagrant, run the following commands as
+root:
 
 ```
-$ sudo zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
-$ sudo zypper ref
-$ sudo zypper -n install vagrant vagrant-libvirt
+# zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
+# zypper ref
+# zypper -n install vagrant vagrant-libvirt
 ```
 
 Where `<repo>` can be any of the openSUSE build targets currently enabled for
@@ -131,10 +133,12 @@ prefer to install from package, follow the instructions in this section. If you
 prefer to install from source, skip down to the "Install sesdev from source"
 section.
 
+Run the following commands as root:
+
 ```
-$ sudo zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> filesystems_ceph
-$ sudo zypper ref
-$ sudo zypper install sesdev
+# zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> filesystems_ceph
+# zypper ref
+# zypper install sesdev
 ```
 
 Where `<repo>` can be any of the openSUSE build targets currently enabled for
@@ -147,19 +151,23 @@ At this point, sesdev should be installed and ready to use: refer to the
 
 #### Install KVM/QEMU and Libvirt
 
+Run the following commands as root:
+
 ```
-$ sudo dnf install qemu-common qemu-kvm libvirt-daemon-kvm \
+# dnf install qemu-common qemu-kvm libvirt-daemon-kvm \
 libvirt-daemon libvirt-daemon-driver-qemu vagrant-libvirt
-$ sudo systemctl enable libvirtd
-$ sudo systemctl restart libvirtd
+# systemctl enable libvirtd
+# systemctl restart libvirtd
 ```
 
 #### Install sesdev from package
 
+Run the following commands as root:
+
 ```
-$ sudo dnf config-manager --add-repo \
+# dnf config-manager --add-repo \
 https://download.opensuse.org/repositories/filesystems:/ceph/<distro>/filesystems:ceph.repo
-dnf install sesdev
+# dnf install sesdev
 ```
 
 Where `<distro>` can be any of the Fedora build targets currently enabled for
@@ -190,21 +198,20 @@ are installed in the system:
 #### openSUSE
 
 ```
-zypper -n install gcc git-core libvirt-devel \
-python3-devel python3-virtualenv
+# zypper -n install gcc git-core libvirt-devel python3-devel python3-virtualenv
 ```
 
 #### Debian / Ubuntu
 
 ```
-apt-get install -y git gcc libvirt-dev \
+# apt-get install -y git gcc libvirt-dev \
 virtualenv python3-dev python3-venv python3-virtualenv
 ```
 
 #### Fedora
 
 ```
-dnf install -y git-core gcc libvirt-devel \
+# dnf install -y git-core gcc libvirt-devel \
 python3-devel python3-virtualenv
 ```
 
@@ -733,16 +740,16 @@ identical.
 As described
 [here](https://github.com/vagrant-libvirt/vagrant-libvirt/issues/658#issuecomment-380976825),
 this can be resolved by manually deleting all the domains (VMs) and volumes
-associated with the old deployment:
+associated with the old deployment (note: the commands must be run as root):
 
 ```
-$ sudo virsh list --all
-$ # see the names of the "offending" machines. For each, do:
-$ sudo virsh destroy <THE_MACHINE>
-$ sudo virsh undefine <THE_MACHINE>
-$ sudo virsh vol-list default
-$ # For each of the volumes associated with one of the deleted machines, do:
-$ sudo virsh vol-delete --pool default <THE_VOLUME>
+# virsh list --all
+# # see the names of the "offending" machines. For each, do:
+# virsh destroy <THE_MACHINE>
+# virsh undefine <THE_MACHINE>
+# virsh vol-list default
+# # For each of the volumes associated with one of the deleted machines, do:
+# virsh vol-delete --pool default <THE_VOLUME>
 ```
 
 ### Storage pool not found: no storage pool with matching name 'default'
@@ -759,10 +766,10 @@ libvirt.libvirtError: Storage pool not found: no storage pool with matching name
 #### Analysis
 
 For whatever reason, your libvirt deployment does not have a default pool
-defined. You can verify this by doing:
+defined. You can verify this by running the following command as root:
 
 ```
-$ sudo virsh pool-list
+# virsh pool-list
 ```
 
 In a working deployment, it says:
@@ -782,16 +789,16 @@ The "libvirt-daemon" RPM owns a directory `/var/lib/libvirt/images` which is
 intended to be associated with the default storage pool:
 
 ```
-$ sudo rpm -qf /var/lib/libvirt/images
+# rpm -qf /var/lib/libvirt/images
 libvirt-daemon-5.1.0-lp151.7.6.1.x86_64
 ```
 
 Assuming this directory exists and is empty, you can simply create a storage
 pool called "default" that points to this directory, and the issue will be
-resolved:
+resolved (run the commands as root):
 
 ```
-$ sudo virsh pool-define /dev/stdin <<EOF
+# virsh pool-define /dev/stdin <<EOF
 <pool type='dir'>
   <name>default</name>
   <target>
@@ -799,8 +806,8 @@ $ sudo virsh pool-define /dev/stdin <<EOF
   </target>
 </pool>
 EOF
-$ sudo virsh pool-start default
-$ sudo virsh pool-autostart default
+# virsh pool-start default
+# virsh pool-autostart default
 ```
 
 Credits to Federico Simoncelli for the resolution, which I took from
@@ -815,7 +822,7 @@ times, and then you notice that virtual networks get left behind. For example,
 after several create/destroy cycles on deployment "foo":
 
 ```
-$ sudo virsh net-list
+# virsh net-list
  Name              State    Autostart   Persistent
 ----------------------------------------------------
  foo0              active   yes         yes
