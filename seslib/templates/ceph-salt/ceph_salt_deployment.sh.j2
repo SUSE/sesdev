@@ -131,7 +131,7 @@ ceph fs volume create myfs "{{ mds_node_list }}"
 
 {% if rgw_nodes > 0 %}
 radosgw-admin realm create --rgw-realm=default --default
-radosgw-admin zonegroup create --rgw-zonegroup=default> --master --default
+radosgw-admin zonegroup create --rgw-zonegroup=default --master --default
 radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=default --master --default
 ceph orch apply rgw default default --placement="{{ rgw_node_list }}"
 {% endif %}
