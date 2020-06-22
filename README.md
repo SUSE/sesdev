@@ -44,6 +44,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [Create/deploy a Ceph cluster](#createdeploy-a-ceph-cluster)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
+      * [Without the devel repo](#without-the-devel-repo)
       * [With an additional custom zypper repo](#with-an-additional-custom-zypper-repo)
       * [With a set of custom zypper repos completely replacing the default repos](#with-a-set-of-custom-zypper-repos-completely-replacing-the-default-repos)
       * [With custom image paths](#with-custom-image-paths)
@@ -59,6 +60,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [Services port-forwarding](#services-port-forwarding)
    * [Replace ceph-salt](#replace-ceph-salt)
    * [Replace MGR modules](#replacing-mgr-modules)
+   * [Add a repo to a cluster](#add-a-repo-to-a-cluster)
    * [Temporarily stop a cluster](#temporarily-stop-a-cluster)
    * [Destroy a cluster](#destroy-a-cluster)
    * [Run "make check"](#run-make-check)
@@ -396,6 +398,18 @@ nautilus, ses6) or the "ceph-salt" command to apply the ceph-salt Salt Formula
 If you would rather use Salt directly, give the `--salt` option on the `sesdev
 create` command line.
 
+#### Without the devel repo
+
+The "core" deployment targets (ses5, nautilus, ses6, octopus, ses7, pacific)
+all have a concept of a "devel" repo where updates to the Ceph/storage-related
+packages are staged. Since users frequently want to install the "latest,
+greatest" packages, the "devel" repo is added to all nodes by default. However,
+there are times when this is not desired: when using sesdev to simulate
+update/upgrade scenarios, for example.
+
+To deploy a Ceph cluster without the "devel" repo, give the `--product` option
+on the `sesdev create` command line.
+
 #### With an additional custom zypper repo
 
 Each deployment version (e.g. "octopus", "nautilus") is associated with
@@ -626,6 +640,26 @@ This can be helpful to test PRs in a cluster with all services enabled.
 $ sesdev replace-mgr-modules <deployment_id> <pr>
 ```
 
+### Add a repo to a cluster
+
+A custom repo can be added to all nodes of a running cluster using the following
+command:
+
+```
+$ sesdev add-repo <deployment_id> <repo_url>
+```
+
+If the repo URL is omitted, the "devel" repo (as defined for the Ceph version 
+deployed) will be added.
+
+If you want to also update packages on all nodes to the versions in that repo,
+give the `--update` option. For example, one can test an update scenario by
+deploying a cluster with the `--product` option and then updating the cluster to
+the packages staged in the "devel" project:
+
+```
+$ sesdev add-repo --update <deployment_id>
+```
 
 ### Temporarily stop a cluster
 

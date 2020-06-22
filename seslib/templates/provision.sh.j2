@@ -45,15 +45,39 @@ zypper --non-interactive removerepo repo-source-non-oss || true
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
+{% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
+cat > {{ devel_repo_script }} << 'EOF'
+#!/bin/bash
+[[ "$*" =~ "--update" ]] && UPDATE="yes"
+set -ex
 {% for _repo in version_repos_prio %}
+{% if loop.index == 1 %}
+{% set devel_repo_name = "devel-repo" %}
+{% else %}
+{% set devel_repo_name = "devel-repo{{ loop.index }}" %}
+{% endif %}
 zypper addrepo --refresh
 {%- if _repo.priority %}
  --priority {{ _repo.priority }}
 {%- elif repo_priority %}
  --priority 98
 {%- endif %}
- {{ _repo.url }} {{ version }}-repo{{ loop.index }}
+ {{ _repo.url }} {{ devel_repo_name }}
 {% endfor %}
+zypper --gpg-auto-import-keys refresh
+if [ "$UPDATE" ] ; then
+    zypper dist-upgrade \
+        --allow-vendor-change \
+        --auto-agree-with-licenses \
+        --no-confirm \
+        --from=devel-repo
+fi
+EOF
+chmod 755 {{ devel_repo_script }}
+
+{% if devel_repo or not core_version %}
+{{ devel_repo_script }}
+{% endif %}
 
 {% if os.startswith("sle") %}
 zypper addrepo --refresh

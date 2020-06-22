@@ -68,6 +68,7 @@ class GlobalSettings():
     CEPH_SALT_REPO = 'https://github.com/ceph/ceph-salt'
     CEPH_SALT_BRANCH = 'master'
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
+    CORE_VERSIONS = ['ses5', 'nautilus', 'ses6', 'octopus', 'ses7', 'pacific']
     DEBUG = False
     MAKECHECK_DEFAULT_RAM = 8
     ROLES_SINGLE_NODE_LUMINOUS = (
@@ -294,8 +295,6 @@ VERSION_OS_REPO_MAPPING = {
     },
     'ses7': {
         'sles-15-sp2': [
-            'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/'
-            'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
             'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
             'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
         ],
@@ -504,6 +503,11 @@ SETTINGS = {
     'repo_priority': {
         'type': bool,
         'help': 'Automatically set priority on custom zypper repos',
+        'default': True,
+    },
+    'devel_repo': {
+        'type': bool,
+        'help': 'Include devel repo, if applicable',
         'default': True,
     },
     'qa_test': {
@@ -1056,7 +1060,7 @@ class Deployment():
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
 
-        if self.settings.version in ['ses5', 'ses6', 'nautilus', 'ses7', 'octopus', 'pacific']:
+        if self.settings.version in GlobalSettings.CORE_VERSIONS:
             if self.node_counts['master'] == 0:
                 self.settings.roles[0].append('master')
                 self.node_counts['master'] = 1
@@ -1288,6 +1292,8 @@ class Deployment():
             'version_repos_prio': version_repos_prio,
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
+            'devel_repo': self.settings.devel_repo,
+            'core_version': self.settings.version in GlobalSettings.CORE_VERSIONS,
             'qa_test': self.settings.qa_test,
             'node_list': self.node_list,
             'nfs_nodes': self.node_counts["nfs"],
@@ -1807,6 +1813,26 @@ class Deployment():
             log_handler,
             self._dep_dir
             )
+
+    def add_repo_subcommand(self, custom_repo, update, log_handler):
+        if self.settings.version in GlobalSettings.CORE_VERSIONS:
+            pass
+        else:
+            raise SubcommandNotSupportedInVersion('add-repo', self.settings.version)
+        if custom_repo:
+            for node_name in self.nodes:
+                self.ssh(
+                    node_name,
+                    ("zypper --non-interactive addrepo {} custom-repo"
+                     .format(custom_repo))
+                    )
+        else:  # no repo given explicitly: use "devel" repo
+            provision_target = "add-devel-repo-and-update" if update else "add-devel-repo"
+            tools.run_async(
+                ["vagrant", "provision", "--provision-with", provision_target],
+                log_handler,
+                self._dep_dir
+                )
 
     def _find_service_node(self, service):
         if service in ['prometheus', 'grafana'] and self.settings.version == 'ses5':
