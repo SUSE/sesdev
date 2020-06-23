@@ -13,6 +13,15 @@ echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/host
 {% endif %}
 {% endfor %}
 
+cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
+[ ! -e "/root/.ssh" ] && mkdir /root/.ssh
+chmod 600 /home/vagrant/.ssh/{{ ssh_key_name }}
+cp /home/vagrant/.ssh/{{ ssh_key_name }}* /root/.ssh/
+ln -s /root/.ssh/{{ ssh_key_name }} /root/.ssh/id_rsa
+ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
+cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
+hostnamectl set-hostname {{ node.name }}
+
 # do not exclude documentation files when installing RPM packages
 sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
 
@@ -138,15 +147,6 @@ zypper modifyrepo --priority {{ repo.priority }} {{ repo.name }}
 {% if node.repos|length > 0 %}
 zypper --gpg-auto-import-keys refresh
 {% endif %}
-
-cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
-[ ! -e "/root/.ssh" ] && mkdir /root/.ssh
-chmod 600 /home/vagrant/.ssh/{{ ssh_key_name }}
-cp /home/vagrant/.ssh/{{ ssh_key_name }}* /root/.ssh/
-ln -s /root/.ssh/{{ ssh_key_name }} /root/.ssh/id_rsa
-ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
-cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
-hostnamectl set-hostname {{ node.name }}
 
 {% if deploy_salt %}
 zypper --non-interactive install salt-minion
