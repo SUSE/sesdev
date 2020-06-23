@@ -54,6 +54,7 @@ function usage {
     echo "    --osd-node-list      comma-separated list of nodes with OSD"
     echo "    --rgw-node-list      comma-separated list of nodes with RGW"
     echo "    --osds               expected total number of OSDs in cluster"
+    echo "    --filestore-osds     whether there are FileStore OSDs in cluster"
     echo "    --strict-versions    Insist that daemon versions match \"ceph --version\""
     echo "    --total-nodes        expected total number of nodes in cluster"
     exit 1
@@ -62,7 +63,7 @@ function usage {
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,rgw-nodes:,rgw-node-list:,osds:,strict-versions,total-nodes:,node-list:" \
+--long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -84,6 +85,7 @@ OSD_NODE_LIST=""
 RGW_NODES=""
 RGW_NODE_LIST=""
 OSDS=""
+FILESTORE_OSDS=""
 STRICT_VERSIONS=""
 TOTAL_NODES=""
 NODE_LIST=""
@@ -106,6 +108,7 @@ while true ; do
         --rgw-nodes) shift ; RGW_NODES="$1" ; shift ;;
         --rgw-node-list) shift ; RGW_NODE_LIST="$1" ; shift ;;
         --osds) shift ; OSDS="$1" ; shift ;;
+        --filestore-osds) FILESTORE_OSDS="yes" ; shift ;;
         --strict-versions) STRICT_VERSIONS="$1"; shift ;;
         --total-nodes) shift ; TOTAL_NODES="$1" ; shift ;;
         --node-list) shift ; NODE_LIST="$1" ; shift ;;
@@ -134,6 +137,7 @@ test "$NFS_NODE_LIST"
 test "$OSD_NODE_LIST"
 test "$RGW_NODE_LIST"
 test "$OSDS"
+test "$FILESTORE_OSDS"
 test "$STRICT_VERSIONS"
 test "$TOTAL_NODES"
 test "$NODE_LIST"
@@ -159,3 +163,4 @@ ceph_health_test
 maybe_rgw_smoke_test
 cluster_json_test
 systemctl_list_units_test
+osd_objectstore_test

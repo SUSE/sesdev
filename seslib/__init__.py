@@ -471,6 +471,11 @@ SETTINGS = {
         'help': 'Whether OSDs should be deployed encrypted',
         'default': False,
     },
+    'filestore_osds': {
+        'type': bool,
+        'help': 'Whether OSDs should be deployed with FileStore instead of BlueStore',
+        'default': False,
+    },
     'deployment_tool': {
         'type': str,
         'help': 'Deployment tool (deepsea, cephadm) to deploy the Ceph cluster',
@@ -1311,6 +1316,7 @@ class Deployment():
                                          or self.node_counts["openattic"]),
             'total_osds': self.settings.num_disks * self.node_counts["storage"],
             'encrypted_osds': self.settings.encrypted_osds,
+            'filestore_osds': self.settings.filestore_osds,
             'scc_username': self.settings.scc_username,
             'scc_password': self.settings.scc_password,
             'ceph_salt_git_repo': self.settings.ceph_salt_git_repo,
@@ -1552,7 +1558,10 @@ class Deployment():
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
                 result += ("                         "
                            "(device names will be assigned by vagrant-libvirt)\n")
-                result += "     - encrypted OSDs:   {}\n".format(self.settings.encrypted_osds)
+                result += "     - OSD encryption:   {}\n".format(
+                    "Yes" if self.settings.encrypted_osds else "No")
+                result += "     - OSD objectstore:  {}\n".format(
+                    "FileStore" if self.settings.filestore_osds else "BlueStore")
             result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
             result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7', 'pacific']:

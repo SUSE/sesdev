@@ -90,14 +90,18 @@ exit 0
 {% endif %}
 
 {% if version != 'ses5' %}
-if [ ! -e "/srv/salt/ceph/configuration/files/drive_groups.yml" ] ; then
-    echo "FATAL: /srv/salt/ceph/configuration/files/drive_groups.yml unexpectedly missing!"
+{% set drive_groups_yml = "/srv/salt/ceph/configuration/files/drive_groups.yml" %}
+if [ ! -e "{{ drive_groups_yml }}" ] ; then
+    echo "FATAL: {{ drive_groups_yml }} unexpectedly missing!"
     exit 1
 fi
-{% if encrypted_osds %}
-echo "  encryption: True" >> /srv/salt/ceph/configuration/files/drive_groups.yml
+{% if filestore_osds %}
+echo "  format: filestore" >> {{ drive_groups_yml }}
 {% endif %}
-cat /srv/salt/ceph/configuration/files/drive_groups.yml
+{% if encrypted_osds %}
+echo "  encryption: True" >> {{ drive_groups_yml }}
+{% endif %}
+cat {{ drive_groups_yml }}
 {% endif %}
 
 echo ""

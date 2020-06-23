@@ -82,3 +82,12 @@ function _fsid {
         false
     fi
 }
+
+function _osd_objectstore {
+    # sample output for a cluster with 4 FileStore OSDs:
+    # filestore 
+    # filestore 
+    # filestore 
+    # filestore 
+    ceph osd metadata | jq -r '.[] | .osd_objectstore'
+}

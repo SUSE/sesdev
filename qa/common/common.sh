@@ -879,3 +879,39 @@ function systemctl_list_units_test {
         false
     fi
 }
+
+function osd_objectstore_test {
+    echo "WWWW: osd_objectstore_test"
+    local expected_objectstore
+    [ "$FILESTORE_OSDS" ] && expected_objectstore="filestore" || expected_objectstore="bluestore"
+    local osd_objectstore
+    osd_objectstore=$(_osd_objectstore)
+    local line
+    local success
+    success="yes"
+    local count
+    count="0"
+    for line in $osd_objectstore ; do
+        echo "$line"
+        if [ "$line" = "$expected_objectstore" ] ; then
+            count="$((count + 1))"
+        else
+            echo "ERROR: encountered OSD with unexpected objectstore $line"
+            success=""
+        fi
+    done
+    echo "$expected_objectstore OSDs (found/expected): $count/$OSDS"
+    if [ "$count" = "$OSDS" ] ; then
+        true
+    else
+        success=""
+    fi
+    if [ "$success" ] ; then
+        echo "WWWW: osd_objectstore_test: OK"
+        echo
+    else
+        echo "WWWW: osd_objectstore_test: FAIL"
+        echo
+        false
+    fi
+}

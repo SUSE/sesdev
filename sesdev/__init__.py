@@ -128,6 +128,8 @@ def common_create_options(func):
                      help='Do not ask the user if they really want to'),
         click.option('--encrypted-osds', is_flag=True, default=False,
                      help='Deploy OSDs encrypted'),
+        click.option('--bluestore/--filestore', is_flag=True, default=True,
+                     help='Deploy OSDs with BlueStore or FileStore'),
         click.option('--synced-folder', type=str, default=None, multiple=True,
                      help='Set synced-folder to be mounted on the master node. <str:dest>'),
     ]
@@ -465,6 +467,7 @@ def _gen_settings_dict(version,
                        force,
                        synced_folder,
                        encrypted_osds,
+                       bluestore,
                        salt=None,
                        stop_before_deepsea_stage=None,
                        deepsea_repo=None,
@@ -527,6 +530,13 @@ def _gen_settings_dict(version,
 
     if disk_size:
         settings_dict['disk_size'] = disk_size
+
+    if bluestore:
+        settings_dict['filestore_osds'] = False
+    else:
+        settings_dict['filestore_osds'] = True
+        if not disk_size:
+            settings_dict['disk_size'] = 15  # default 8 GB disk size is too small for FileStore
 
     if libvirt_host:
         settings_dict['libvirt_host'] = libvirt_host
@@ -731,6 +741,9 @@ def ses5(deployment_id, deploy, **kwargs):
     Creates a SES5 cluster using SLES-12-SP3
     """
     _prep_kwargs(kwargs)
+    if not kwargs['bluestore']:
+        # sesdev does not (yet) support --filestore for ses5 deployments
+        raise OptionNotSupportedInVersion('--filestore', 'ses5')
     settings_dict = _gen_settings_dict('ses5', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses5', deployment_id, settings_dict)
     _create_command(deployment_id, deploy, settings_dict)
