@@ -54,7 +54,7 @@ set -ex
 {% if loop.index == 1 %}
 {% set devel_repo_name = "devel-repo" %}
 {% else %}
-{% set devel_repo_name = "devel-repo{{ loop.index }}" %}
+{% set devel_repo_name = "devel-repo" ~ loop.index %}
 {% endif %}
 zypper addrepo --refresh
 {%- if _repo.priority %}
