@@ -65,6 +65,7 @@ def _log_warning(log_msg):
 
 class GlobalSettings():
     A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
+    BOOTSTRAP_NODE_MONITORING_STACK = False
     CEPH_SALT_REPO = 'https://github.com/ceph/ceph-salt'
     CEPH_SALT_BRANCH = 'master'
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
@@ -230,8 +231,8 @@ NAUTILUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
                           ["storage", "mon", "mgr", "mds", "igw", "nfs"],
                           ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
 
-OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
-                         ["bootstrap", "storage", "mon", "mgr", "rgw", "igw"],
+OCTOPUS_DEFAULT_ROLES = [["master", "client", "rgw", "igw"],
+                         ["bootstrap", "prometheus", "grafana", "storage", "mon", "mgr"],
                          ["storage", "mon", "mgr", "mds", "igw", "nfs"],
                          ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
 
@@ -1147,6 +1148,11 @@ class Deployment():
                     networks = ('node.vm.network :private_network, autostart: true, ip:'
                                 '"{}"').format(public_address)
 
+            if self.settings.version in ['ses7', 'octopus', 'pacific']:
+                if 'bootstrap' in node_roles:
+                    if 'prometheus' in node_roles and 'grafana' in node_roles:
+                        GlobalSettings.BOOTSTRAP_NODE_MONITORING_STACK = True
+
             node = Node(name,
                         fqdn,
                         node_roles,
@@ -1311,6 +1317,11 @@ class Deployment():
             'rgw_node_list': ','.join(self.nodes_with_role["rgw"]),
             'storage_nodes': self.node_counts["storage"],
             'storage_node_list': ','.join(self.nodes_with_role["storage"]),
+            'prometheus_nodes': self.node_counts["prometheus"],
+            'prometheus_node_list': ','.join(self.nodes_with_role["prometheus"]),
+            'grafana_nodes': self.node_counts["grafana"],
+            'grafana_node_list': ','.join(self.nodes_with_role["grafana"]),
+            'bootstrap_node_monitoring_stack': GlobalSettings.BOOTSTRAP_NODE_MONITORING_STACK,
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
                                          or self.node_counts["mds"] or self.node_counts["rgw"]
                                          or self.node_counts["openattic"]),

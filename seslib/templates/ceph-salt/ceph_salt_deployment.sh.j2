@@ -74,6 +74,13 @@ ceph-salt config /cephadm_bootstrap/dashboard/username set admin
 ceph-salt config /cephadm_bootstrap/dashboard/password set admin
 ceph-salt config /cephadm_bootstrap/dashboard/force_password_update disable
 
+ceph-salt config /cephadm_bootstrap/monitoring_stack
+{%- if bootstrap_node_monitoring_stack %}
+ enable
+{%- else %}
+ disable
+{%- endif %}
+
 ceph-salt config ls
 ceph-salt export --pretty
 ceph-salt status
