@@ -84,7 +84,7 @@ ceph-salt --version
 
 {% if stop_before_ceph_salt_apply %}
 exit 0
-{% endif %}
+{% endif %} {# stop_before_ceph_salt_apply #}
 
 {% if use_salt %}
 salt -G 'ceph-salt:member' state.apply ceph-salt
@@ -92,22 +92,48 @@ salt -G 'ceph-salt:member' state.apply ceph-salt
 stdbuf -o0 ceph-salt -ldebug apply --non-interactive
 {% endif %}
 
-{% if stop_before_ceph_orch_apply %}
-exit 0
-{% endif %}
+{% set service_spec_core = "/root/service_spec_core.yml" %}
+rm -f {{ service_spec_core }}
+touch {{ service_spec_core }}
+
+CEPH_ORCH_APPLY_NEEDED=""
 
 {% if mon_nodes > 1 %}
-ceph orch apply mon "{{ mon_node_list }}"
+CEPH_ORCH_APPLY_NEEDED="yes"
+cat >> {{ service_spec_core }} << 'EOF'
+---
+service_type: mon
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('mon') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
 {% endif %} {# mon_nodes > 1 #}
 
 {% if mgr_nodes > 1 %}
-ceph orch apply mgr "{{ mgr_node_list }}"
+CEPH_ORCH_APPLY_NEEDED="yes"
+cat >> {{ service_spec_core }} << 'EOF'
+---
+service_type: mgr
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('mgr') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
 {% endif %} {# mgr_nodes > 1 #}
 
 {% if storage_nodes > 0 %}
-{% set service_spec_osd = "service_spec_osd.yml" %}
-cat > {{ service_spec_osd }} << EOF
+CEPH_ORCH_APPLY_NEEDED="yes"
+cat >> {{ service_spec_core }} << 'EOF'
+---
 service_type: osd
+service_id: sesdev_osd_deployment
 placement:
     hosts:
 {% for node in nodes %}
@@ -115,7 +141,6 @@ placement:
         - '{{ node.name }}'
 {% endif %}
 {% endfor %}
-service_id: generic_osd_deployment
 data_devices:
     all: true
 {% if encrypted_osds %}
@@ -125,27 +150,111 @@ encrypted: true
 objectstore: filestore
 {% endif %}
 EOF
-cat {{ service_spec_osd }}
-
 ceph orch device ls --refresh
-ceph orch apply osd -i {{ service_spec_osd }}
 {% endif %} {# storage_nodes > 0 #}
 
 {% if mds_nodes > 0 %}
-ceph fs volume create myfs "{{ mds_node_list }}"
+CEPH_ORCH_APPLY_NEEDED="yes"
+cat >> {{ service_spec_core }} << 'EOF'
+---
+service_type: mds
+service_id: sesdevfs
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('mds') %}
+        - '{{ node.name }}'
 {% endif %}
+{% endfor %}
+EOF
+{% endif %} {# mds_nodes > 0 #}
+
+if [ "$CEPH_ORCH_APPLY_NEEDED" ] ; then
+    cat {{ service_spec_core }}
+    ceph orch apply -i {{ service_spec_core }}
+fi
+
+{% if storage_nodes > 0 %}
+{% if mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 %}
+
+# Wait for OSDs to appear
+function number_of_osds_in_ceph_osd_tree {
+    ceph osd tree -f json-pretty | jq '[.nodes[] | select(.type == "osd")] | length'
+}
+
+EXPECTED_NUMBER_OF_OSDS="{{ total_osds }}"
+
+set +x
+count="0"
+max_count_we_can_tolerate="50"
+while true ; do
+    count="$(( count + 1 ))"
+    ACTUAL_NUMBER_OF_OSDS="$(number_of_osds_in_ceph_osd_tree)"
+    echo "OSDs in cluster (actual/expected): $ACTUAL_NUMBER_OF_OSDS/$EXPECTED_NUMBER_OF_OSDS (try $count of ${max_count_we_can_tolerate})"
+    [ "$ACTUAL_NUMBER_OF_OSDS" = "$EXPECTED_NUMBER_OF_OSDS" ] && break
+    if [ "$count" -gt "$max_count_we_can_tolerate" ] ; then
+        echo "It seems unlikely that this cluster will ever reach the expected number of OSDs. Bailing out!"
+        exit 1
+    fi  
+    sleep 5   
+done
+set -x
+
+{% endif %} {# mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 #}
+
+{% if mds_nodes > 0 %}
+ceph fs volume create sesdevfs
+{% endif %}
+
+{% if rgw_nodes > 0 or nfs_nodes > 0 %}
+
+{% set service_spec_gw = "/root/service_spec_gw.yml" %}
+rm -f {{ service_spec_gw }}
+touch {{ service_spec_gw }}
 
 {% if rgw_nodes > 0 %}
 radosgw-admin realm create --rgw-realm=default --default
 radosgw-admin zonegroup create --rgw-zonegroup=default --master --default
 radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=default --master --default
-ceph orch apply rgw default default --placement="{{ rgw_node_list }}"
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: rgw
+service_id: default.default
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('rgw') %}
+        - '{{ node.name }}'
 {% endif %}
+{% endfor %}
+EOF
+{% endif %} {# rgw_nodes > 0 #}
 
 {% if nfs_nodes > 0 %}
 ceph osd pool create rbd
 ceph osd pool application enable rbd nfs
-ceph orch apply nfs default rbd nfs --placement="{{ nfs_node_list }}"
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: nfs
+service_id: sesdev_nfs_deployment
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('nfs') %}
+        - '{{ node.name }}'
 {% endif %}
+{% endfor %}
+spec:
+    pool: rbd
+    namespace: nfs
+EOF
+{% endif %} {# nfs_nodes > 0 #}
+
+cat {{ service_spec_gw }}
+ceph orch apply -i {{ service_spec_gw }}
+
+{% endif %} {# rgw_nodes > 0 or nfs_nodes > 0 #}
+
+{% endif %} {# storage_nodes > 0 #}
 
 {% include "qa_test.sh.j2" %}
