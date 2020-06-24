@@ -48,8 +48,8 @@ function usage {
     echo
     echo "Options:"
     echo "    --help                   Display this usage message"
-    echo "    --ceph-salt-from-source  Install ceph-salt from source"
-    echo "                             (default: from package)"
+    echo "    --ceph-salt-branch       Branch from which to install ceph-salt from source"
+    echo "    --ceph-salt-repo         Repo from which to install ceph-salt from source"
     echo "    --full                   Run all tests, including makecheck"
     echo "    --makecheck              Run makecheck (install-deps.sh, actually)"
     echo "                             tests"
@@ -120,14 +120,16 @@ function tunnel_gone {
 }
 
 TEMP=$(getopt -o h \
---long "help,caasp4,ceph-salt-from-source,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7" \
+--long "help,caasp4,ceph-salt-branch:,ceph-salt-repo:,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7" \
 -n 'standalone.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
 # process command-line options
 NORMAL_OPERATION="not_empty"
 CAASP4=""
-CEPH_SALT_FROM_SOURCE=""
+CEPH_SALT_OPTIONS=()
+CEPH_SALT_BRANCH=""
+CEPH_SALT_REPO=""
 FULL=""
 MAKECHECK=""
 NAUTILUS=""
@@ -140,7 +142,8 @@ STOP_ON_FAILURE="not_empty"
 while true ; do
     case "$1" in
         --caasp4)                CAASP4="--caasp4" ; shift ;;
-        --ceph-salt-from-source) CEPH_SALT_FROM_SOURCE="--ceph-salt-branch=master" ; shift ;;
+        --ceph-salt-branch) shift; CEPH_SALT_BRANCH="$1" ; shift ;;
+        --ceph-salt-repo) shift; CEPH_SALT_REPO="$1" ; shift ;;
         --full)                  FULL="$1" ; shift ;;
         --makecheck)             MAKECHECK="$1" ; shift ;;
         --nautilus)              NAUTILUS="$1" ; shift ;;
@@ -171,6 +174,23 @@ if [ "$FULL" ] || [ "$NORMAL_OPERATION" ] ; then
     SES5="--ses5"
     SES6="--ses6"
     SES7="--ses7"
+fi
+
+if [ "$CEPH_SALT_BRANCH" ] || [ "$CEPH_SALT_REPO" ] ; then
+    if [ "$CEPH_SALT_REPO" ] ; then
+        if [[ "$CEPH_SALT_REPO" =~ ^[_[:alnum:]]+$ ]] ; then
+            CEPH_SALT_REPO="https://github.com/$CEPH_SALT_REPO/ceph-salt"
+        fi
+    else
+        CEPH_SALT_REPO="https://github.com/ceph/ceph-salt"
+    fi
+    CEPH_SALT_OPTIONS+=( "--ceph-salt-repo" "$CEPH_SALT_REPO" )
+    if [ "$CEPH_SALT_BRANCH" ] ; then
+        true
+    else
+        CEPH_SALT_BRANCH="master"
+    fi
+    CEPH_SALT_OPTIONS+=( "--ceph-salt-branch" "$CEPH_SALT_BRANCH" )
 fi
 
 if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
@@ -225,18 +245,18 @@ fi
 
 if [ "$OCTOPUS" ] ; then
     sesdev box remove --non-interactive leap-15.2
-    run_cmd sesdev create octopus --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test octopus-1node
+    run_cmd sesdev create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test octopus-1node
     run_cmd sesdev destroy --non-interactive octopus-1node
-    run_cmd sesdev create octopus --non-interactive $CEPH_SALT_FROM_SOURCE octopus-4node
+    run_cmd sesdev create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
     run_cmd sesdev qa-test octopus-4node
     run_cmd sesdev destroy --non-interactive octopus-4node
 fi
 
 if [ "$SES7" ] ; then
     sesdev box remove --non-interactive sles-15-sp2
-    run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test ses7-1node
+    run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
     run_cmd sesdev destroy --non-interactive ses7-1node
-    run_cmd sesdev create ses7 --non-interactive $CEPH_SALT_FROM_SOURCE ses7-4node
+    run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" ses7-4node
     run_cmd sesdev qa-test ses7-4node
     run_cmd sesdev supportconfig ses7-4node node1
     rm -f scc*
@@ -251,9 +271,9 @@ fi
 
 if [ "$PACIFIC" ] ; then
     sesdev box remove --non-interactive leap-15.2
-    run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE --single-node --qa-test pacific-1node
+    run_cmd sesdev create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test pacific-1node
     run_cmd sesdev destroy --non-interactive pacific-1node
-    run_cmd sesdev create pacific --non-interactive $CEPH_SALT_FROM_SOURCE pacific-4node
+    run_cmd sesdev create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
     run_cmd sesdev qa-test pacific-4node
     run_cmd sesdev destroy --non-interactive pacific-4node
 fi
