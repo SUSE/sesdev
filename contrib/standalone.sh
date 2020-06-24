@@ -201,6 +201,8 @@ fi
 
 if [ "$SES5" ] ; then
     sesdev box remove --non-interactive sles-12-sp3
+    run_cmd sesdev create ses5 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
+    run_cmd sesdev destroy --non-interactive ses5-mini
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
     run_cmd sesdev create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" --qa-test ses5-1node
     run_cmd sesdev add-repo --update ses5-1node
@@ -228,6 +230,8 @@ fi
 
 if [ "$SES6" ] ; then
     sesdev box remove --non-interactive sles-15-sp1
+    run_cmd sesdev create ses6 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses6-mini
+    run_cmd sesdev destroy --non-interactive ses6-mini
     run_cmd sesdev create ses6 --product --non-interactive --single-node --qa-test ses6-1node
     run_cmd sesdev add-repo --update ses6-1node
     run_cmd sesdev destroy --non-interactive ses6-1node
@@ -254,6 +258,8 @@ fi
 
 if [ "$SES7" ] ; then
     sesdev box remove --non-interactive sles-15-sp2
+    run_cmd sesdev create ses7 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses7-mini
+    run_cmd sesdev destroy --non-interactive ses7-mini
     run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
     run_cmd sesdev destroy --non-interactive ses7-1node
     run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" ses7-4node

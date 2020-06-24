@@ -13,12 +13,12 @@ function json_ses7_orch_ls {
         local ceph_orch_ls
         local running
         ceph_orch_ls="$(ceph orch ls --service-type "$service_type" --format json)"
-        running="$(echo "$ceph_orch_ls" | jq -r '.[] | .running')"
-        if [ "$running" = "null" ] ; then
-            # we have fallen victim to ongoing Orchestrator refactoring
+        if echo "$ceph_orch_ls" | jq -r >/dev/null 2>&1 ; then
             running="$(echo "$ceph_orch_ls" | jq -r '.[] | .status.running')"
+            echo "$running"
+        else
+            echo "0"
         fi
-        echo "$running"
     else
         echo "ERROR"
     fi
@@ -28,10 +28,15 @@ function json_ses7_orch_ps {
     # returns number of running daemons of a given type, according to "ceph orch ps"
     if [ "$VERSION_ID" = "15.2" ] ; then  # SES7
         local daemon_type="$1"
-        local retval
-        retval=$(ceph orch ps -f json-pretty | jq "[.[] | select(.daemon_type==\"$daemon_type\" and .status_desc==\"running\")] | length")
-        [ "$retval" ] || retval="0"
-        echo "$retval"
+        local ceph_orch_ps
+        local running
+        ceph_orch_ps="$(ceph orch ps --daemon-type "$daemon_type" -f json-pretty)"
+        if echo "$ceph_orch_ps" | jq -r >/dev/null 2>&1 ; then
+            running="$(echo "$ceph_orch_ps" | jq -r '[ .[] | select(.status_desc == "running") ] | length')"
+            echo "$running"
+        else
+            echo "0"
+        fi
     else
         echo "ERROR"
     fi

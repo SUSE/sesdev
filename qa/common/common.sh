@@ -252,7 +252,7 @@ function maybe_wait_for_osd_nodes_test {
     local expected_osd_nodes="$1"
     echo
     echo "WWWW: maybe_wait_for_osd_nodes_test"
-    if [ "$expected_osd_nodes" ] ; then
+    if [ "$expected_osd_nodes" -gt "0" ] ; then
         local actual_osd_nodes
         local minutes_to_wait
         minutes_to_wait="5"
@@ -294,7 +294,7 @@ function maybe_wait_for_mdss_test {
     local expected_mdss="$1"
     echo
     echo "WWWW: maybe_wait_for_mdss_test"
-    if [ "$expected_mdss" ] ; then
+    if [ "$expected_mdss" -gt "0" ] ; then
         local actual_mdss
         local minutes_to_wait
         minutes_to_wait="5"
@@ -338,7 +338,7 @@ function maybe_wait_for_rgws_test {
     local expected_rgws="$1"
     echo
     echo "WWWW: maybe_wait_for_rgws_test"
-    if [ "$expected_rgws" ] ; then
+    if [ "$expected_rgws" -gt "0" ] ; then
         local actual_rgws
         local minutes_to_wait
         minutes_to_wait="5"
@@ -383,7 +383,7 @@ function maybe_wait_for_nfss_test {
         local expected_nfss="$1"
         echo
         echo "WWWW: maybe_wait_for_nfss_test"
-        if [ "$expected_nfss" ] ; then
+        if [ "$expected_nfss" -gt "0" ] ; then
             local orch_ps_nfss
             local orch_ls_nfss
             local minutes_to_wait
@@ -520,36 +520,24 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$OSDS" ]      && expected_osds="$OSDS"
         [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
         [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
-        if [ "$expected_mgrs" ] ; then
-            echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
-            if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
-                true  # normal success case
-            elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ls_mgrs" = "$((expected_mgrs + 1))" ] ; then
-                true  # workaround for https://tracker.ceph.com/issues/45093
-            else
-                success=""
-            fi
+        echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
+        if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
+            true  # normal success case
+        elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ls_mgrs" = "$((expected_mgrs + 1))" ] ; then
+            true  # workaround for https://tracker.ceph.com/issues/45093
+        else
+            success=""
         fi
-        if [ "$expected_mons" ] ; then
-            echo "MON services (orch ls/expected): $orch_ls_mons/$expected_mons"
-            [ "$orch_ls_mons" = "$expected_mons" ] || success=""
-        fi
-        if [ "$expected_mdss" ] ; then
-            echo "MDS services (orch ls/expected): $orch_ls_mdss/$expected_mdss"
-            [ "$orch_ls_mdss" = "$expected_mdss" ] || success=""
-        fi
-        # if [ "$expected_osds" ] ; then
-        #     echo "OSDs orch ls/expected: $orch_ls_osds/$expected_osds"
-        #     [ "$orch_ls_osds" = "$expected_osds" ] || success=""
-        # fi
-        if [ "$expected_rgws" ] ; then
-            echo "RGW services (orch ls/expected): $orch_ls_rgws/$expected_rgws"
-            [ "$orch_ls_rgws" = "$expected_rgws" ] || success=""
-        fi
-        if [ "$expected_nfss" ] ; then
-            echo "NFS services (orch ls/expected): $orch_ls_nfss/$expected_nfss"
-            [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
-        fi
+        echo "MON services (orch ls/expected): $orch_ls_mons/$expected_mons"
+        [ "$orch_ls_mons" = "$expected_mons" ] || success=""
+        echo "MDS services (orch ls/expected): $orch_ls_mdss/$expected_mdss"
+        [ "$orch_ls_mdss" = "$expected_mdss" ] || success=""
+        # echo "OSDs orch ls/expected: $orch_ls_osds/$expected_osds"
+        # [ "$orch_ls_osds" = "$expected_osds" ] || success=""
+        echo "RGW services (orch ls/expected): $orch_ls_rgws/$expected_rgws"
+        [ "$orch_ls_rgws" = "$expected_rgws" ] || success=""
+        echo "NFS services (orch ls/expected): $orch_ls_nfss/$expected_nfss"
+        [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
@@ -595,36 +583,24 @@ function _orch_ps_test {
     [ "$OSDS" ]      && expected_osds="$OSDS"
     [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
     [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
-    if [ "$expected_mgrs" ] ; then
-        echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
-        if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
-            true  # normal success case
-        elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ps_mgrs" = "$((expected_mgrs + 1))" ] ; then
-            true  # workaround for https://tracker.ceph.com/issues/45093
-        else
-            success=""
-        fi
+    echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
+    if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
+        true  # normal success case
+    elif [ "$expected_mgrs" -gt "1" ] && [ "$orch_ps_mgrs" = "$((expected_mgrs + 1))" ] ; then
+        true  # workaround for https://tracker.ceph.com/issues/45093
+    else
+        success=""
     fi
-    if [ "$expected_mons" ] ; then
-        echo "MON daemons (orch ps/expected): $orch_ps_mons/$expected_mons"
-        [ "$orch_ps_mons" = "$expected_mons" ] || success=""
-    fi
-    if [ "$expected_mdss" ] ; then
-        echo "MDS daemons (orch ps/expected): $orch_ps_mdss/$expected_mdss"
-        [ "$orch_ps_mdss" = "$expected_mdss" ] || success=""
-    fi
-    # if [ "$expected_osds" ] ; then
-    #     echo "OSDs orch ps/expected: $orch_ps_osds/$expected_osds"
-    #     [ "$orch_ps_osds" = "$expected_osds" ] || success=""
-    # fi
-    if [ "$expected_rgws" ] ; then
-        echo "RGW daemons (orch ps/expected): $orch_ps_rgws/$expected_rgws"
-        [ "$orch_ps_rgws" = "$expected_rgws" ] || success=""
-    fi
-    if [ "$expected_nfss" ] ; then
-        echo "NFS daemons (orch ps/expected): $orch_ps_nfss/$expected_nfss"
-        [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
-    fi
+    echo "MON daemons (orch ps/expected): $orch_ps_mons/$expected_mons"
+    [ "$orch_ps_mons" = "$expected_mons" ] || success=""
+    echo "MDS daemons (orch ps/expected): $orch_ps_mdss/$expected_mdss"
+    [ "$orch_ps_mdss" = "$expected_mdss" ] || success=""
+    # echo "OSDs orch ps/expected: $orch_ps_osds/$expected_osds"
+    # [ "$orch_ps_osds" = "$expected_osds" ] || success=""
+    echo "RGW daemons (orch ps/expected): $orch_ps_rgws/$expected_rgws"
+    [ "$orch_ps_rgws" = "$expected_rgws" ] || success=""
+    echo "NFS daemons (orch ps/expected): $orch_ps_nfss/$expected_nfss"
+    [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
     if [ "$success" ] ; then
         return 0
     else
