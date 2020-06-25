@@ -1,6 +1,6 @@
     {{ node.networks }}
 
-    node.vm.hostname = "{{ node.name }}"
+    node.vm.hostname = "{{ node.fqdn }}"
 
     node.vm.provider "libvirt" do |lv|
       lv.memory = {{ node.ram }}
