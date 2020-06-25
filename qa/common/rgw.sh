@@ -9,16 +9,22 @@ function install_rgw_test_dependencies {
 }
 
 function rgw_curl_test {
+    set +x
     local rgw_node="$1"
     local rgw_dns_name
     local rgw_frontends
     local port
     local protocol
     local curl_opts
+    local curl_command
+    local curl_command_dev_null
+    local count
+    local max_count_we_tolerate
     local rgwxmlout
 
     # Setup phase
 
+    curl_command=( curl )
     curl_opts=( --silent --show-error )
 
     # We are not currently testing RGW-over-HTTPS
@@ -36,18 +42,42 @@ function rgw_curl_test {
     [ "$rgw_frontends" ] && port="${rgw_frontends#*=}"
     echo "RGW port is ${port:=80}" >/dev/null
 
+    curl_command+=( "${curl_opts[@]}" )
+    curl_command+=( "${protocol}://${rgw_dns_name}:${port}" )
+    count="0"
+    max_count_we_tolerate="50"
     rgwxmlout="/tmp/rgw_test.xml"
 
-    # If RGW is running on the node, the following curl command will produce
-    # valid XML containing the word "anonymous":
+    echo
+    # shellcheck disable=SC2145
+    echo "curl command for RGW ping \"${curl_command[@]}\""
+    while true ; do
+        count="$(( count + 1 ))"
+        echo "Pinging RGW ($count/$max_count_we_tolerate) ..."
+        set -x
+        if "${curl_command_dev_null[@]}" >/dev/null 2>&1 ; then
+            set +x
+            echo "RGW appears to be ready!"
+            set -x
+            break
+        fi
+        if [ "$count" = "$max_count_we_tolerate" ] ; then
+            set +x
+            echo "Exhausted all tries. Bailing out!"
+            set -x
+            exit 1
+        fi
+        sleep 5
+    done
 
-    # shellcheck disable=SC2086
-    curl "${curl_opts[@]}" "${protocol}://${rgw_dns_name}:${port}" | tee $rgwxmlout
+    # If RGW is running on the node and is ready to serve requests, the
+    # curl command will produce valid XML containing the word "anonymous":
+    "${curl_command[@]}" | tee "$rgwxmlout"
 
     # Testing phase
     test -f $rgwxmlout
-    xmllint $rgwxmlout
-    grep anonymous $rgwxmlout
+    xmllint --format $rgwxmlout
+    grep --quiet anonymous $rgwxmlout
 
     # Teardown phase
     rm -f $rgwxmlout
