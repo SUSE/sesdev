@@ -143,24 +143,32 @@ test "$TOTAL_NODES"
 test "$NODE_LIST"
 set -e
 
-# run tests
+# tests that verify basic assumptions
 support_cop_out_test
 no_non_oss_repos_test
 make_salt_master_an_admin_node_test
 ceph_rpm_version_test
 ceph_cluster_running_test
 ceph_daemon_versions_test "$STRICT_VERSIONS"
+
+# wait for deployed daemons to show up and cluster to reach HEALTH_OK
 mgr_is_available_test
 maybe_wait_for_osd_nodes_test "$OSD_NODES"  # it might take a long time for OSD nodes to show up
 maybe_wait_for_mdss_test "$MDS_NODES"  # it might take a long time for MDSs to be ready
 maybe_wait_for_rgws_test "$RGW_NODES"  # it might take a long time for RGWs to be ready
 maybe_wait_for_nfss_test "$NFS_NODES"  # it might take a long time for NFSs to be ready
+ceph_health_test
+
+# check that OSDs have the expected objectstore
+osd_objectstore_test
+
+# check numbers of daemons and whether they are running on the expected nodes
 number_of_daemons_expected_vs_metadata_test
 number_of_services_expected_vs_orch_ls_test
 number_of_services_expected_vs_orch_ps_test
 number_of_daemons_expected_vs_actual
-ceph_health_test
-maybe_rgw_smoke_test
 cluster_json_test
 systemctl_list_units_test
-osd_objectstore_test
+
+# check that the RGWs are serving requests on the expected nodes/ports
+maybe_rgw_smoke_test
