@@ -172,7 +172,7 @@ OS_REPOS = {
 
 IMAGE_PATHS = {
     'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
-    'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph',
+    'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
     'pacific': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
 }
 
