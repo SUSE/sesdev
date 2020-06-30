@@ -514,32 +514,30 @@ version_default_roles:
 
 ##### octopus from filesystems:ceph:octopus
 
-config.yaml:
+No config.yaml changes are needed, because this is the default configuration.
+
+##### octopus from filesystems:ceph:octopus&#8203;:upstream
+
+Add the following to your `config.yaml`:
 
 ```
 version_os_repo_mapping:
     octopus:
         leap-15.2:
-            - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
+            - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/openSUSE_Leap_15.2'
 image_paths:
-    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
+    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph'
 ```
 
-sesdev command line:
+And use a `sesdev` command line like this:
 
 ```
 sesdev create octopus \
     --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
-    --ceph-salt-branch master \
+    --ceph-salt-branch octopus \
     --qa-test \
     --single-node
 ```
-
-##### octopus from filesystems:ceph:octopus&#8203;:upstream
-
-No config.yaml changes are needed, because this is the default configuration.
-
-sesdev command is the same as for `filesystems:ceph:octopus`.
 
 ##### ses7 from Devel:Storage:7.0
 
