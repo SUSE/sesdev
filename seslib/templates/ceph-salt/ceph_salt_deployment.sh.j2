@@ -206,7 +206,7 @@ set -x
 ceph fs volume create sesdevfs
 {% endif %}
 
-{% if rgw_nodes > 0 or nfs_nodes > 0 %}
+{% if rgw_nodes > 0 or nfs_nodes > 0 or igw_nodes > 0 %}
 
 {% set service_spec_gw = "/root/service_spec_gw.yml" %}
 rm -f {{ service_spec_gw }}
@@ -230,9 +230,12 @@ placement:
 EOF
 {% endif %} {# rgw_nodes > 0 #}
 
-{% if nfs_nodes > 0 %}
+{% if nfs_nodes > 0 or igw_nodes > 0 %}
 ceph osd pool create rbd
-ceph osd pool application enable rbd nfs
+{% endif %}
+
+{% if nfs_nodes > 0 %}
+ceph osd pool application enable rbd nfs --yes-i-really-mean-it
 cat >> {{ service_spec_gw }} << 'EOF'
 ---
 service_type: nfs
@@ -250,10 +253,39 @@ spec:
 EOF
 {% endif %} {# nfs_nodes > 0 #}
 
+{% if igw_nodes > 0 %}
+ceph osd pool application enable rbd rbd --yes-i-really-mean-it
+{% set trusted_ip_list = [] %}
+{% for node in nodes %}
+{% if node.has_role('mgr') or node.has_role('igw') %}
+{% if trusted_ip_list.append(node.public_address) %}{% endif %}
+{% endif %}
+{% endfor %}
+cat >> {{ service_spec_gw }} << EOF
+---
+service_type: iscsi
+service_id: iscsi_service
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('igw') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+spec:
+    pool: rbd
+    trusted_ip_list: {{ trusted_ip_list | join(',') }}
+    api_port: 5000
+    api_user: admin1
+    api_password: admin2
+    api_secure: False
+EOF
+{% endif %} {# igw_nodes > 0 #}
+
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
 
-{% endif %} {# rgw_nodes > 0 or nfs_nodes > 0 #}
+{% endif %} {# rgw_nodes > 0 or nfs_nodes > 0 or igw_nodes > 0#}
 
 {% endif %} {# storage_nodes > 0 #}
 
