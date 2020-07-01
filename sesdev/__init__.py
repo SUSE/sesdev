@@ -878,7 +878,8 @@ def makecheck(deployment_id, deploy, **kwargs):
     settings_dict = _gen_settings_dict('makecheck', **kwargs)
     if not deployment_id:
         os = settings_dict['os'] if 'os' in settings_dict else 'tumbleweed'
-        deployment_id = 'makecheck-{}'.format(os)
+        safe_os = os.replace('_', '-').replace('.', '-')
+        deployment_id = 'makecheck-{}'.format(safe_os)
     _create_command(deployment_id, deploy, settings_dict)
 
 
