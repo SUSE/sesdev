@@ -376,49 +376,74 @@ function maybe_wait_for_rgws_test {
     fi
 }
 
-function maybe_wait_for_nfss_test {
+function _wait_for {
     # this function uses json_ses7_orch_{ls,ps}, which only work in
     # {octopus,ses7,pacific}
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        local what="$1"
+        local expected="$2"
+        local orch_ps
+        local orch_ls
+        local minutes_to_wait
+        minutes_to_wait="5"
+        local minute
+        local i
+        local success
+        echo "Waiting up to $minutes_to_wait minutes for all $expected $what daemon(s) to show up..."
+        for minute in $(seq 1 "$minutes_to_wait") ; do
+            for i in $(seq 1 4) ; do
+                set -x
+                orch_ls="$(json_ses7_orch_ls "$what")"
+                orch_ps="$(json_ses7_orch_ps "$what")"
+                set +x
+                if [ "$orch_ls" = "$expected" ] && [ "$orch_ps" = "$expected" ] ; then
+                    success="not_empty"
+                    break 2
+                else
+                    _grace_period 15 "$i"
+                fi
+            done
+            echo "Minutes left to wait: $((minutes_to_wait - minute))"
+        done
+        if [ "$success" ] ; then
+            true
+        else
+            echo "$expected_nfss $what daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
+            echo
+            false
+        fi
+    fi
+}
+
+function maybe_wait_for_nfss_test {
     if [ "$VERSION_ID" = "15.2" ] ; then
         local expected_nfss="$1"
         echo
         echo "WWWW: maybe_wait_for_nfss_test"
         if [ "$expected_nfss" -gt "0" ] ; then
-            local orch_ps_nfss
-            local orch_ls_nfss
-            local minutes_to_wait
-            minutes_to_wait="5"
-            local minute
-            local i
-            local success
-            echo "Waiting up to $minutes_to_wait minutes for all $expected_nfss NFS daemon(s) to show up..."
-            for minute in $(seq 1 "$minutes_to_wait") ; do
-                for i in $(seq 1 4) ; do
-                    set -x
-                    orch_ls_nfss="$(json_ses7_orch_ls nfs)"
-                    orch_ps_nfss="$(json_ses7_orch_ps nfs)"
-                    set +x
-                    if [ "$orch_ls_nfss" = "$expected_nfss" ] && [ "$orch_ps_nfss" = "$expected_nfss" ] ; then
-                        success="not_empty"
-                        break 2
-                    else
-                        _grace_period 15 "$i"
-                    fi
-                done
-                echo "Minutes left to wait: $((minutes_to_wait - minute))"
-            done
-            if [ "$success" ] ; then
-                echo "WWWW: maybe_wait_for_nfss_test: OK"
-                echo
-            else
-                echo "$expected_nfss NFS daemons did not appear even after waiting $minutes_to_wait minutes. Giving up."
-                echo "WWWW: maybe_wait_for_nfss_test: FAIL"
-                echo
-                false
-            fi
+            _wait_for nfs "$expected_nfss"
+            echo "WWWW: maybe_wait_for_nfss_test: OK"
+            echo
         else
             echo "No NFSs expected: nothing to wait for."
             echo "WWWW: maybe_wait_for_nfss_test: SKIPPED"
+            echo
+        fi
+    fi
+}
+
+function maybe_wait_for_igws_test {
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        local expected_igws="$1"
+        echo
+        echo "WWWW: maybe_wait_for_igws_test"
+        if [ "$expected_igws" -gt "0" ] ; then
+            _wait_for iscsi "$expected_igws"
+            echo "WWWW: maybe_wait_for_igws_test: OK"
+            echo
+        else
+            echo "No IGWs expected: nothing to wait for."
+            echo "WWWW: maybe_wait_for_igws_test: SKIPPED"
             echo
         fi
     fi
@@ -506,6 +531,8 @@ function number_of_services_expected_vs_orch_ls_test {
         orch_ls_rgws="$(json_ses7_orch_ls rgw)"
         local orch_ls_nfss
         orch_ls_nfss="$(json_ses7_orch_ls nfs)"
+        local orch_ls_igws
+        orch_ls_igws="$(json_ses7_orch_ls iscsi)"
         local success
         success="yes"
         local expected_mgrs
@@ -514,12 +541,14 @@ function number_of_services_expected_vs_orch_ls_test {
         local expected_osds
         local expected_rgws
         local expected_nfss
+        local expected_igws
         [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
         [ "$MON_NODES" ] && expected_mons="$MON_NODES"
         [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
         [ "$OSDS" ]      && expected_osds="$OSDS"
         [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
         [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
+        [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
         echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
         if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
             true  # normal success case
@@ -538,6 +567,8 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$orch_ls_rgws" = "$expected_rgws" ] || success=""
         echo "NFS services (orch ls/expected): $orch_ls_nfss/$expected_nfss"
         [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
+        echo "IGW services (orch ls/expected): $orch_ls_igws/$expected_igws"
+        [ "$orch_ls_igws" = "$expected_igws" ] || success=""
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
@@ -566,6 +597,8 @@ function _orch_ps_test {
     orch_ps_rgws="$(json_ses7_orch_ps rgw)"
     local orch_ps_nfss
     orch_ps_nfss="$(json_ses7_orch_ps nfs)"
+    local orch_ps_igws
+    orch_ps_igws="$(json_ses7_orch_ps iscsi)"
     ## commented-out osds pending resolution of
     ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
     ## - https://github.com/SUSE/sesdev/pull/203
@@ -577,12 +610,14 @@ function _orch_ps_test {
     local expected_osds
     local expected_rgws
     local expected_nfss
+    local expected_igws
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
     [ "$OSDS" ]      && expected_osds="$OSDS"
     [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
     [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
+    [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
     echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
     if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
         true  # normal success case
@@ -601,6 +636,8 @@ function _orch_ps_test {
     [ "$orch_ps_rgws" = "$expected_rgws" ] || success=""
     echo "NFS daemons (orch ps/expected): $orch_ps_nfss/$expected_nfss"
     [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
+    echo "IGW daemons (orch ps/expected): $orch_ps_igws/$expected_igws"
+    [ "$orch_ps_igws" = "$expected_igws" ] || success=""
     if [ "$success" ] ; then
         return 0
     else

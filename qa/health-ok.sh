@@ -157,6 +157,7 @@ maybe_wait_for_osd_nodes_test "$OSD_NODES"  # it might take a long time for OSD 
 maybe_wait_for_mdss_test "$MDS_NODES"  # it might take a long time for MDSs to be ready
 maybe_wait_for_rgws_test "$RGW_NODES"  # it might take a long time for RGWs to be ready
 maybe_wait_for_nfss_test "$NFS_NODES"  # it might take a long time for NFSs to be ready
+maybe_wait_for_igws_test "$IGW_NODES"  # it might take a long time for NFSs to be ready
 ceph_health_test
 
 # check that OSDs have the expected objectstore

@@ -18,8 +18,9 @@ ROLES_OF_NODES="$(cat /home/vagrant/cluster.json | jq -r '.roles_of_nodes')"
 ROLES_OF_THIS_NODE="$(echo "$ROLES_OF_NODES" | jq -r '.{{ node.name }}[]')"
 SUCCESS="yes"
 for role in $ROLES_OF_THIS_NODE ; do
+    REGEX=""
     [ "$role" = "storage" ] && role="osd"
-    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] ; then
+    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ]; then
         if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] ; then
             if [ "$OS" = "leap-15.2" ] || [ "$OS" = "sles-15-sp2" ] ; then
                 REGEX="^ceph-$FSID@$role.+loaded active running"
@@ -38,19 +39,29 @@ for role in $ROLES_OF_THIS_NODE ; do
             else
                 REGEX="^nfs-ganesha\.service.+loaded active running"
             fi
+        elif [ "$role" = "igw" ] ; then
+            if [ "$OS" = "leap-15.2" ] || [ "$OS" = "sles-15-sp2" ] ; then
+                REGEX="^ceph-$FSID@iscsi.+loaded active running"
+            elif [ "$OS" = "leap-15.1" ] || [ "$OS" = "sles-15-sp1" ] ; then
+                REGEX="^rbd-target-api\.service.+loaded active running"
+            else
+                REGEX=""
+            fi
         fi
-        running_instances="$(systemctl list-units --type=service --state=running | grep -E "$REGEX"  | wc --lines)"
-        if [ "$role" = "osd" ] ; then
-            expected_instances="$NUM_DISKS"
-        else
-            expected_instances="1"
-        fi
-        echo "running instances of $role systemd unit on node {{ node.name }} (systemctl/expected): ${running_instances}/${expected_instances}"
-        if [ "$running_instances" = "$expected_instances" ] ; then
-            true
-        else
-            echo "TEST FAILURE"
-            SUCCESS=""
+        if [ "$REGEX" ] ; then
+            running_instances="$(systemctl list-units --type=service --state=running | grep -E "$REGEX"  | wc --lines)"
+            if [ "$role" = "osd" ] ; then
+                expected_instances="$NUM_DISKS"
+            else
+                expected_instances="1"
+            fi
+            echo "running instances of $role systemd unit on node {{ node.name }} (systemctl/expected): ${running_instances}/${expected_instances}"
+            if [ "$running_instances" = "$expected_instances" ] ; then
+                true
+            else
+                echo "TEST FAILURE"
+                SUCCESS=""
+            fi
         fi
     fi  
 done
