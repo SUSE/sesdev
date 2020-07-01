@@ -1590,6 +1590,11 @@ class Deployment():
                 result += "     - cluster_address:  {}\n".format(v.cluster_address)
             result += "     - cpus:             {}\n".format(v.cpus)
             result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
+            if self.settings.version == 'makecheck':
+                result += ("     - git repo:         {}\n"
+                           .format(self.settings.makecheck_ceph_repo))
+                result += ("     - git branch:       {}\n"
+                           .format(self.settings.makecheck_ceph_branch))
             if v.storage_disks:
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
                 result += ("                         "
@@ -1598,8 +1603,9 @@ class Deployment():
                     "Yes" if self.settings.encrypted_osds else "No")
                 result += "     - OSD objectstore:  {}\n".format(
                     "FileStore" if self.settings.filestore_osds else "BlueStore")
-            result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
-            result += "     - qa_test:          {}\n".format(self.settings.qa_test)
+            if self.settings.version in GlobalSettings.CORE_VERSIONS:
+                result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
+                result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7', 'pacific']:
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             for synced_folder in self.settings.synced_folder:
