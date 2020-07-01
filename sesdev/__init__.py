@@ -633,7 +633,11 @@ def _gen_settings_dict(version,
         settings_dict['image_path'] = image_path
 
     if ceph_repo:
-        settings_dict['makecheck_ceph_repo'] = ceph_repo
+        match = re.search(r'github\.com', ceph_repo)
+        if match:
+            settings_dict['makecheck_ceph_repo'] = ceph_repo
+        else:
+            settings_dict['makecheck_ceph_repo'] = 'https://github.com/{}/ceph'.format(ceph_repo)
 
     if ceph_branch:
         settings_dict['makecheck_ceph_branch'] = ceph_branch
