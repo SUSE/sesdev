@@ -56,7 +56,7 @@ for role in $ROLES_OF_THIS_NODE ; do
             fi
         fi
         if [ "$REGEX" ] ; then
-            running_instances="$(systemctl list-units --type=service --state=running | grep -E "$REGEX"  | wc --lines)"
+            running_instances="$(systemctl list-units --type=service --state=running | grep --count -E "$REGEX")"
             if [ "$role" = "osd" ] ; then
                 expected_instances="$NUM_DISKS"
             else

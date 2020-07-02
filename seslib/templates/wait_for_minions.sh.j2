@@ -9,7 +9,7 @@ while true ; do
   fi
   LOOP_COUNT="$((LOOP_COUNT + 1))"
   echo "Pinging {{ nodes | length }} minions..."
-  MINIONS_RESPONDING="$(salt '*' test.ping 2> /dev/null | grep True | wc --lines)"
+  MINIONS_RESPONDING="$(salt '*' test.ping 2> /dev/null | grep --count True)"
   echo "${MINIONS_RESPONDING} of {{ nodes | length }} minions responded to ping."
   [ "$MINIONS_RESPONDING" = "{{ nodes|length }}" ] && break
   set -x
