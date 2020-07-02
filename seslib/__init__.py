@@ -328,6 +328,32 @@ VERSION_OS_REPO_MAPPING = {
     },
 }
 
+MAKECHECK_DEFAULT_REPO_BRANCH = {
+    'sles-12-sp3': {
+        'repo': 'https://github.com/SUSE/ceph',
+        'branch': 'ses5',
+    },
+    'sles-15-sp1': {
+        'repo': 'https://github.com/SUSE/ceph',
+        'branch': 'ses6-downstream-commits',
+    },
+    'leap-15.1': {
+        'repo': 'https://github.com/ceph/ceph',
+        'branch': 'nautilus',
+    },
+    'sles-15-sp2': {
+        'repo': 'https://github.com/SUSE/ceph',
+        'branch': 'ses7',
+    },
+    'leap-15.2': {
+        'repo': 'https://github.com/ceph/ceph',
+        'branch': 'octopus',
+    },
+    'tumbleweed': {
+        'repo': 'https://github.com/ceph/ceph',
+        'branch': 'master',
+    },
+}
 
 SETTINGS = {
     # RESERVED KEY, DO NOT USE: 'strict'
@@ -991,6 +1017,16 @@ class Deployment():
             if not self.settings.explicit_ram:
                 self.settings.override('ram', GlobalSettings.MAKECHECK_DEFAULT_RAM)
                 self.settings.override('explicit_ram', True)
+            if not self.settings.makecheck_ceph_repo:
+                self.settings.override(
+                    'makecheck_ceph_repo',
+                    MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
+                    )
+            if not self.settings.makecheck_ceph_branch:
+                self.settings.override(
+                    'makecheck_ceph_branch',
+                    MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
+                    )
 
         self._generate_nodes()
 
@@ -1554,6 +1590,11 @@ class Deployment():
                 result += "     - cluster_address:  {}\n".format(v.cluster_address)
             result += "     - cpus:             {}\n".format(v.cpus)
             result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
+            if self.settings.version == 'makecheck':
+                result += ("     - git repo:         {}\n"
+                           .format(self.settings.makecheck_ceph_repo))
+                result += ("     - git branch:       {}\n"
+                           .format(self.settings.makecheck_ceph_branch))
             if v.storage_disks:
                 result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
                 result += ("                         "
@@ -1562,8 +1603,9 @@ class Deployment():
                     "Yes" if self.settings.encrypted_osds else "No")
                 result += "     - OSD objectstore:  {}\n".format(
                     "FileStore" if self.settings.filestore_osds else "BlueStore")
-            result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
-            result += "     - qa_test:          {}\n".format(self.settings.qa_test)
+            if self.settings.version in GlobalSettings.CORE_VERSIONS:
+                result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
+                result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7', 'pacific']:
                 result += "     - image_path:       {}\n".format(self.settings.image_path)
             for synced_folder in self.settings.synced_folder:
