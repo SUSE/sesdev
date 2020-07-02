@@ -213,7 +213,7 @@ def cli(work_path=None, config_file=None, debug=False, log_file=None, vagrant_de
 
     # Deployment of single node SES6 cluster:
 
-        $ sesdev create ses6 --single-node my_ses6_cluster
+        $ sesdev create ses6 --single-node my-ses6-cluster
 
     # Deployment of Octopus cluster where each storage node contains 4 10G disks for
 OSDs:
@@ -221,7 +221,7 @@ OSDs:
         \b
 $ sesdev create octopus --roles="[master, mon, mgr], \\
        [storage, mon, mgr, mds], [storage, mon, mds]" \\
-       --num-disks=4 --disk-size=10 my_octopus_cluster
+       --num-disks=4 --disk-size=10 my-octopus-cluster
 
     """
     if debug:
