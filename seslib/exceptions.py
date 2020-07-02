@@ -80,6 +80,13 @@ class NodeDoesNotExist(SesDevException):
             "Node '{}' does not exist in this deployment".format(node))
 
 
+class NoExplicitRolesWithSingleNode(SesDevException):
+    def __init__(self):
+        super(NoExplicitRolesWithSingleNode, self).__init__(
+            "The --roles and --single-node options are mutually exclusive. "
+            "One may be given, or the other, but not both at the same time.")
+
+
 class NoPrometheusGrafanaInSES5(SesDevException):
     def __init__(self):
         super(NoPrometheusGrafanaInSES5, self).__init__(
