@@ -928,3 +928,29 @@ function osd_objectstore_test {
         false
     fi
 }
+
+function dashboard_branding_not_completely_absent_test {
+    echo "WWWW: dashboard_branding_not_completely_absent_test"
+    if [ "$VERSION_ID" = "15.1" ] ; then
+        local success
+        local dashboard_url
+        set -x
+        dashboard_url="$(ceph mgr services | jq -r .dashboard)"
+        if curl --silent --insecure "$dashboard_url" | grep -i suse ; then
+            success="yes"
+        fi
+        set +x
+        if [ "$success" ] ; then
+            echo "WWWW: dashboard_branding_not_completely_absent_test: OK"
+            echo
+        else
+            echo "CRITICAL RED DANGER: dashboard branding appears to be completely absent!"
+            echo "WWWW: dashboard_branding_not_completely_absent_test: FAIL"
+            echo
+            false
+        fi
+    else
+        echo "WWWW: dashboard_branding_not_completely_absent_test: SKIPPED"
+        echo
+    fi
+}

@@ -171,5 +171,7 @@ number_of_daemons_expected_vs_actual
 cluster_json_test
 systemctl_list_units_test
 
+# extremely superficial test for presence of dashboard branding
+dashboard_branding_not_completely_absent_test
 # check that the RGWs are serving requests on the expected nodes/ports
 maybe_rgw_smoke_test
