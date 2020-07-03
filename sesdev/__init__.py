@@ -12,6 +12,7 @@ from prettytable import PrettyTable
 import seslib
 from seslib.exceptions import \
                               SesDevException, \
+                              NoExplicitRolesWithSingleNode, \
                               OptionFormatError, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
@@ -492,6 +493,8 @@ def _gen_settings_dict(version,
         settings_dict['roles'] = _parse_roles("[ makecheck ]")
     elif not single_node and roles:
         settings_dict['roles'] = _parse_roles(roles)
+    elif single_node and roles:
+        raise NoExplicitRolesWithSingleNode()
     elif single_node:
         roles_string = ""
         if version in ['ses7', 'octopus', 'pacific']:
