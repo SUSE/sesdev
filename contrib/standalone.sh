@@ -20,8 +20,6 @@
 #     contrib/run-standalone.sh
 #
 
-set -x
-
 SCRIPTNAME="$(basename "${0}")"
 FINAL_REPORT="$(mktemp)"
 TEMP_FILE="$(mktemp)"
@@ -119,9 +117,11 @@ function tunnel_gone {
     fi
 }
 
+set -e
 TEMP=$(getopt -o h \
 --long "help,caasp4,ceph-salt-branch:,ceph-salt-repo:,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7" \
--n 'standalone.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
+-n 'standalone.sh' -- "$@")
+set +e
 eval set -- "$TEMP"
 
 # process command-line options
@@ -198,6 +198,8 @@ if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
     echo "(This script expects a clean environment -- i.e., \"sesdev list\" must be empty)"
     exit 1
 fi
+
+set -x
 
 if [ "$SES5" ] ; then
     sesdev box remove --non-interactive sles-12-sp3
