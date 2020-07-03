@@ -7,6 +7,33 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.5.0] - 2020-07-03
+
+### Added
+- cephadm iSCSI deployment (PR #300)
+- "--filestore" option to deploy OSDs with FileStore (PR #341)
+- "--devel/--product" option and add-repo subcommand (PR #351)
+- qa: superficial test for presence of dashboard branding (PR #374)
+- qa: add IGW to existing tests (PR #372)
+
+### Changed
+- provisioning: set fqdn through vagrant and leave /etc/hosts alone (PR #199)
+- no longer support nautilus deployment in Tumbleweed (PR #352)
+- ceph_salt_deployment.sh: reduce number of "ceph orch apply" calls (PR #363)
+- sesdev: raise exception if --roles combined with --single-node (PR #376)
+- cleanup: replace "grep | wc --lines" with "grep --count" (PR #375)
+
+### Fixed
+- makecheck: reasonable defaults for Ceph repo/branch (PR #277)
+- provision.sh: set up SSH keys earlier (PR #361)
+- provision.sh: avoid endless while loop (PR #365)
+- sesdev: sanitize makecheck deployment IDs (PR #371)
+- doc: Update the example Deployment id in sesdev help (PR #378)
+- qa/systemctl_test: better error message when FSID omitted (PR #373)
+- qa/rgw: run curl command in try-wait loop to ping RGW (PR #370)
+- qa: do not wait for non-existent daemons to start (PR #368)
+- qa: get RGW port from /etc/ceph/ceph.conf (PR #353)
+
 ## [1.4.0] - 2020-06-20
 
 ### Added
@@ -411,7 +438,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.4.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/SUSE/sesdev/releases/tag/v1.5.0
 [1.4.0]: https://github.com/SUSE/sesdev/releases/tag/v1.4.0
 [1.3.0]: https://github.com/SUSE/sesdev/releases/tag/v1.3.0
 [1.2.0]: https://github.com/SUSE/sesdev/releases/tag/v1.2.0
