@@ -17,7 +17,6 @@ function rgw_curl_test {
     local protocol
     local curl_opts
     local curl_command
-    local curl_command_dev_null
     local count
     local max_count_we_tolerate
     local rgwxmlout
@@ -55,7 +54,12 @@ function rgw_curl_test {
         count="$(( count + 1 ))"
         echo "Pinging RGW ($count/$max_count_we_tolerate) ..."
         set -x
-        if "${curl_command_dev_null[@]}" >/dev/null 2>&1 ; then
+
+        # If RGW is running on the node and is ready to serve requests, the
+        # curl command will produce valid XML containing the word "anonymous":
+        "${curl_command[@]}" | tee "$rgwxmlout"
+
+        if [ "${PIPESTATUS[0]}" = "0" ] ; then
             set +x
             echo "RGW appears to be ready!"
             set -x
@@ -70,12 +74,8 @@ function rgw_curl_test {
         sleep 5
     done
 
-    # If RGW is running on the node and is ready to serve requests, the
-    # curl command will produce valid XML containing the word "anonymous":
-    "${curl_command[@]}" | tee "$rgwxmlout"
-
     # Testing phase
-    test -f $rgwxmlout
+    test -s $rgwxmlout
     xmllint --format $rgwxmlout
     grep --quiet anonymous $rgwxmlout
 
