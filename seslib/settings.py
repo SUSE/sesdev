@@ -1,0 +1,361 @@
+import json
+import os
+import yaml
+
+from .constant import Constant
+from .exceptions import \
+                        SettingNotKnown, \
+                        SettingTypeError
+from .log import Log
+
+SETTINGS = {
+    # RESERVED KEY, DO NOT USE: 'strict'
+    'caasp_deploy_ses': {
+        'type': bool,
+        'help': 'Deploy SES using rook in CaasP',
+        'default': False,
+    },
+    'ceph_salt_git_repo': {
+        'type': str,
+        'help': 'If set, it will install ceph-salt from this git repo',
+        'default': '',
+    },
+    'ceph_salt_git_branch': {
+        'type': str,
+        'help': 'ceph-salt git branch to use',
+        'default': '',
+    },
+    'cluster_network': {
+        'type': str,
+        'help': 'The network address prefix for the cluster network',
+        'default': '',
+    },
+    'cpus': {
+        'type': int,
+        'help': 'Number of virtual CPUs in each node',
+        'default': 2,
+    },
+    'deepsea_git_repo': {
+        'type': str,
+        'help': 'If set, it will install DeepSea from this git repo',
+        'default': '',
+    },
+    'deepsea_git_branch': {
+        'type': str,
+        'help': 'Git branch to use',
+        'default': 'master',
+    },
+    'deployment_tool': {
+        'type': str,
+        'help': 'Deployment tool (deepsea, cephadm) to deploy the Ceph cluster',
+        'default': '',
+    },
+    'devel_repo': {
+        'type': bool,
+        'help': 'Include devel repo, if applicable',
+        'default': True,
+    },
+    'disk_size': {
+        'type': int,
+        'help': 'Storage disk size in gigabytes',
+        'default': 8,
+    },
+    'domain': {
+        'type': str,
+        'help': 'The domain name for nodes',
+        'default': '{}.test',
+    },
+    'encrypted_osds': {
+        'type': bool,
+        'help': 'Whether OSDs should be deployed encrypted',
+        'default': False,
+    },
+    'explicit_cpus': {
+        'type': bool,
+        'help': 'Whether --cpus was given on the command line',
+        'default': False,
+    },
+    'explicit_num_disks': {
+        'type': bool,
+        'help': 'Whether --num-disks was given on the command line',
+        'default': False,
+    },
+    'explicit_ram': {
+        'type': bool,
+        'help': 'Whether --ram was given on the command line',
+        'default': False,
+    },
+    'filestore_osds': {
+        'type': bool,
+        'help': 'Whether OSDs should be deployed with FileStore instead of BlueStore',
+        'default': False,
+    },
+    'image_path': {
+        'type': str,
+        'help': 'Container image path for Ceph daemons',
+        'default': '',
+    },
+    'image_paths': {
+        'type': dict,
+        'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
+        'default': Constant.IMAGE_PATHS,
+    },
+    'libvirt_host': {
+        'type': str,
+        'help': 'Hostname/IP address of the libvirt host',
+        'default': '',
+    },
+    'libvirt_networks': {
+        'type': str,
+        'help': 'Existing libvirt networks to use (single or comma separated list)',
+        'default': '',
+    },
+    'libvirt_private_key_file': {
+        'type': str,
+        'help': 'Path to SSH private key file to use when connecting to the libvirt host',
+        'default': '',
+    },
+    'libvirt_storage_pool': {
+        'type': str,
+        'help': 'The libvirt storage pool to use for creating VMs',
+        'default': '',
+    },
+    'libvirt_use_ssh': {
+        'type': bool,
+        'help': 'Flag to control the use of SSH when connecting to the libvirt host',
+        'default': None,
+    },
+    'libvirt_user': {
+        'type': str,
+        'help': 'Username to use to login into the libvirt host',
+        'default': '',
+    },
+    'makecheck_ceph_branch': {
+        'type': str,
+        'help': 'Branch to check out for purposes of running "make check"',
+        'default': '',
+    },
+    'makecheck_ceph_repo': {
+        'type': str,
+        'help': 'Repo from which to clone Ceph source code',
+        'default': '',
+    },
+    'makecheck_stop_before_git_clone': {
+        'type': bool,
+        'help': 'Stop before cloning the git repo (make check)',
+        'default': False,
+    },
+    'makecheck_stop_before_install_deps': {
+        'type': bool,
+        'help': 'Stop before running install-deps.sh (make check)',
+        'default': False,
+    },
+    'makecheck_stop_before_run_make_check': {
+        'type': bool,
+        'help': 'Stop before running run-make-check.sh (make check)',
+        'default': False,
+    },
+    'makecheck_username': {
+        'type': str,
+        'help': 'Name of ordinary user that will run make check',
+        'default': 'sesdev',
+    },
+    'non_interactive': {
+        'type': bool,
+        'help': 'Whether the user wants to be asked',
+        'default': False,
+    },
+    'num_disks': {
+        'type': int,
+        'help': 'Number of additional disks in storage nodes',
+        'default': 2,
+    },
+    'os': {
+        'type': str,
+        'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
+        'default': '',
+    },
+    'os_repos': {
+        'type': dict,
+        'help': 'repos to add on all VMs of a given operating system (os)',
+        'default': Constant.OS_REPOS,
+    },
+    'public_network': {
+        'type': str,
+        'help': 'The network address prefix for the public network',
+        'default': '',
+    },
+    'qa_test': {
+        'type': bool,
+        'help': 'Automatically run integration tests on the deployed cluster',
+        'default': False,
+    },
+    'ram': {
+        'type': int,
+        'help': 'RAM size in gigabytes for each node',
+        'default': 4,
+    },
+    'repos': {
+        'type': list,
+        'help': 'Custom repos dictionary to apply to all nodes',
+        'default': [],
+    },
+    'repo_priority': {
+        'type': bool,
+        'help': 'Automatically set priority on custom zypper repos',
+        'default': True,
+    },
+    'roles': {
+        'type': list,
+        'help': 'Roles to apply to the current deployment',
+        'default': [],
+    },
+    'scc_password': {
+        'type': str,
+        'help': 'SCC organization password',
+        'default': '',
+    },
+    'scc_username': {
+        'type': str,
+        'help': 'SCC organization username',
+        'default': '',
+    },
+    'single_node': {
+        'type': bool,
+        'help': 'Whether --single-node was given on the command line',
+        'default': False,
+    },
+    'stop_before_ceph_orch_apply': {
+        'type': bool,
+        'help': 'Stops deployment before ceph orch apply',
+        'default': False,
+    },
+    'stop_before_ceph_salt_apply': {
+        'type': bool,
+        'help': 'Stops deployment before ceph-salt apply',
+        'default': False,
+    },
+    'stop_before_ceph_salt_config': {
+        'type': bool,
+        'help': 'Stops deployment before ceph-salt config',
+        'default': False,
+    },
+    'stop_before_stage': {
+        'type': int,
+        'help': 'Stop deployment before running the specified DeepSea stage',
+        'default': None,
+    },
+    'synced_folder': {
+        'type': list,
+        'help': 'Sync Folders to VM',
+        'default': [],
+    },
+    'use_salt': {
+        'type': bool,
+        'help': 'Use "salt" (or "salt-run") to apply Salt Formula (or execute DeepSea Stages)',
+        'default': False,
+    },
+    'vagrant_box': {
+        'type': str,
+        'help': 'Vagrant box to use in deployment',
+        'default': '',
+    },
+    'version': {
+        'type': str,
+        'help': 'Deployment version to install ("nautilus", "ses6", "caasp4", etc.)',
+        'default': 'nautilus',
+    },
+    'version_default_roles': {
+        'type': dict,
+        'help': 'Default roles for each node - one set of default roles per deployment version',
+        'default': Constant.VERSION_DEFAULT_ROLES,
+    },
+    'version_os_repo_mapping': {
+        'type': dict,
+        'help': 'additional repos to be added on particular VERSION:OS combinations',
+        'default': Constant.VERSION_OS_REPO_MAPPING,
+    },
+    'vm_engine': {
+        'type': str,
+        'help': 'VM engine to use for VM deployment. Current options [libvirt]',
+        'default': 'libvirt',
+    },
+}
+
+
+class Settings():
+    # pylint: disable=no-member
+    def __init__(self, strict=True, **kwargs):
+        self.strict = strict
+        config = self._load_config_file()
+
+        self._apply_settings(config)
+        self._apply_settings(kwargs)
+
+        for k, v in SETTINGS.items():
+            if k not in kwargs and k not in config:
+                setattr(self, k, v['default'])
+
+    def override(self, setting, new_value):
+        if setting not in SETTINGS:
+            raise SettingNotKnown(setting)
+        Log.debug("Overriding setting '{}', old value: {}"
+                  .format(setting, getattr(self, setting)))
+        Log.debug("Overriding setting '{}', new value: {}"
+                  .format(setting, new_value))
+        setattr(self, setting, new_value)
+
+    def _apply_settings(self, settings_dict):
+        for k, v in settings_dict.items():
+            if k not in SETTINGS:
+                if self.strict:
+                    raise SettingNotKnown(k)
+                Log.warning("Setting '{}' is not known - listing a legacy cluster?"
+                            .format(k))
+                continue
+            if v is not None and not isinstance(v, SETTINGS[k]['type']):
+                Log.error("Setting '{}' value has wrong type: expected ->{}<- but got ->{}<-"
+                          .format(k, SETTINGS[k]['type'], type(v)))
+                raise SettingTypeError(k, SETTINGS[k]['type'], v)
+            setattr(self, k, v)
+
+    @staticmethod
+    def _load_config_file():
+
+        config_tree = {}
+
+        def __fill_in_config_tree(config_param, global_param):
+            """
+            fill in missing parts of config_tree[config_param]
+            from global_param
+            """
+            if config_param in config_tree:
+                for k, v in global_param.items():
+                    if k in config_tree[config_param]:
+                        pass
+                    else:
+                        config_tree[config_param][k] = v
+
+        if not os.path.exists(Constant.CONFIG_FILE) \
+                or not os.path.isfile(Constant.CONFIG_FILE):
+            return config_tree
+        with open(Constant.CONFIG_FILE, 'r') as file:
+            try:
+                config_tree = yaml.load(file, Loader=yaml.FullLoader)
+            except AttributeError:  # older versions of pyyaml does not have FullLoader
+                config_tree = yaml.load(file)
+        if not config_tree:
+            config_tree = {}
+        Log.debug("_load_config_file: config_tree: {}".format(config_tree))
+        assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
+        __fill_in_config_tree('os_repos', Constant.OS_REPOS)
+        __fill_in_config_tree('version_os_repo_mapping', Constant.VERSION_OS_REPO_MAPPING)
+        __fill_in_config_tree('image_paths', Constant.IMAGE_PATHS)
+        __fill_in_config_tree('version_default_roles', Constant.VERSION_DEFAULT_ROLES)
+        return config_tree
+
+
+class SettingsEncoder(json.JSONEncoder):
+    # pylint: disable=method-hidden
+    def default(self, o):
+        return {k: getattr(o, k) for k in SETTINGS}

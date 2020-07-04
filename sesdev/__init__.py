@@ -17,13 +17,14 @@ from seslib.exceptions import \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
                               VersionNotKnown
+from seslib.constant import Constant
 
 
 logger = logging.getLogger(__name__)
 
 
 def sesdev_main():
-    seslib.GlobalSettings.init_path_to_qa(__file__)
+    Constant.init_path_to_qa(__file__)
     try:
         # pylint: disable=unexpected-keyword-arg
         cli(prog_name='sesdev')
@@ -227,11 +228,11 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
     """
     if debug:
         logger.info("Debug mode: ON")
-        seslib.GlobalSettings.DEBUG = debug
+        Constant.DEBUG = debug
 
     if vagrant_debug:
         logger.info("vagrant will be run with --debug option")
-        seslib.GlobalSettings.VAGRANT_DEBUG = vagrant_debug
+        Constant.VAGRANT_DEBUG = vagrant_debug
 
     if log_file:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
@@ -243,11 +244,11 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
 
     if work_path:
         logger.info("Working path: %s", work_path)
-        seslib.GlobalSettings.A_WORKING_DIR = work_path
+        Constant.A_WORKING_DIR = work_path  # set once here, never to change again
 
     if config_file:
         logger.info("Config file: %s", config_file)
-        seslib.GlobalSettings.CONFIG_FILE = config_file
+        Constant.CONFIG_FILE = config_file  # set once here, never to change again
 
 
 @click.option('--format', 'format_opt', type=str, default=None)
@@ -498,11 +499,11 @@ def _gen_settings_dict(version,
     elif single_node:
         roles_string = ""
         if version in ['ses7', 'octopus', 'pacific']:
-            roles_string = seslib.GlobalSettings.ROLES_SINGLE_NODE_OCTOPUS
+            roles_string = Constant.ROLES_SINGLE_NODE_OCTOPUS
         elif version in ['ses6', 'nautilus']:
-            roles_string = seslib.GlobalSettings.ROLES_SINGLE_NODE_NAUTILUS
+            roles_string = Constant.ROLES_SINGLE_NODE_NAUTILUS
         elif version in ['ses5']:
-            roles_string = seslib.GlobalSettings.ROLES_SINGLE_NODE_LUMINOUS
+            roles_string = Constant.ROLES_SINGLE_NODE_LUMINOUS
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
@@ -605,17 +606,17 @@ def _gen_settings_dict(version,
         if not ceph_salt_branch:
             logger.debug(
                 "User explicitly specified only --ceph-salt-repo; assuming --ceph-salt-branch %s",
-                seslib.GlobalSettings.CEPH_SALT_BRANCH
+                Constant.CEPH_SALT_BRANCH
                 )
-            ceph_salt_branch = seslib.GlobalSettings.CEPH_SALT_BRANCH
+            ceph_salt_branch = Constant.CEPH_SALT_BRANCH
 
     if ceph_salt_branch:
         if not ceph_salt_repo:
             logger.debug(
                 "User explicitly specified only --ceph-salt-branch; assuming --ceph-salt-repo %s",
-                seslib.GlobalSettings.CEPH_SALT_REPO
+                Constant.CEPH_SALT_REPO
                 )
-            ceph_salt_repo = seslib.GlobalSettings.CEPH_SALT_REPO
+            ceph_salt_repo = Constant.CEPH_SALT_REPO
 
     if ceph_salt_repo:
         settings_dict['ceph_salt_git_repo'] = ceph_salt_repo
@@ -682,7 +683,7 @@ def _create_command(deployment_id, deploy, settings_dict):
     settings = seslib.Settings(**settings_dict)
     dep = seslib.Deployment.create(deployment_id, settings)
     if not dep.settings.devel_repo:
-        if dep.settings.version not in seslib.GlobalSettings.CORE_VERSIONS:
+        if dep.settings.version not in Constant.CORE_VERSIONS:
             raise OptionNotSupportedInVersion('--product', dep.settings.version)
     really_want_to = None
     click.echo("=== Creating deployment \"{}\" with the following configuration ==="

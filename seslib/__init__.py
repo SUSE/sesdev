@@ -1,7 +1,5 @@
 import json
-import logging
 import os
-from pathlib import Path
 import random
 import re
 import shutil
@@ -9,11 +7,11 @@ from xml.dom import minidom
 import yaml
 
 from Cryptodome.PublicKey import RSA
-from jinja2 import Environment, PackageLoader
 
 import libvirt
 
 from . import tools
+from .constant import Constant
 from .exceptions import \
                         BadMakeCheckRolesNodes, \
                         CmdException, \
@@ -35,599 +33,14 @@ from .exceptions import \
                         ScpInvalidSourceOrDestination, \
                         ServiceNotFound, \
                         ServicePortForwardingNotSupported, \
-                        SettingNotKnown, \
-                        SettingTypeError, \
                         SubcommandNotSupportedInVersion, \
                         SupportconfigOnlyOnSLE, \
                         VagrantBoxDoesNotExist, \
                         VagrantSshConfigNoHostName, \
                         VersionOSNotSupported, \
                         UniqueRoleViolation
-
-
-JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
-METADATA_FILENAME = ".metadata"
-
-logger = logging.getLogger(__name__)
-
-
-def _log_debug(log_msg):
-    logger.debug(log_msg)
-
-
-def _log_info(log_msg):
-    logger.info(log_msg)
-
-
-def _log_warning(log_msg):
-    logger.warning(log_msg)
-
-
-class GlobalSettings():
-    A_WORKING_DIR = os.path.join(Path.home(), '.sesdev')
-    CEPH_SALT_REPO = 'https://github.com/ceph/ceph-salt'
-    CEPH_SALT_BRANCH = 'master'
-    CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
-    CORE_VERSIONS = ['ses5', 'nautilus', 'ses6', 'octopus', 'ses7', 'pacific']
-    DEBUG = False
-    MAKECHECK_DEFAULT_RAM = 8
-    ROLES_SINGLE_NODE_LUMINOUS = (
-        "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]"
-        )
-    ROLES_SINGLE_NODE_NAUTILUS = (
-        "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
-        "nfs ]"
-        )
-    ROLES_SINGLE_NODE_OCTOPUS = (
-        "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
-        "igw, rgw, nfs ]"
-        )
-    SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
-    VAGRANT_DEBUG = False
-
-    @classmethod
-    def init_path_to_qa(cls, full_path_to_sesdev_executable):
-        if full_path_to_sesdev_executable.startswith('/usr'):
-            cls.PATH_TO_QA = '/usr/share/sesdev/qa'
-        else:
-            cls.PATH_TO_QA = os.path.join(
-                os.path.dirname(full_path_to_sesdev_executable),
-                '../qa/'
-                )
-
-
-OS_BOX_MAPPING = {
-    'leap-15.1': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
-                 'openSUSE-Leap-15.1/images/Leap-15.1.x86_64-libvirt.box',
-    'tumbleweed': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
-                  'openSUSE-Tumbleweed/openSUSE_Tumbleweed/Tumbleweed.x86_64-libvirt.box',
-    'sles-15-sp1': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP1/images/'
-                   'SLES15-SP1-Vagrant.x86_64-libvirt.box',
-    'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/vagrant/sle12sp3.x86_64.box',
-    'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/Appliances:/Images:/'
-                 'openSUSE-Leap-15.2/images/Leap-15.2.x86_64-libvirt.box',
-    'sles-15-sp2': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP2/images/'
-                   'SLES15-SP2-Vagrant.x86_64-libvirt.box',
-}
-
-OS_REPOS = {
-    'sles-12-sp3': {
-        'base': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/',
-        'update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/',
-        'sdk': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/',
-        'sdk-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/',
-        'storage': 'http://dist.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/',
-        'storage-update': 'http://dist.suse.de/ibs/SUSE/Updates/Storage/5/x86_64/update/'
-    },
-    'sles-15-sp1': {
-        'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/product/',
-        'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/'
-                'product/',
-        'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/'
-                  'update/',
-        'server-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/'
-                       '15-SP1/x86_64/product/',
-        'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                              'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
-        'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/'
-                        '15-SP1/x86_64/product/',
-        'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                               'SLE-Module-Desktop-Applications/15-SP1/x86_64/update/',
-        'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/15-SP1/'
-                     'x86_64/product/',
-        'dev-tools-update': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
-                            '15-SP1/x86_64/product/',
-        'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/'
-                       'SLE-15-SP1-Product-WE-POOL-x86_64-Media1/',
-        'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP1/'
-                              'x86_64/update/',
-        'storage': 'http://download.suse.de/ibs/SUSE/Products/Storage/6/x86_64/product/',
-        'storage-update': 'http://download.suse.de/ibs/SUSE/Updates/Storage/6/x86_64/update/'
-    },
-    'sles-15-sp2': {
-        'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP2/x86_64/'
-                'product/',
-        'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP2/x86_64/'
-                  'update/',
-        'server-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/'
-                       '15-SP2/x86_64/product/',
-        'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                              'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
-        'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/'
-                        '15-SP2/x86_64/product/',
-        'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                               'SLE-Module-Desktop-Applications/15-SP2/x86_64/update/',
-        'dev-tools': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
-                     '15-SP2/x86_64/product/',
-        'dev-tools-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/'
-                            '15-SP2/x86_64/update/',
-        'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/TEST/images/repo/'
-                       'SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
-        'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP2/'
-                              'x86_64/update/',
-        'storage7-media': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/'
-                          'images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
-    },
-}
-
-IMAGE_PATHS = {
-    'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
-    'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
-    'pacific': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
-}
-
-VERSION_PREFERRED_OS = {
-    'ses5': 'sles-12-sp3',
-    'ses6': 'sles-15-sp1',
-    'ses7': 'sles-15-sp2',
-    'nautilus': 'leap-15.1',
-    'octopus': 'leap-15.2',
-    'pacific': 'leap-15.2',
-    'caasp4': 'sles-15-sp1',
-    'makecheck': 'tumbleweed',
-}
-
-VERSION_PREFERRED_DEPLOYMENT_TOOL = {
-    'ses5': 'deepsea',
-    'ses6': 'deepsea',
-    'ses7': 'cephadm',
-    'nautilus': 'deepsea',
-    'octopus': 'cephadm',
-    'pacific': 'cephadm',
-    'caasp4': None,
-    'makecheck': None,
-}
-
-KNOWN_ROLES = [
-    "admin",
-    "bootstrap",
-    "client",
-    "ganesha",       # deprecated (replaced by "nfs")
-    "grafana",
-    "igw",
-    "loadbalancer",
-    "makecheck",
-    "master",
-    "mds",
-    "mgr",
-    "mon",
-    "nfs",
-    "openattic",
-    "prometheus",
-    "rgw",
-    "storage",
-    "suma",
-    "worker",
-]
-
-LUMINOUS_DEFAULT_ROLES = [["master", "client", "openattic"],
-                          ["storage", "mon", "mgr", "rgw", "igw"],
-                          ["storage", "mon", "mgr", "mds", "nfs"],
-                          ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
-
-NAUTILUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
-                          ["storage", "mon", "mgr", "rgw", "igw"],
-                          ["storage", "mon", "mgr", "mds", "igw", "nfs"],
-                          ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
-
-OCTOPUS_DEFAULT_ROLES = [["master", "client", "prometheus", "grafana"],
-                         ["bootstrap", "storage", "mon", "mgr", "rgw", "igw"],
-                         ["storage", "mon", "mgr", "mds", "igw", "nfs"],
-                         ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
-
-VERSION_DEFAULT_ROLES = {
-    'ses5': LUMINOUS_DEFAULT_ROLES,
-    'ses6': NAUTILUS_DEFAULT_ROLES,
-    'ses7': OCTOPUS_DEFAULT_ROLES,
-    'nautilus': NAUTILUS_DEFAULT_ROLES,
-    'octopus': OCTOPUS_DEFAULT_ROLES,
-    'pacific': OCTOPUS_DEFAULT_ROLES,
-    'caasp4': [["master"], ["worker"], ["worker"], ["loadbalancer"]],
-    'makecheck': [["makecheck"]],
-}
-
-VERSION_OS_REPO_MAPPING = {
-    'ses5': {
-        'sles-12-sp3': [
-            'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
-            'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/'
-        ],
-    },
-    'nautilus': {
-        'leap-15.1': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
-            'openSUSE_Leap_15.1/'
-        ],
-    },
-    'ses6': {
-        'sles-15-sp1': [
-            'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
-            'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/'
-        ],
-    },
-    'octopus': {
-        'leap-15.1': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
-            'openSUSE_Leap_15.1'
-        ],
-        'leap-15.2': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/'
-            'openSUSE_Leap_15.2'
-        ],
-        'tumbleweed': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/'
-            'openSUSE_Tumbleweed'
-        ],
-    },
-    'pacific': {
-        'leap-15.2': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
-            'openSUSE_Leap_15.2'
-        ],
-        'tumbleweed': [
-            'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
-            'openSUSE_Tumbleweed'
-        ],
-    },
-    'ses7': {
-        'sles-15-sp2': [
-            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
-            'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
-        ],
-    },
-    'caasp4': {
-        'sles-15-sp1': [
-            'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40:/Update/'
-            'standard/',
-            'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/',
-            'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/'
-        ],
-    },
-    'makecheck': {
-        'sles-12-sp3': [
-            'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
-            'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/',
-            'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
-            'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
-        ],
-        'sles-15-sp1': [
-            'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
-            'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/',
-            # 'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
-            # 'SUSE-Enterprise-Storage-6-POOL-Internal-x86_64-Media/',
-        ],
-        'leap-15.1': [],
-        'sles-15-sp2': [
-            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
-            'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
-            'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
-            'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
-        ],
-        'leap-15.2': [],
-        'tumbleweed': [],
-    },
-}
-
-MAKECHECK_DEFAULT_REPO_BRANCH = {
-    'sles-12-sp3': {
-        'repo': 'https://github.com/SUSE/ceph',
-        'branch': 'ses5',
-    },
-    'sles-15-sp1': {
-        'repo': 'https://github.com/SUSE/ceph',
-        'branch': 'ses6-downstream-commits',
-    },
-    'leap-15.1': {
-        'repo': 'https://github.com/ceph/ceph',
-        'branch': 'nautilus',
-    },
-    'sles-15-sp2': {
-        'repo': 'https://github.com/SUSE/ceph',
-        'branch': 'ses7',
-    },
-    'leap-15.2': {
-        'repo': 'https://github.com/ceph/ceph',
-        'branch': 'octopus',
-    },
-    'tumbleweed': {
-        'repo': 'https://github.com/ceph/ceph',
-        'branch': 'master',
-    },
-}
-
-SETTINGS = {
-    # RESERVED KEY, DO NOT USE: 'strict'
-    'version': {
-        'type': str,
-        'help': 'Deployment version to install ("nautilus", "ses6", "caasp4", etc.)',
-        'default': 'nautilus',
-    },
-    'os': {
-        'type': str,
-        'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
-        'default': '',
-    },
-    'os_repos': {
-        'type': dict,
-        'help': 'repos to add on all VMs of a given operating system (os)',
-        'default': OS_REPOS,
-    },
-    'version_os_repo_mapping': {
-        'type': dict,
-        'help': 'additional repos to be added on particular VERSION:OS combinations',
-        'default': VERSION_OS_REPO_MAPPING,
-    },
-    'image_paths': {
-        'type': dict,
-        'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
-        'default': IMAGE_PATHS,
-    },
-    'vagrant_box': {
-        'type': str,
-        'help': 'Vagrant box to use in deployment',
-        'default': '',
-    },
-    'vm_engine': {
-        'type': str,
-        'help': 'VM engine to use for VM deployment. Current options [libvirt]',
-        'default': 'libvirt',
-    },
-    'libvirt_host': {
-        'type': str,
-        'help': 'Hostname/IP address of the libvirt host',
-        'default': '',
-    },
-    'libvirt_user': {
-        'type': str,
-        'help': 'Username to use to login into the libvirt host',
-        'default': '',
-    },
-    'libvirt_use_ssh': {
-        'type': bool,
-        'help': 'Flag to control the use of SSH when connecting to the libvirt host',
-        'default': None,
-    },
-    'libvirt_private_key_file': {
-        'type': str,
-        'help': 'Path to SSH private key file to use when connecting to the libvirt host',
-        'default': '',
-    },
-    'libvirt_storage_pool': {
-        'type': str,
-        'help': 'The libvirt storage pool to use for creating VMs',
-        'default': '',
-    },
-    'libvirt_networks': {
-        'type': str,
-        'help': 'Existing libvirt networks to use (single or comma separated list)',
-        'default': '',
-    },
-    'ram': {
-        'type': int,
-        'help': 'RAM size in gigabytes for each node',
-        'default': 4,
-    },
-    'explicit_ram': {
-        'type': bool,
-        'help': 'Whether --ram was given on the command line',
-        'default': False,
-    },
-    'cpus': {
-        'type': int,
-        'help': 'Number of virtual CPUs in each node',
-        'default': 2,
-    },
-    'explicit_cpus': {
-        'type': bool,
-        'help': 'Whether --cpus was given on the command line',
-        'default': False,
-    },
-    'single_node': {
-        'type': bool,
-        'help': 'Whether --single-node was given on the command line',
-        'default': False,
-    },
-    'num_disks': {
-        'type': int,
-        'help': 'Number of additional disks in storage nodes',
-        'default': 2,
-    },
-    'explicit_num_disks': {
-        'type': bool,
-        'help': 'Whether --num-disks was given on the command line',
-        'default': False,
-    },
-    'disk_size': {
-        'type': int,
-        'help': 'Storage disk size in gigabytes',
-        'default': 8,
-    },
-    'version_default_roles': {
-        'type': dict,
-        'help': 'Default roles for each node - one set of default roles per deployment version',
-        'default': VERSION_DEFAULT_ROLES,
-    },
-    'roles': {
-        'type': list,
-        'help': 'Roles to apply to the current deployment',
-        'default': [],
-    },
-    'public_network': {
-        'type': str,
-        'help': 'The network address prefix for the public network',
-        'default': '',
-    },
-    'cluster_network': {
-        'type': str,
-        'help': 'The network address prefix for the cluster network',
-        'default': '',
-    },
-    'domain': {
-        'type': str,
-        'help': 'The domain name for nodes',
-        'default': '{}.test',
-    },
-    'non_interactive': {
-        'type': bool,
-        'help': 'Whether the user wants to be asked',
-        'default': False,
-    },
-    'encrypted_osds': {
-        'type': bool,
-        'help': 'Whether OSDs should be deployed encrypted',
-        'default': False,
-    },
-    'filestore_osds': {
-        'type': bool,
-        'help': 'Whether OSDs should be deployed with FileStore instead of BlueStore',
-        'default': False,
-    },
-    'deployment_tool': {
-        'type': str,
-        'help': 'Deployment tool (deepsea, cephadm) to deploy the Ceph cluster',
-        'default': '',
-    },
-    'deepsea_git_repo': {
-        'type': str,
-        'help': 'If set, it will install DeepSea from this git repo',
-        'default': '',
-    },
-    'deepsea_git_branch': {
-        'type': str,
-        'help': 'Git branch to use',
-        'default': 'master',
-    },
-    'stop_before_stage': {
-        'type': int,
-        'help': 'Stop deployment before running the specified DeepSea stage',
-        'default': None,
-    },
-    'repos': {
-        'type': list,
-        'help': 'Custom repos dictionary to apply to all nodes',
-        'default': [],
-    },
-    'repo_priority': {
-        'type': bool,
-        'help': 'Automatically set priority on custom zypper repos',
-        'default': True,
-    },
-    'devel_repo': {
-        'type': bool,
-        'help': 'Include devel repo, if applicable',
-        'default': True,
-    },
-    'qa_test': {
-        'type': bool,
-        'help': 'Automatically run integration tests on the deployed cluster',
-        'default': False,
-    },
-    'scc_username': {
-        'type': str,
-        'help': 'SCC organization username',
-        'default': '',
-    },
-    'scc_password': {
-        'type': str,
-        'help': 'SCC organization password',
-        'default': '',
-    },
-    'ceph_salt_git_repo': {
-        'type': str,
-        'help': 'If set, it will install ceph-salt from this git repo',
-        'default': '',
-    },
-    'ceph_salt_git_branch': {
-        'type': str,
-        'help': 'ceph-salt git branch to use',
-        'default': '',
-    },
-    'stop_before_ceph_salt_config': {
-        'type': bool,
-        'help': 'Stops deployment before ceph-salt config',
-        'default': False,
-    },
-    'stop_before_ceph_salt_apply': {
-        'type': bool,
-        'help': 'Stops deployment before ceph-salt apply',
-        'default': False,
-    },
-    'stop_before_ceph_orch_apply': {
-        'type': bool,
-        'help': 'Stops deployment before ceph orch apply',
-        'default': False,
-    },
-    'image_path': {
-        'type': str,
-        'help': 'Container image path for Ceph daemons',
-        'default': '',
-    },
-    'makecheck_ceph_repo': {
-        'type': str,
-        'help': 'Repo from which to clone Ceph source code',
-        'default': '',
-    },
-    'makecheck_ceph_branch': {
-        'type': str,
-        'help': 'Branch to check out for purposes of running "make check"',
-        'default': '',
-    },
-    'makecheck_username': {
-        'type': str,
-        'help': 'Name of ordinary user that will run make check',
-        'default': 'sesdev',
-    },
-    'makecheck_stop_before_git_clone': {
-        'type': bool,
-        'help': 'Stop before cloning the git repo (make check)',
-        'default': False,
-    },
-    'makecheck_stop_before_install_deps': {
-        'type': bool,
-        'help': 'Stop before running install-deps.sh (make check)',
-        'default': False,
-    },
-    'makecheck_stop_before_run_make_check': {
-        'type': bool,
-        'help': 'Stop before running run-make-check.sh (make check)',
-        'default': False,
-    },
-    'use_salt': {
-        'type': bool,
-        'help': 'Use "salt" (or "salt-run") to apply Salt Formula (or execute DeepSea Stages)',
-        'default': False,
-    },
-    'caasp_deploy_ses': {
-        'type': bool,
-        'help': 'Deploy SES using rook in CaasP',
-        'default': False,
-    },
-    'synced_folder': {
-        'type': list,
-        'help': 'Sync Folders to VM',
-        'default': [],
-    },
-}
+from .log import Log
+from .settings import Settings, SettingsEncoder
 
 
 class Box():
@@ -666,7 +79,7 @@ class Box():
         self.libvirt_uri = uri
 
     def _populate_box_list(self):
-        self.all_possible_boxes = OS_BOX_MAPPING.keys()
+        self.all_possible_boxes = Constant.OS_BOX_MAPPING.keys()
         self.boxes = []
         output = tools.run_sync(["vagrant", "box", "list"])
         lines = output.split('\n')
@@ -722,7 +135,7 @@ class Box():
         domains = [x for x in self.libvirt_conn.listAllDomains() if
                    x.name().startswith(dep_id)]
 
-        logger.debug("libvirt matching domains: %s", domains)
+        Log.debug("libvirt matching domains: {}".format(domains))
 
         networks = set()
         for domain in domains:
@@ -734,7 +147,7 @@ class Box():
                       source.parentNode.hasAttribute("type") and
                       source.parentNode.getAttribute("type") == "network"]
 
-            logger.debug("libvirt domain's interfaces: %s", ifaces)
+            Log.debug("libvirt domain's interfaces: {}".format(ifaces))
 
             for iface in ifaces:
                 name = iface.getAttribute("network")
@@ -769,93 +182,16 @@ class Box():
         try:
             network = self.libvirt_conn.networkLookupByName(name)
         except libvirt.libvirtError:
-            logger.warning("Unable to find network '%s' for removal", name)
+            Log.warning("Unable to find network '{}' for removal".format(name))
             return False
 
         try:
             network.destroy()
         except libvirt.libvirtError:
-            logger.error("Something went wrong destroying network '%s'", name)
+            Log.error("Something went wrong destroying network '{}'".format(name))
             return False
 
         return True
-
-
-class Settings():
-    # pylint: disable=no-member
-    def __init__(self, strict=True, **kwargs):
-        self.strict = strict
-        config = self._load_config_file()
-
-        self._apply_settings(config)
-        self._apply_settings(kwargs)
-
-        for k, v in SETTINGS.items():
-            if k not in kwargs and k not in config:
-                setattr(self, k, v['default'])
-
-    def override(self, setting, new_value):
-        if setting not in SETTINGS:
-            raise SettingNotKnown(setting)
-        _log_debug("Overriding setting '{}', old value: {}"
-                   .format(setting, getattr(self, setting)))
-        _log_debug("Overriding setting '{}', new value: {}"
-                   .format(setting, new_value))
-        setattr(self, setting, new_value)
-
-    def _apply_settings(self, settings_dict):
-        for k, v in settings_dict.items():
-            if k not in SETTINGS:
-                if self.strict:
-                    raise SettingNotKnown(k)
-                logger.warning("Setting '%s' is not known - listing a legacy cluster?", k)
-                continue
-            if v is not None and not isinstance(v, SETTINGS[k]['type']):
-                logger.error("Setting '%s' value has wrong type: expected %s but got %s", k,
-                             SETTINGS[k]['type'], type(v))
-                raise SettingTypeError(k, SETTINGS[k]['type'], v)
-            setattr(self, k, v)
-
-    @staticmethod
-    def _load_config_file():
-
-        config_tree = {}
-
-        def __fill_in_config_tree(config_param, global_param):
-            """
-            fill in missing parts of config_tree[config_param]
-            from global_param
-            """
-            if config_param in config_tree:
-                for k, v in global_param.items():
-                    if k in config_tree[config_param]:
-                        pass
-                    else:
-                        config_tree[config_param][k] = v
-
-        if not os.path.exists(GlobalSettings.CONFIG_FILE) \
-                or not os.path.isfile(GlobalSettings.CONFIG_FILE):
-            return config_tree
-        with open(GlobalSettings.CONFIG_FILE, 'r') as file:
-            try:
-                config_tree = yaml.load(file, Loader=yaml.FullLoader)
-            except AttributeError:  # older versions of pyyaml does not have FullLoader
-                config_tree = yaml.load(file)
-        if not config_tree:
-            config_tree = {}
-        _log_debug("_load_config_file: config_tree: {}".format(config_tree))
-        assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
-        __fill_in_config_tree('os_repos', OS_REPOS)
-        __fill_in_config_tree('version_os_repo_mapping', VERSION_OS_REPO_MAPPING)
-        __fill_in_config_tree('image_paths', IMAGE_PATHS)
-        __fill_in_config_tree('version_default_roles', VERSION_DEFAULT_ROLES)
-        return config_tree
-
-
-class SettingsEncoder(json.JSONEncoder):
-    # pylint: disable=method-hidden
-    def default(self, o):
-        return {k: getattr(o, k) for k in SETTINGS}
 
 
 class Disk():
@@ -900,18 +236,18 @@ class Node():
         self.repo_priority = repo_priority
 
     def has_role(self, role):
-        if role not in KNOWN_ROLES:
+        if role not in Constant.KNOWN_ROLES:
             raise RoleNotKnown(role)
         return role in self.roles
 
     def has_roles(self):
-        _log_debug("Node {}: has_roles: self.roles: {}".format(self.fqdn, self.roles))
+        Log.debug("Node {}: has_roles: self.roles: {}".format(self.fqdn, self.roles))
         return bool(self.roles)
 
     def has_exclusive_role(self, role):
-        _log_debug("Node {}: has_exclusive_role: self.roles: {}"
-                   .format(self.fqdn, self.roles))
-        if role not in KNOWN_ROLES:
+        Log.debug("Node {}: has_exclusive_role: self.roles: {}"
+                  .format(self.fqdn, self.roles))
+        if role not in Constant.KNOWN_ROLES:
             raise RoleNotKnown(role)
         return self.roles == [role]
 
@@ -979,10 +315,10 @@ class Deployment():
         self.node_counts = {}
         self.nodes_with_role = {}
         self.roles_of_nodes = {}
-        for role in KNOWN_ROLES:
+        for role in Constant.KNOWN_ROLES:
             self.node_counts[role] = 0
             self.nodes_with_role[role] = []
-        _log_debug("Deployment ctor: node_counts: {}".format(self.node_counts))
+        Log.debug("Deployment ctor: node_counts: {}".format(self.node_counts))
         self.master = None
         self.suma = None
         self.box = Box(settings)
@@ -995,11 +331,12 @@ class Deployment():
                                    )
 
         if not self.settings.os:
-            self.settings.os = VERSION_PREFERRED_OS[self.settings.version]
+            self.settings.os = Constant.VERSION_PREFERRED_OS[self.settings.version]
 
         if not self.settings.deployment_tool \
                 and self.settings.version not in ['caasp4', 'makecheck']:
-            self.settings.deployment_tool = VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
+            self.settings.deployment_tool = \
+                Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
         if self.settings.deployment_tool == 'cephadm':
             if not self.settings.image_path:
@@ -1010,29 +347,29 @@ class Deployment():
 
         if self.settings.version == 'makecheck':
             self.settings.override('single_node', True)
-            self.settings.override('roles', VERSION_DEFAULT_ROLES['makecheck'])
+            self.settings.override('roles', Constant.VERSION_DEFAULT_ROLES['makecheck'])
             if not self.settings.explicit_num_disks:
                 self.settings.override('num_disks', 0)
                 self.settings.override('explicit_num_disks', True)
             if not self.settings.explicit_ram:
-                self.settings.override('ram', GlobalSettings.MAKECHECK_DEFAULT_RAM)
+                self.settings.override('ram', Constant.MAKECHECK_DEFAULT_RAM)
                 self.settings.override('explicit_ram', True)
             if not self.settings.makecheck_ceph_repo:
                 self.settings.override(
                     'makecheck_ceph_repo',
-                    MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
+                    Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
                     )
             if not self.settings.makecheck_ceph_branch:
                 self.settings.override(
                     'makecheck_ceph_branch',
-                    MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
+                    Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
                     )
 
         self._generate_nodes()
 
     @property
     def _dep_dir(self):
-        return os.path.join(GlobalSettings.A_WORKING_DIR, self.dep_id)
+        return os.path.join(Constant.A_WORKING_DIR, self.dep_id)
 
     def _needs_cluster_network(self):
         if len(self.settings.roles) == 1:  # there is only 1 node
@@ -1087,17 +424,17 @@ class Deployment():
         worker_id = 0
         loadbl_id = 0
         nfs_id = 0
-        _log_debug("_generate_nodes: about to process cluster roles: {}"
-                   .format(self.settings.roles))
+        Log.debug("_generate_nodes: about to process cluster roles: {}"
+                  .format(self.settings.roles))
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             for role in node_roles:
-                if role not in KNOWN_ROLES:
+                if role not in Constant.KNOWN_ROLES:
                     raise RoleNotKnown(role)
-            for role_type in KNOWN_ROLES:
+            for role_type in Constant.KNOWN_ROLES:
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
 
-        if self.settings.version in GlobalSettings.CORE_VERSIONS:
+        if self.settings.version in Constant.CORE_VERSIONS:
             if self.node_counts['master'] == 0:
                 self.settings.roles[0].append('master')
                 self.node_counts['master'] = 1
@@ -1119,7 +456,7 @@ class Deployment():
                 else:
                     # go with the default
                     pass
-        logger.debug("_generate_nodes: storage_nodes == %s", str(storage_nodes))
+        Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
 
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             if self.settings.version == 'caasp4':
@@ -1275,8 +612,8 @@ class Deployment():
                     "priority": 0,
                 }
             version_repos_prio.append(version_repos_dict)
-        _log_debug("generate_vagrantfile: version_repos_prio: {}"
-                   .format(version_repos_prio))
+        Log.debug("generate_vagrantfile: version_repos_prio: {}"
+                  .format(version_repos_prio))
 
         if self.settings.os in self.settings.os_repos:
             os_base_repos = list(self.settings.os_repos[self.settings.os].items())
@@ -1288,19 +625,19 @@ class Deployment():
         ceph_salt_fetch_github_pr_merges = False
         ceph_salt_git_branch = self.settings.ceph_salt_git_branch
         if ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr/'):
-            _log_info("Detected special ceph-salt GitHub PR (HEAD) branch {}"
-                      .format(ceph_salt_git_branch)
-                      )
+            Log.info("Detected special ceph-salt GitHub PR (HEAD) branch {}"
+                     .format(ceph_salt_git_branch)
+                     )
             ceph_salt_fetch_github_pr_heads = True
         elif ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr-merged/'):
-            _log_info("Detected special ceph-salt GitHub PR (MERGE) branch {}"
-                      .format(ceph_salt_git_branch)
-                      )
+            Log.info("Detected special ceph-salt GitHub PR (MERGE) branch {}"
+                     .format(ceph_salt_git_branch)
+                     )
             ceph_salt_fetch_github_pr_merges = True
 
         context = {
-            'ssh_key_name': GlobalSettings.SSH_KEY_NAME,
-            'sesdev_path_to_qa': GlobalSettings.PATH_TO_QA,
+            'ssh_key_name': Constant.SSH_KEY_NAME,
+            'sesdev_path_to_qa': Constant.PATH_TO_QA,
             'dep_id': self.dep_id,
             'os': self.settings.os,
             'vm_engine': self.settings.vm_engine,
@@ -1330,7 +667,7 @@ class Deployment():
             'os_base_repos': os_base_repos,
             'repo_priority': self.settings.repo_priority,
             'devel_repo': self.settings.devel_repo,
-            'core_version': self.settings.version in GlobalSettings.CORE_VERSIONS,
+            'core_version': self.settings.version in Constant.CORE_VERSIONS,
             'qa_test': self.settings.qa_test,
             'node_list': self.node_list,
             'nfs_nodes': self.node_counts["nfs"],
@@ -1381,10 +718,10 @@ class Deployment():
         for node in self.nodes.values():
             context_cpy = dict(context)
             context_cpy['node'] = node
-            template = JINJA_ENV.get_template('provision.sh.j2')
+            template = Constant.JINJA_ENV.get_template('provision.sh.j2')
             scripts['provision_{}.sh'.format(node.name)] = template.render(**context_cpy)
 
-        template = JINJA_ENV.get_template('Vagrantfile.j2')
+        template = Constant.JINJA_ENV.get_template('Vagrantfile.j2')
         scripts['Vagrantfile'] = template.render(**context)
         return scripts
 
@@ -1395,7 +732,7 @@ class Deployment():
         public_key = key.publickey().exportKey('OpenSSH')
 
         os.makedirs(self._dep_dir, exist_ok=False)
-        metadata_file = os.path.join(self._dep_dir, METADATA_FILENAME)
+        metadata_file = os.path.join(self._dep_dir, Constant.METADATA_FILENAME)
         with open(metadata_file, 'w') as file:
             json.dump({
                 'id': self.dep_id,
@@ -1411,13 +748,13 @@ class Deployment():
         keys_dir = os.path.join(self._dep_dir, 'keys')
         os.makedirs(keys_dir)
 
-        with open(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 'w') as file:
+        with open(os.path.join(keys_dir, Constant.SSH_KEY_NAME), 'w') as file:
             file.write(private_key.decode('utf-8'))
-        os.chmod(os.path.join(keys_dir, GlobalSettings.SSH_KEY_NAME), 0o600)
+        os.chmod(os.path.join(keys_dir, Constant.SSH_KEY_NAME), 0o600)
 
-        with open(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 'w') as file:
+        with open(os.path.join(keys_dir, str(Constant.SSH_KEY_NAME + '.pub')), 'w') as file:
             file.write(str(public_key.decode('utf-8') + " sesdev\n"))
-        os.chmod(os.path.join(keys_dir, str(GlobalSettings.SSH_KEY_NAME + '.pub')), 0o600)
+        os.chmod(os.path.join(keys_dir, str(Constant.SSH_KEY_NAME + '.pub')), 0o600)
 
         # bin dir with helper scripts
         bin_dir = os.path.join(self._dep_dir, 'bin')
@@ -1431,8 +768,8 @@ class Deployment():
             using_custom_box = False
             vagrant_box = self.settings.os
 
-        _log_info("Checking if vagrant box is already here: {}"
-                  .format(vagrant_box))
+        Log.info("Checking if vagrant box is already here: {}"
+                 .format(vagrant_box))
         found_box = False
         output = tools.run_sync(["vagrant", "box", "list"])
         lines = output.split('\n')
@@ -1440,17 +777,17 @@ class Deployment():
             if line:
                 box_name = line.split()[0]
                 if box_name == vagrant_box:
-                    logger.info("Found vagrant box")
+                    Log.info("Found vagrant box")
                     found_box = True
                     break
 
         if not found_box:
             if using_custom_box:
-                logger.error("Vagrant box '%s' is not installed", vagrant_box)
+                Log.error("Vagrant box '{}' is not installed".format(vagrant_box))
                 raise VagrantBoxDoesNotExist(vagrant_box)
 
-            logger.info("Vagrant box for '%s' is not installed, we need to add it",
-                        self.settings.os)
+            Log.info("Vagrant box for '{}' is not installed, we need to add it"
+                     .format(self.settings.os))
 
             log_handler("Downloading vagrant box: {}\n".format(self.settings.os))
 
@@ -1460,14 +797,17 @@ class Deployment():
                 # runs, the new box will be uploaded to libvirt
                 self.box.remove_image(image_to_remove)
 
-            tools.run_async(["vagrant", "box", "add", "--provider", "libvirt", "--name",
-                             self.settings.os, OS_BOX_MAPPING[self.settings.os]], log_handler)
+            tools.run_async(
+                ["vagrant", "box", "add", "--provider", "libvirt", "--name",
+                 self.settings.os, Constant.OS_BOX_MAPPING[self.settings.os]],
+                log_handler
+                )
 
     def _vagrant_up(self, node, log_handler):
         cmd = ["vagrant", "up"]
         if node is not None:
             cmd.append(node)
-        if GlobalSettings.VAGRANT_DEBUG:
+        if Constant.VAGRANT_DEBUG:
             cmd.append('--debug')
         tools.run_async(cmd, log_handler, self._dep_dir)
 
@@ -1479,14 +819,14 @@ class Deployment():
         if destroy_networks:
             used_networks = self.box.get_networks_by_deployment(self.dep_id)
 
-        logger.debug("should destroy networks: %s, networks: %s",
-                     destroy_networks, used_networks)
+        Log.debug("should destroy networks: {}, networks: {}"
+                  .format(destroy_networks, used_networks))
 
         for node in self.nodes.values():
             if node.status == 'not deployed':
                 continue
             cmd = ["vagrant", "destroy", node.name, "--force"]
-            if GlobalSettings.VAGRANT_DEBUG:
+            if Constant.VAGRANT_DEBUG:
                 cmd.append('--debug')
             tools.run_async(cmd, log_handler, self._dep_dir)
 
@@ -1500,19 +840,18 @@ class Deployment():
                 self.box.remove_image(image)
 
         for network in used_networks:
-            logger.info("Destroy network '%s'", network)
+            Log.info("Destroy network '{}'".format(network))
             if not self.box.destroy_network(network):
-                logger.warning(
-                    "Unable to destroy network '%s' for deployment '%s'",
-                    network, self.dep_id)
+                Log.warning("Unable to destroy network '{}' for deployment '{}'"
+                            .format(network, self.dep_id))
             else:
-                logger.info("Destroyed network '%s' for deployment '%s'",
-                            network, self.dep_id)
+                Log.info("Destroyed network '{}' for deployment '{}'"
+                         .format(network, self.dep_id))
 
     def _stop(self, node):
         if self.nodes[node].status != "running":
-            logger.warning("Node '%s' is not running: current status '%s'", node,
-                           self.nodes[node].status)
+            Log.warning("Node '{}' is not running: current status '{}'"
+                        .format(node, self.nodes[node].status))
             return
         ssh_cmd = self._ssh_cmd(node)
         ssh_cmd.extend(['echo "sleep 2 && shutdown -h now" > /root/shutdown.sh '
@@ -1603,7 +942,7 @@ class Deployment():
                     "Yes" if self.settings.encrypted_osds else "No")
                 result += "     - OSD objectstore:  {}\n".format(
                     "FileStore" if self.settings.filestore_osds else "BlueStore")
-            if self.settings.version in GlobalSettings.CORE_VERSIONS:
+            if self.settings.version in Constant.CORE_VERSIONS:
                 result += "     - repo_priority:    {}\n".format(self.settings.repo_priority)
                 result += "     - qa_test:          {}\n".format(self.settings.qa_test)
             if self.settings.version in ['octopus', 'ses7', 'pacific']:
@@ -1673,7 +1012,7 @@ class Deployment():
                 raise RoleNotSupported('loadbalancer', self.settings.version)
         # no node may have more than one of any role
         for node in self.settings.roles:
-            for role in KNOWN_ROLES:
+            for role in Constant.KNOWN_ROLES:
                 if node.count(role) > 1:
                     raise DuplicateRolesNotSupported(role)
 
@@ -1695,7 +1034,7 @@ class Deployment():
         if address is None:
             raise VagrantSshConfigNoHostName(name)
 
-        dep_private_key = os.path.join(self._dep_dir, str("keys/" + GlobalSettings.SSH_KEY_NAME))
+        dep_private_key = os.path.join(self._dep_dir, str("keys/" + Constant.SSH_KEY_NAME))
 
         return (address, proxycmd, dep_private_key)
 
@@ -1830,7 +1169,7 @@ class Deployment():
         if self.settings.os.startswith("sle"):
             log_msg = ("The OS ->{}<- is SLE, where supportconfig is available"
                        .format(self.settings.os))
-            logger.debug(log_msg)
+            Log.debug(log_msg)
         else:
             raise SupportconfigOnlyOnSLE()
         log_handler("=> Running supportconfig on deployment ID: {} (OS: {})\n".format(
@@ -1862,7 +1201,7 @@ class Deployment():
             )
 
     def add_repo_subcommand(self, custom_repo, update, log_handler):
-        if self.settings.version in GlobalSettings.CORE_VERSIONS:
+        if self.settings.version in Constant.CORE_VERSIONS:
             pass
         else:
             raise SubcommandNotSupportedInVersion('add-repo', self.settings.version)
@@ -1921,17 +1260,17 @@ class Deployment():
                 service_url = 'https://{}:{}'.format(local_address, local_port)
                 ssh_cmd = self._ssh_cmd('master')
                 ssh_cmd += ["ceph", "mgr", "services"]
-                _log_debug("About to run: {}".format(ssh_cmd))
+                Log.debug("About to run: {}".format(ssh_cmd))
                 try:
                     raw_json = tools.run_sync(ssh_cmd)
                     raw_json = raw_json.strip()
-                    _log_debug("Got output: {}".format(raw_json))
+                    Log.debug("Got output: {}".format(raw_json))
                     decoded_json = json.loads(raw_json)
-                    _log_debug("Decoded json: {}".format(decoded_json))
+                    Log.debug("Decoded json: {}".format(decoded_json))
                     dashboard_url = decoded_json['dashboard']
-                    _log_debug("Dashboard URL: {}".format(dashboard_url))
+                    Log.debug("Dashboard URL: {}".format(dashboard_url))
                     node = re.match(r"https://([^.]*).*", dashboard_url).group(1)
-                    _log_debug("Extracted node: {}".format(node))
+                    Log.debug("Extracted node: {}".format(node))
                 except (CmdException, AttributeError, KeyError):
                     node = 'null'
                 if node == 'null':
@@ -1965,7 +1304,7 @@ class Deployment():
         ssh_cmd.extend(["-M", "-S", "{}-admin-socket".format(self.dep_id), "-fNT", "-L",
                         "{}:{}:{}:{}".format(local_address, local_port, self.nodes[node].fqdn,
                                              remote_port)])
-        _log_debug("About to run: {}".format(ssh_cmd))
+        Log.debug("About to run: {}".format(ssh_cmd))
         print("You can now access the service in: {}".format(service_url))
         tools.run_sync(ssh_cmd)
 
@@ -2151,24 +1490,26 @@ class Deployment():
 
     @classmethod
     def create(cls, dep_id, settings):
-        dep_dir = os.path.join(GlobalSettings.A_WORKING_DIR, dep_id)
+        dep_dir = os.path.join(Constant.A_WORKING_DIR, dep_id)
         if os.path.exists(dep_dir):
             raise DeploymentAlreadyExists(dep_id)
 
         dep = cls(dep_id, settings)
-        logger.info("creating new deployment: %s", dep)
+        Log.info("creating new deployment: {}".format(dep))
         dep.save()
         return dep
 
     @classmethod
     def load(cls, dep_id, load_status=True):
-        dep_dir = os.path.join(GlobalSettings.A_WORKING_DIR, dep_id)
+        dep_dir = os.path.join(Constant.A_WORKING_DIR, dep_id)
         if not os.path.exists(dep_dir) or not os.path.isdir(dep_dir):
-            logger.debug("%s does not exist or is not a directory", dep_dir)
+            Log.debug("->{}<- does not exist or is not a directory"
+                      .format(dep_dir))
             raise DeploymentDoesNotExists(dep_id)
-        metadata_file = os.path.join(dep_dir, METADATA_FILENAME)
+        metadata_file = os.path.join(dep_dir, Constant.METADATA_FILENAME)
         if not os.path.exists(metadata_file) or not os.path.isfile(metadata_file):
-            logger.debug("metadata file %s does not exist or is not a file", metadata_file)
+            Log.debug("metadata file ->{}<- does not exist or is not a file"
+                      .format(metadata_file))
             raise DeploymentDoesNotExists(dep_id)
 
         with open(metadata_file, 'r') as file:
@@ -2182,11 +1523,11 @@ class Deployment():
     @classmethod
     def list(cls, load_status=False):
         deps = []
-        if not os.path.exists(GlobalSettings.A_WORKING_DIR):
+        if not os.path.exists(Constant.A_WORKING_DIR):
             return deps
-        for dep_id in os.listdir(GlobalSettings.A_WORKING_DIR):
+        for dep_id in os.listdir(Constant.A_WORKING_DIR):
             if dep_id.startswith("config.yaml"):
-                logger.debug("Skipping %s (obviously not a deployment)", dep_id)
+                Log.debug("Skipping ->{}<- (obviously not a deployment)".format(dep_id))
                 continue
             try:
                 deps.append(Deployment.load(dep_id, load_status))
