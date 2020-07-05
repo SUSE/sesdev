@@ -1,6 +1,6 @@
 import pytest
 
-from seslib import _vet_dep_id
+from seslib.deployment import _vet_dep_id
 from seslib.exceptions import DepIDWrongLength, DepIDIllegalChars
 
 def test_vet_dep_id():

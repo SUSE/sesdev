@@ -9,7 +9,9 @@ import click
 import pkg_resources
 from prettytable import PrettyTable
 
-import seslib
+from seslib.box import Box
+from seslib.constant import Constant
+from seslib.deployment import Deployment
 from seslib.exceptions import \
                               SesDevException, \
                               NoExplicitRolesWithSingleNode, \
@@ -17,7 +19,7 @@ from seslib.exceptions import \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
                               VersionNotKnown
-from seslib.constant import Constant
+from seslib.settings import Settings
 
 
 logger = logging.getLogger(__name__)
@@ -259,7 +261,7 @@ def list_deps(format_opt):
     """
     p_table = None
     deployments_list = []
-    deps = seslib.Deployment.list(True)
+    deps = Deployment.list(True)
     if deps:
         log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
         logger.info(log_msg)
@@ -337,8 +339,8 @@ def list_boxes(**kwargs):
     click.echo("List of all Vagrant Boxes installed in the system")
     click.echo("-------------------------------------------------")
     settings_dict = _gen_box_settings_dict(**kwargs)
-    settings = seslib.Settings(**settings_dict)
-    box_obj = seslib.Box(settings)
+    settings = Settings(**settings_dict)
+    box_obj = Box(settings)
     box_obj.list()
 
 
@@ -360,10 +362,10 @@ def remove_box(box_name, **kwargs):
     storage pool, and then running 'vagrant box remove' on it.
     """
     settings_dict = _gen_box_settings_dict(**kwargs)
-    settings = seslib.Settings(**settings_dict)
+    settings = Settings(**settings_dict)
     #
     # existing deployments might be using this box
-    deps = seslib.Deployment.list(True)
+    deps = Deployment.list(True)
     existing_deployments = []
     for dep in deps:
         if box_name == dep.settings.os:
@@ -384,7 +386,7 @@ def remove_box(box_name, **kwargs):
             click.echo("These must be destroyed first!")
         sys.exit(-1)
 
-    box_obj = seslib.Box(settings)
+    box_obj = Box(settings)
 
     if box_obj.exists(box_name):
         click.echo("Proceeding to remove Vagrant Box ->{}<-".format(box_name))
@@ -680,8 +682,8 @@ def _gen_settings_dict(version,
 
 def _create_command(deployment_id, deploy, settings_dict):
     interactive = not settings_dict.get('non_interactive', False)
-    settings = seslib.Settings(**settings_dict)
-    dep = seslib.Deployment.create(deployment_id, settings)
+    settings = Settings(**settings_dict)
+    dep = Deployment.create(deployment_id, settings)
     if not dep.settings.devel_repo:
         if dep.settings.version not in Constant.CORE_VERSIONS:
             raise OptionNotSupportedInVersion('--product', dep.settings.version)
@@ -905,12 +907,12 @@ def _is_a_glob(a_string):
 def _maybe_glob_deps(deployment_id):
     matching_deployments = None
     if _is_a_glob(deployment_id):
-        deps = seslib.Deployment.list(True)
+        deps = Deployment.list(True)
         dep_ids = [d.dep_id for d in deps]
         matching_dep_ids = fnmatch.filter(dep_ids, deployment_id)
         matching_deployments = [d for d in deps if d.dep_id in matching_dep_ids]
     else:
-        matching_deployments = [seslib.Deployment.load(deployment_id)]
+        matching_deployments = [Deployment.load(deployment_id)]
     return matching_deployments
 
 
@@ -967,7 +969,7 @@ def ssh(deployment_id, node=None, command=None):
     Note: You can check the existing node names with the command
     "sesdev show <deployment_id>"
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     node_name = 'master' if node is None else node
     if command:
         log_msg = "Running SSH command on {}: {}".format(node_name, command)
@@ -1012,7 +1014,7 @@ def scp(recursive, deployment_id, source, destination):
 
         sesdev scp foo -r /bar node1:
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     dep.scp(source, destination, recurse=recursive)
 
 
@@ -1022,7 +1024,7 @@ def qa_test(deployment_id):
     """
     Runs QA test on an already-deployed cluster.
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     dep.qa_test(_print_log)
 
 
@@ -1038,7 +1040,7 @@ def add_repo(update, deployment_id, custom_repo):
     omitted, the "devel" repo (which has a specific meaning depending on the
     deployment version) will be added.
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     dep.add_repo_subcommand(custom_repo, update, _print_log)
 
 
@@ -1055,7 +1057,7 @@ def supportconfig(deployment_id, node):
     NOTE: supportconfig is only available in deployments running on SUSE Linux
     Enterprise.
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     _node = 'master' if node is None else node
     dep.supportconfig(_print_log, _node)
 
@@ -1111,7 +1113,7 @@ def show(deployment_id):
     """
     Shows the information of deployment DEPLOYMENT_ID
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     click.echo(dep.status())
 
 
@@ -1138,9 +1140,9 @@ def redeploy(deployment_id, **kwargs):
                 )
         if not really_want_to:
             raise click.Abort()
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     dep.destroy(_print_log)
-    dep = seslib.Deployment.create(deployment_id, dep.settings)
+    dep = Deployment.create(deployment_id, dep.settings)
     dep.start(_print_log)
 
 
@@ -1164,7 +1166,7 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
     If SERVICE is not specified, you can use the --remote-port and --node to forward
     a generic service.
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     if service:
         if service == 'dashboard':
             click.echo("Opening tunnel to service 'dashboard' in deployment '{}'..."
@@ -1193,7 +1195,7 @@ def replace_ceph_salt(deployment_id, local=None):
     """
     Install ceph-salt from source
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     dep.replace_ceph_salt(local)
 
 
@@ -1215,7 +1217,7 @@ def replace_mgr_modules(deployment_id, **kwargs):
     --local, --pr and --branch conflict with each other,
     when the first is found the remaining are ignored.
     """
-    dep = seslib.Deployment.load(deployment_id)
+    dep = Deployment.load(deployment_id)
     dep.replace_mgr_modules(**kwargs)
 
 
