@@ -266,20 +266,20 @@ class Constant():
             'sles-12-sp3': [
                 'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
                 'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/',
-                'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+                '10000!http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
                 'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
             ],
             'sles-15-sp1': [
                 'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
                 'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/',
-                # 'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+                # '10000!http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
                 # 'SUSE-Enterprise-Storage-6-POOL-Internal-x86_64-Media/',
             ],
             'leap-15.1': [],
             'sles-15-sp2': [
                 'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
                 'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
-                'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+                '10000!http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
                 'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
             ],
             'leap-15.2': [],

@@ -101,7 +101,15 @@ zypper addrepo --refresh
 {% endif %}
 {% endif %}
 
+{% for repo in node.repos %}
+zypper addrepo --refresh {{ repo.url }} {{ repo.name }}
+{% if repo_priority and repo.priority %}
+zypper modifyrepo --priority {{ repo.priority }} {{ repo.name }}
+{% endif %}
+{% endfor %}
+
 zypper --gpg-auto-import-keys refresh
+zypper repos --details
 
 {% if os == "sles-12-sp3" %}
 zypper --non-interactive install --from storage-update --force python-base python-xml
@@ -133,16 +141,6 @@ zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony 
        'supportutils-plugin-ses',
    ] %}
 zypper --non-interactive install {{ sle_pkgs_to_install | join(' ') }}
-{% endif %}
-
-{% for repo in node.repos %}
-zypper addrepo --refresh {{ repo.url }} {{ repo.name }}
-{% if repo_priority and repo.priority %}
-zypper modifyrepo --priority {{ repo.priority }} {{ repo.name }}
-{% endif %}
-{% endfor %}
-{% if node.repos|length > 0 %}
-zypper --gpg-auto-import-keys refresh
 {% endif %}
 
 {% if deploy_salt %}
