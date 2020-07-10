@@ -199,7 +199,7 @@ class Constant():
         'nautilus': DEFAULT_ROLES["nautilus"],
         'octopus': DEFAULT_ROLES["octopus"],
         'pacific': DEFAULT_ROLES["octopus"],
-        'ses5': DEFAULT_ROLES["nautilus"],
+        'ses5': DEFAULT_ROLES["luminous"],
         'ses6': DEFAULT_ROLES["nautilus"],
         'ses7': DEFAULT_ROLES["octopus"],
     }
