@@ -136,6 +136,8 @@ def common_create_options(func):
                      help='Deploy OSDs with BlueStore or FileStore'),
         click.option('--synced-folder', type=str, default=None, multiple=True,
                      help='Set synced-folder to be mounted on the master node. <str:dest>'),
+        click.option('--dry-run/--no-dry-run', is_flag=True, default=False,
+                     help='Dry run (do not create any VMs)')
     ]
     return _decorator_composer(click_options, func)
 
@@ -472,6 +474,7 @@ def _gen_settings_dict(version,
                        synced_folder,
                        encrypted_osds,
                        bluestore,
+                       dry_run=None,
                        salt=None,
                        stop_before_deepsea_stage=None,
                        deepsea_repo=None,
@@ -601,6 +604,10 @@ def _gen_settings_dict(version,
     if non_interactive or force:
         settings_dict['non_interactive'] = non_interactive
 
+    if dry_run is not None:
+        settings_dict['dry_run'] = dry_run
+        settings_dict['non_interactive'] = True
+
     if encrypted_osds:
         settings_dict['encrypted_osds'] = encrypted_osds
 
@@ -702,6 +709,9 @@ def _create_command(deployment_id, deploy, settings_dict):
         try:
             if really_want_to:
                 dep.vet_configuration()
+                if dep.settings.dry_run:
+                    click.echo("Dry run. Stopping now, before creating any VMs.")
+                    raise click.Abort()
                 dep.start(_print_log)
                 click.echo("=== Deployment Finished ===")
                 click.echo()
