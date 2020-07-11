@@ -1,5 +1,6 @@
+# cluster_json.j2 (part of salt/provision.sh.j2)
 
-# files created on all nodes for QA testing purposes:
+# creates the following files on all nodes for QA testing purposes:
 # - /home/vagrant/cluster.json
 # - /home/vagrant/systemctl_test.sh
 
@@ -79,3 +80,4 @@ else
 fi
 EOF
 chmod 755 {{ systemctl_test_script }}
+

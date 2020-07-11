@@ -1,4 +1,6 @@
+# sync_clocks.j2 (part of provision.sh.j2)
 
+{% if version == "ses5" or version == "nautilus" or version == "ses6" %}
 {% if version == "ses5" %}
 systemctl enable ntpd.service
 cat > /etc/ntp.conf <<EOF
@@ -134,3 +136,5 @@ ssh -o StrictHostKeyChecking=no {{ _node.name }} ./{{ chrony_script }} &
 wait
 {% endif %} {# node == master #}
 {% endif %} {# if version == "ses6" or version == "nautilus" #}
+{% endif %} {# if version == "ses5" or version == "nautilus" or version == "ses6" #}
+
