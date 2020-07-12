@@ -4,12 +4,14 @@ set -ex
 
 ls -lR /home/vagrant
 
+# populate /etc/hosts
 {% for _node in nodes %}
 {% if _node.public_address %}
 echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/hosts
 {% endif %}
 {% endfor %}
 
+# distribute SSH keys
 cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
 [ ! -e "/root/.ssh" ] && mkdir /root/.ssh
 chmod 600 /home/vagrant/.ssh/{{ ssh_key_name }}
@@ -17,228 +19,22 @@ cp /home/vagrant/.ssh/{{ ssh_key_name }}* /root/.ssh/
 ln -s /root/.ssh/{{ ssh_key_name }} /root/.ssh/id_rsa
 ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
 cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
+
+# set hostname
 hostnamectl set-hostname {{ node.name }}
 
-# do not exclude documentation files when installing RPM packages
-sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
+# zypper-related setup (tweak settings, repos, system packages)
+{% include "zypper.j2" %}
 
-# enable autorefresh on all zypper repos
-find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/' {} \;
+# sync clocks if needed
+{% include "sync_clocks.j2" %}
 
-# remove RPMs that are often silently assumed to be present
-# removing such RPMs is desirable because these "implied" dependencies become
-# known, allowing them to be explicitly declared
-zypper --non-interactive remove which || true
-{% if version != 'ses5' %}
-zypper --non-interactive remove curl || true
-{% endif %}
-
-# remove Python 2 so it doesn't pollute the environment
-{% if os != 'sles-12-sp3' %}
-zypper --non-interactive remove python-base || true
-{% endif %}
-
-# remove Non-OSS repos in openSUSE
-{% if os.startswith('leap') or os == "tumbleweed" %}
-zypper --non-interactive removerepo repo-non-oss || true
-zypper --non-interactive removerepo repo-update-non-oss || true
-zypper --non-interactive removerepo repo-debug-non-oss || true
-zypper --non-interactive removerepo repo-debug-update-non-oss || true
-zypper --non-interactive removerepo repo-source-non-oss || true
-{% endif %}
-
-{% for os_repo_name, os_repo_url in os_base_repos %}
-zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
-{% endfor %}
-
-{% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
-cat > {{ devel_repo_script }} << 'EOF'
-#!/bin/bash
-[[ "$*" =~ "--update" ]] && UPDATE="yes"
-set -ex
-{% for _repo in version_repos_prio %}
-{% if loop.index == 1 %}
-{% set devel_repo_name = "devel-repo" %}
-{% else %}
-{% set devel_repo_name = "devel-repo" ~ loop.index %}
-{% endif %}
-zypper addrepo --refresh
-{%- if _repo.priority %}
- --priority {{ _repo.priority }}
-{%- elif repo_priority %}
- --priority 98
-{%- endif %}
- {{ _repo.url }} {{ devel_repo_name }}
-{% endfor %}
-zypper --gpg-auto-import-keys refresh
-if [ "$UPDATE" ] ; then
-    zypper dist-upgrade \
-        --allow-vendor-change \
-        --auto-agree-with-licenses \
-        --no-confirm \
-        --from=devel-repo
-fi
-EOF
-chmod 755 {{ devel_repo_script }}
-
-{% if devel_repo or not core_version %}
-if {{ devel_repo_script }} ; then
-    true
-else
-    echo "{{ devel_repo_script }} failed! Bailing out."
-    exit 1
-fi
-{% endif %}
-
-{% if os.startswith("sle") %}
-zypper addrepo --refresh
-{%- if os == 'sles-15-sp2' %}
- http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
-{%- elif os == 'sles-15-sp1' %}
- http://download.suse.de/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
-{%- elif os == 'sles-12-sp3' %}
- http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo
-{% endif %}
-{% endif %}
-
-{% for repo in node.repos %}
-zypper addrepo --refresh {{ repo.url }} {{ repo.name }}
-{% if repo_priority and repo.priority %}
-zypper modifyrepo --priority {{ repo.priority }} {{ repo.name }}
-{% endif %}
-{% endfor %}
-
-zypper --gpg-auto-import-keys refresh
-zypper repos --details
-
-{% if os == "sles-12-sp3" %}
-zypper --non-interactive install --from storage-update --force python-base python-xml
-zypper --non-interactive install --from update --force libncurses5 libncurses6
-{% endif %}
-
-{% set basic_pkgs_to_install = [
-       'vim',
-       'git-core',
-       'iputils',
-       'jq',
-       'make',
-       'iptables',
-       'patch',
-       'man',
-       'command-not-found',
-       'bc',
-   ] %}
-{% if os == 'sles-12-sp3' %}
-zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} ntp
-{% else %}
-zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
-{% endif %}
-
-{% if os.startswith("sle") %}
-{% set sle_pkgs_to_install = [
-       'ca-certificates-suse',
-       'supportutils',
-       'supportutils-plugin-ses',
-   ] %}
-zypper --non-interactive install {{ sle_pkgs_to_install | join(' ') }}
-{% endif %}
-
-{% if deploy_salt %}
-zypper --non-interactive install salt-minion
-sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
-
-# change salt log level to info
-sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
-
-systemctl enable salt-minion
-systemctl start salt-minion
-
-{% if version == "ses5" or version == "nautilus" or version == "ses6" %}
-{% include "sync_clocks.sh.j2" %}
-{% endif %}
-
-{% endif %} {# deploy_salt #}
-
-touch /tmp/ready
-
+# deploy
 {% if deploy_salt or suma %}
-
-{% include "cluster_json.sh.j2" %}
-
-{% if node == master or node == suma %}
-
-{% if node == master %}
-zypper --non-interactive install salt-master
-sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
-systemctl enable salt-master
-systemctl start salt-master
-sleep 5
-systemctl restart salt-minion
-{% endif %} {# node == master #}
-
-set +x
-rm -f /tmp/ready-*
-count="0"
-max_count_we_tolerate="50"
-echo "Waiting for {{ nodes | length }} nodes to complete initial provisioning..."
-while true ; do
-  count="$((count + 1))"
-{% for node in nodes %}
-  scp -o StrictHostKeyChecking=no {{ node.name }}:/tmp/ready /tmp/ready-{{ node.name }} || true
-{% endfor %}
-  PROVISIONED_NODES="$(find /tmp -maxdepth 1 -type f -regex '/tmp/ready-.*' | wc --lines)"
-  echo "${PROVISIONED_NODES} of {{ nodes | length }} have completed initial provisioning."
-  [ "${PROVISIONED_NODES}" = "{{ nodes|length }}" ] && break
-  set -x
-  sleep 5
-  set +x
-  if [ "$count" -gt "$max_count_we_tolerate" ] ; then
-      echo "Looped too many times. Something is wrong. Bailing out!"
-      exit 1
-  fi
-done
-set -x
-
-{% if node == master %}
-set +x
-echo "Waiting for {{ nodes | length }} minions to submit their keys..."
-while true; do
-  set -x
-  salt-key -L
-  set +x
-  N=$(salt-key --out=json -L | jq '.minions_pre | length')
-  echo "${N} of {{ nodes | length }} minions have submitted their keys."
-  [ "$N" = "{{ nodes|length }}" ] && break
-  set -x
-  sleep 3
-  set +x
-done
-set -x
-salt-key -Ay
-
-{% include "wait_for_minions.sh.j2" %}
-{% endif %} {# node == master #}
-
-{% if deployment_tool == "deepsea" %}
-{% if node == master %}
-{% include "deepsea/deepsea_deployment.sh.j2" %}
-{% endif %} {# node == master #}
-{% endif %} {# deployment_tool == "deepsea" #}
-
-{% if node == suma %}
-{% include "suma/suma_deployment.sh.j2" %}
-{% endif %}
-
-{% if deployment_tool == "cephadm" %}
-{% include "ceph-salt/ceph_salt_deployment.sh.j2" %}
-{% endif %}
-
-{% endif %} {# node == master or node == suma #}
-
-{% endif %} {# deploy_salt or suma #}
-
-{% if version == 'caasp4' %}
+{% include "salt/provision.sh.j2" %}
+{% elif version == 'caasp4' %}
 {% include "caasp/provision.sh.j2" %}
 {% elif version == 'makecheck' %}
 {% include "makecheck/provision.sh.j2" %}
 {% endif %}
+

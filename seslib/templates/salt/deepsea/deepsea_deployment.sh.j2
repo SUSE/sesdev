@@ -16,14 +16,14 @@ deepsea --version
 # generate policy.cfg
 mkdir -p /srv/pillar/ceph/proposals
 cat > /srv/pillar/ceph/proposals/policy.cfg <<EOF
-{% include "deepsea/" + version + "_policy.cfg.j2" %}
+{% include "salt/deepsea/" + version + "_policy.cfg.j2" %}
 EOF
 
-{% include "deepsea/" + version + "_pre_stage_0.sh.j2" ignore missing %}
+{% include "salt/deepsea/" + version + "_pre_stage_0.sh.j2" ignore missing %}
 
 chown -R salt:salt /srv
 
-{% include "wait_for_minions.sh.j2" %}
+{% include "salt/wait_for_minions.j2" %}
 
 sleep 2
 salt '*' grains.set deepsea True
@@ -53,7 +53,7 @@ deepsea stage run --simple-output ceph.stage.0
 {% endif %}
 sleep 5
 
-{% include "deepsea/" + version + "_pre_stage_1.sh.j2" ignore missing %}
+{% include "salt/deepsea/" + version + "_pre_stage_1.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 1 %}
 exit 0
@@ -68,7 +68,7 @@ deepsea stage run --simple-output ceph.stage.1
 {% endif %}
 sleep 5
 
-{% include "deepsea/" + version + "_pre_stage_2.sh.j2" ignore missing %}
+{% include "salt/deepsea/" + version + "_pre_stage_2.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 2 %}
 exit 0
@@ -83,7 +83,7 @@ deepsea stage run --simple-output ceph.stage.2
 {% endif %}
 sleep 5
 
-{% include "deepsea/" + version + "_pre_stage_3.sh.j2" ignore missing %}
+{% include "salt/deepsea/" + version + "_pre_stage_3.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 3 %}
 exit 0
@@ -128,7 +128,7 @@ ceph config set global mon_max_pg_per_osd 500
 {% endif %}
 {% endif %}
 
-{% include "deepsea/" + version + "_pre_stage_4.sh.j2" ignore missing %}
+{% include "salt/deepsea/" + version + "_pre_stage_4.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 4 %}
 exit 0
@@ -139,7 +139,7 @@ exit 0
 {% if mds_nodes > 0 or igw_nodes > 0 %}
 {% set create_pools_script = "/root/bin/create_all_pools_at_once.sh" %}
 cat > {{ create_pools_script }} << 'EOF'
-{% include "deepsea/create_all_pools_at_once.sh.j2" %}
+{% include "salt/deepsea/create_all_pools_at_once.sh.j2" %}
 EOF
 chmod 0755 {{ create_pools_script }}
 
@@ -166,4 +166,4 @@ sleep 5
 
 echo "deployment complete!"
 
-{% include "qa_test.sh.j2" %}
+{% include "salt/qa_test.j2" %}
