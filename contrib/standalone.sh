@@ -203,6 +203,7 @@ set -x
 
 if [ "$SES5" ] ; then
     sesdev box remove --non-interactive sles-12-sp3
+    run_cmd sesdev create ses5 --dry-run
     run_cmd sesdev create ses5 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
     run_cmd sesdev destroy --non-interactive ses5-mini
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
@@ -223,6 +224,7 @@ fi
 
 if [ "$NAUTILUS" ] ; then
     sesdev box remove --non-interactive leap-15.1
+    run_cmd sesdev create nautilus --dry-run
     run_cmd sesdev create nautilus --non-interactive --single-node --filestore --qa-test nautilus-1node
     run_cmd sesdev destroy --non-interactive nautilus-1node
     run_cmd sesdev create nautilus --non-interactive nautilus-4node
@@ -232,6 +234,7 @@ fi
 
 if [ "$SES6" ] ; then
     sesdev box remove --non-interactive sles-15-sp1
+    run_cmd sesdev create ses6 --dry-run
     run_cmd sesdev create ses6 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses6-mini
     run_cmd sesdev destroy --non-interactive ses6-mini
     run_cmd sesdev create ses6 --product --non-interactive --single-node --qa-test ses6-1node
@@ -251,6 +254,7 @@ fi
 
 if [ "$OCTOPUS" ] ; then
     sesdev box remove --non-interactive leap-15.2
+    run_cmd sesdev create octopus --dry-run
     run_cmd sesdev create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test octopus-1node
     run_cmd sesdev destroy --non-interactive octopus-1node
     run_cmd sesdev create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
@@ -260,6 +264,7 @@ fi
 
 if [ "$SES7" ] ; then
     sesdev box remove --non-interactive sles-15-sp2
+    run_cmd sesdev create ses7 --dry-run
     run_cmd sesdev create ses7 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses7-mini
     run_cmd sesdev destroy --non-interactive ses7-mini
     run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
@@ -279,6 +284,7 @@ fi
 
 if [ "$PACIFIC" ] ; then
     sesdev box remove --non-interactive leap-15.2
+    run_cmd sesdev create pacific --dry-run
     run_cmd sesdev create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test pacific-1node
     run_cmd sesdev destroy --non-interactive pacific-1node
     run_cmd sesdev create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
@@ -287,6 +293,7 @@ if [ "$PACIFIC" ] ; then
 fi
 
 if [ "$MAKECHECK" ] ; then
+    run_cmd sesdev create makecheck --dry-run
     run_cmd sesdev create makecheck --non-interactive --stop-before-run-make-check --ram 4
     run_cmd sesdev destroy --non-interactive makecheck-tumbleweed
     run_cmd sesdev create makecheck --non-interactive --os sles-12-sp3 --stop-before-run-make-check --ram 4
@@ -298,6 +305,7 @@ if [ "$MAKECHECK" ] ; then
 fi
 
 if [ "$CAASP4" ] ; then
+    run_cmd sesdev create caasp4 --dry-run
     run_cmd sesdev create caasp4 --non-interactive caasp4-default
     run_cmd sesdev destroy --non-interactive caasp4-default
     run_cmd sesdev create caasp4 --non-interactive --deploy-ses caasp4-with-rook

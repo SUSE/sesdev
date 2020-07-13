@@ -65,6 +65,11 @@ SETTINGS = {
         'help': 'The domain name for nodes',
         'default': '{}.test',
     },
+    'dry_run': {
+        'type': bool,
+        'help': 'Dry run (do not deploy any VMs)',
+        'default': False,
+    },
     'encrypted_osds': {
         'type': bool,
         'help': 'Whether OSDs should be deployed encrypted',
