@@ -1129,9 +1129,11 @@ class Deployment():
             print("Fetching branch '{}' from '{}'...".format(branch, repo))
 
         master_node = 'master'
+        all_nodes = []
         mgr_nodes = []
 
         for _node in self.nodes.values():
+            all_nodes.append(_node.name)
             if _node.has_role('mgr'):
                 mgr_nodes.append(_node.name)
 
@@ -1148,6 +1150,7 @@ class Deployment():
             tools.run_sync(ssh_cmd)
 
         print("Fetching...")
+        # Fetch mgr modules
         if local:
             local_path = "{}/src/pybind/mgr".format(local)
             master_path = "/root/local/ceph/src/pybind"
@@ -1210,9 +1213,50 @@ class Deployment():
                 .format(node_version, master_path, langs, npm_build))
             tools.run_sync(ssh_cmd)
 
-        for node in mgr_nodes:
+        # Fetch bin/cephadm
+        if self.settings.deployment_tool == 'cephadm':
+            if local:
+                local_cephadm_path = "{}/src/cephadm".format(local)
+                master_cephadm_path = "/root/local/ceph/src/cephadm"
+
+                ssh_cmd = self._ssh_cmd(master_node)
+                ssh_cmd.append("rm -rf {0} && mkdir -p {0}".format(master_cephadm_path))
+                tools.run_sync(ssh_cmd)
+
+                self.rsync('{}/cephadm'.format(local_cephadm_path),
+                           '{}:{}'.format(master_node, '{}/cephadm'.format(master_cephadm_path)))
+            else:
+                master_cephadm_path = "/root/remote/ceph/src/cephadm"
+
+        for node in all_nodes:
+
+            # Copy bin/cephadm
+            if self.settings.deployment_tool == 'cephadm':
+                ssh_cmd = self._ssh_cmd(node)
+                ssh_cmd.append('podman ps --format "{}" -f label=ceph=True'.format("{{.ID}}"))
+                containers = tools.run_sync(ssh_cmd)
+                containers = containers.strip()
+                containers = containers.split('\n') if containers else []
+
+                print("Copying cephadm to node {}".format(node))
+                ssh_cmd = self._ssh_cmd(master_node)
+                ssh_cmd.append("scp {}/cephadm {}:/usr/sbin/cephadm"
+                               .format(master_cephadm_path, node))
+                tools.run_sync(ssh_cmd)
+
+                for container in containers:
+                    print("Copying cephadm to the container {}".format(container))
+                    ssh_cmd = self._ssh_cmd(node)
+                    ssh_cmd.append("podman cp /usr/sbin/cephadm {}:/usr/sbin/cephadm"
+                                   .format(container))
+                    tools.run_sync(ssh_cmd)
+
+            if node not in mgr_nodes:
+                continue
+
+            # Copy mgr modules
             if self.settings.version in ['nautilus', 'ses6']:
-                print("Copying to node {}".format(node))
+                print("Copying mgr modules to node {}".format(node))
                 self.rsync(
                     '{}:{}/mgr'.format(master_node, master_path),
                     "{}:/usr/share/ceph/".format(node),
@@ -1225,13 +1269,14 @@ class Deployment():
                                .format(master_path, node))
                 tools.run_sync(ssh_cmd)
             else:
+
                 ssh_cmd = self._ssh_cmd(node)
                 ssh_cmd.append('podman ps --format "{}" -f name=mgr.{}'.format("{{.ID}}", node))
                 containers = tools.run_sync(ssh_cmd)
                 containers = containers.strip()
                 containers = containers.split('\n') if containers else []
 
-                print("Copying to node {}".format(node))
+                print("Copying mgr modules to node {}".format(node))
                 ssh_cmd = self._ssh_cmd(node)
                 ssh_cmd.append("rm -rf ~/mgr")
                 tools.run_sync(ssh_cmd)
@@ -1241,7 +1286,7 @@ class Deployment():
                 tools.run_sync(ssh_cmd)
 
                 for container in containers:
-                    print("Copying to the container {}".format(container))
+                    print("Copying mgr modules to the container {}".format(container))
                     ssh_cmd = self._ssh_cmd(node)
                     ssh_cmd.append("podman exec {}".format(container))
                     ssh_cmd.append("rm -rf /usr/share/ceph/mgr/dashboard/frontend/dist/")
