@@ -22,6 +22,7 @@ from .exceptions import \
                         MultipleRolesPerMachineNotAllowedInCaaSP, \
                         NodeDoesNotExist, \
                         NodeMustBeAdminAsWell, \
+                        NoAlertManagerOrNodeExporterIn, \
                         NoGaneshaRolePostNautilus, \
                         NoPrometheusGrafanaInSES5, \
                         NoSourcePortForPortForwarding, \
@@ -464,6 +465,14 @@ class Deployment():
             'qa_test': self.settings.qa_test,
             'node_list': self.node_list,
             'cephadm_bootstrap_node': cephadm_bootstrap_node,
+            'prometheus_nodes': self.node_counts["prometheus"],
+            'prometheus_node_list': ','.join(self.nodes_with_role["prometheus"]),
+            'grafana_nodes': self.node_counts["grafana"],
+            'grafana_node_list': ','.join(self.nodes_with_role["grafana"]),
+            'alertmanager_nodes': self.node_counts["alertmanager"],
+            'alertmanager_node_list': ','.join(self.nodes_with_role["alertmanager"]),
+            'node_exporter_nodes': self.node_counts["node-exporter"],
+            'node_exporter_node_list': ','.join(self.nodes_with_role["node-exporter"]),
             'nfs_nodes': self.node_counts["nfs"],
             'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],
@@ -871,6 +880,10 @@ deployment might not be completely destroyed.
         if self.settings.version == 'ses5':
             if self.node_counts['prometheus'] > 0 or self.node_counts['grafana'] > 0:
                 raise NoPrometheusGrafanaInSES5()
+        # alertmanager and node-exporter roles are only valid in octopus+
+        if self.settings.version not in ["octopus", "ses7", "pacific"]:
+            if self.node_counts['alertmanager'] > 0 or self.node_counts['node-exporter'] > 0:
+                raise NoAlertManagerOrNodeExporterIn(self.settings.version)
         # suma role only in octopus and not together with master
         if self.suma:
             if self.settings.version not in 'octopus':

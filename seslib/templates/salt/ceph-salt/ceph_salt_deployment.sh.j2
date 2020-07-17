@@ -162,10 +162,9 @@ echo "\"ceph status\" exit code: $?"
 rm -f {{ service_spec_core }}
 touch {{ service_spec_core }}
 
-{% set ceph_orch_apply_needed = False %}
+{% if mon_nodes > 1 or mgr_nodes > 1 or storage_nodes > 0 %}
 
 {% if mon_nodes > 1 %}
-{% set ceph_orch_apply_needed = True %}
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: mon
@@ -180,7 +179,6 @@ EOF
 {% endif %} {# mon_nodes > 1 #}
 
 {% if mgr_nodes > 1 %}
-{% set ceph_orch_apply_needed = True %}
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: mgr
@@ -195,7 +193,6 @@ EOF
 {% endif %} {# mgr_nodes > 1 #}
 
 {% if storage_nodes > 0 %}
-{% set ceph_orch_apply_needed = True %}
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: osd
@@ -218,7 +215,6 @@ objectstore: filestore
 EOF
 {% endif %} {# storage_nodes > 0 #}
 
-{% if ceph_orch_apply_needed %}
 set +x
 echo "Allowing one-minute grace period to expire before initiating \"ceph orch apply\"."
 sleep 60
@@ -226,7 +222,8 @@ set -x
 cat {{ service_spec_core }}
 ceph orch apply -i {{ service_spec_core }} --dry-run
 ceph orch apply -i {{ service_spec_core }}
-{% endif %} {# ceph_orch_apply_needed #}
+
+{% endif %} {# mon_nodes > 1 or mgr_nodes > 1 or storage_nodes > 0 #}
 
 {% if total_osds > 0 %}
 
@@ -346,7 +343,15 @@ ceph nfs cluster ls
 
 {% endif %} {# mds_nodes > 0 #}
 
-{% if rgw_nodes > 0 or igw_nodes > 0 %}
+{% set deploy_monitoring = False %}
+{% if prometheus_nodes > 0 or grafana_nodes > 0 or alertmanager_nodes > 0 or node_exporter_nodes > 0 %}
+{% set deploy_monitoring = True %}
+# manually enabling prometheus module will no longer be required once
+# https://tracker.ceph.com/issues/46606 is fixed
+ceph mgr module enable prometheus
+{% endif %} {# prometheus_nodes > 0 or grafana_nodes > 0 or alertmanager_nodes > 0 or node_exporter_nodes > 0 #}
+
+{% if rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring %}
 
 {% set service_spec_gw = "/root/service_spec_gw.yml" %}
 rm -f {{ service_spec_gw }}
@@ -404,10 +409,70 @@ spec:
 EOF
 {% endif %} {# igw_nodes > 0 #}
 
+{% if prometheus_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: prometheus
+service_id: sesdev_monitoring_prometheus
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('prometheus') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# prometheus_nodes > 0 #}
+
+{% if grafana_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: grafana
+service_id: sesdev_monitoring_grafana
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('grafana') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# grafana_nodes > 0 #}
+
+{% if alertmanager_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: alertmanager
+service_id: sesdev_monitoring_alertmanager
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('alertmanager') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# alertmanager_nodes > 0 #}
+
+{% if node_exporter_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: node-exporter
+service_id: sesdev_monitoring_node_exporter
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('node-exporter') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# node_exporter_nodes > 0 #}
+
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
 
-{% endif %} {# rgw_nodes > 0 or igw_nodes > 0 #}
+{% endif %} {# rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring #}
 
 {% endif %} {# storage_nodes > 0 #}
 

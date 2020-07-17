@@ -139,6 +139,13 @@ class NoGaneshaRolePostNautilus(SesDevException):
         )
 
 
+class NoAlertManagerOrNodeExporterIn(SesDevException):
+    def __init__(self, version):
+        super().__init__(
+            "The \"alertmanager\" and \"node-exporter\" roles require Octopus "
+            "or above (your version: {})".format(version))
+
+
 class NoExplicitRolesWithSingleNode(SesDevException):
     def __init__(self):
         super().__init__(
