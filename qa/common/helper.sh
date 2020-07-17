@@ -20,20 +20,20 @@ function _copy_file_from_minion_to_master {
 }
 
 function _first_x_node {
-    local ROLE=$1
-    if [ "$ROLE" = "igw" ] ; then
+    local role=$1
+    if [ "$role" = "igw" ] ; then
         echo "${IGW_NODE_LIST%%,*}"
-    elif [ "$ROLE" = "mds" ] ; then
+    elif [ "$role" = "mds" ] ; then
         echo "${MDS_NODE_LIST%%,*}"
-    elif [ "$ROLE" = "mgr" ] ; then
+    elif [ "$role" = "mgr" ] ; then
         echo "${MGR_NODE_LIST%%,*}"
-    elif [ "$ROLE" = "mon" ] ; then
+    elif [ "$role" = "mon" ] ; then
         echo "${MON_NODE_LIST%%,*}"
-    elif [ "$ROLE" = "nfs" ] ; then
+    elif [ "$role" = "nfs" ] ; then
         echo "${NFS_NODE_LIST%%,*}"
-    elif [ "$ROLE" = "osd" ] ; then
+    elif [ "$role" = "osd" ] ; then
         echo "${OSD_NODE_LIST%%,*}"
-    elif [ "$ROLE" = "rgw" ] ; then
+    elif [ "$role" = "rgw" ] ; then
         echo "${RGW_NODE_LIST%%,*}"
     else
         echo ""

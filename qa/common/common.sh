@@ -954,3 +954,133 @@ function dashboard_branding_not_completely_absent_test {
         echo
     fi
 }
+
+function nfs_maybe_list_objects_in_recovery_pool_test {
+    local skipped
+    skipped="yes"
+    local result
+    local tmpfile
+    tmpfile="$(mktemp)"
+    echo "WWWW: nfs_maybe_list_objects_in_recovery_pool_test"
+    echo
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
+            # NFS Recovery Pool expected to exist
+            skipped=""
+            set -x
+            rados --pool nfs-ganesha --namespace sesdev_nfs ls | tee "$tmpfile"
+            set +x
+            if [ -s "$tmpfile" ] ; then
+                result="OK"
+            else
+                echo "WWWW: nfs_maybe_list_objects_in_recovery_pool_test: FAIL"
+                echo
+                false
+            fi
+        fi
+    fi
+    if [ "$skipped" ] ; then
+        result="SKIPPED"
+    fi
+    echo "WWWW: nfs_maybe_list_objects_in_recovery_pool_test: $result"
+    echo
+}
+
+function nfs_maybe_create_export {
+    local skipped
+    skipped="yes"
+    local result
+    local tmpfile
+    tmpfile="$(mktemp)"
+    local length
+    echo "WWWW: nfs_maybe_create_export"
+    echo
+    if [ "$VERSION_ID" = "15.2" ] ; then
+        if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
+            skipped=""
+            set -x
+            ceph nfs export create cephfs sesdev_fs sesdev_nfs "/sesdev_nfs"
+            ceph nfs export ls sesdev_nfs --detailed | tee "$tmpfile"
+            length="$(<"$tmpfile" jq -r 'length')"
+            set +x
+            if [ -s "$tmpfile" ] && [ "$length" = "1" ] ; then
+                result="OK"
+            else
+                echo "WWWW: nfs_maybe_create_export: FAIL"
+                echo
+                false
+            fi
+        fi
+    fi
+    if [ "$skipped" ] ; then
+        result="SKIPPED"
+    fi
+    echo "WWWW: nfs_maybe_create_export: $result"
+    echo
+}
+
+function nfs_maybe_mount_export_and_touch_file {
+    local skipped
+    skipped="yes"
+    local result
+    local tmpfile
+    tmpfile="$(mktemp)"
+    local first_nfs_node
+    first_nfs_node="$(_first_x_node "nfs")"
+    local count
+    local max_count_we_can_tolerate
+    if [ "$first_nfs_node" ] ; then
+        true
+    else
+        echo "BADNESS: NO NFS NODES IN CLUSTER, YET AM RUNNING NFS-RELATED TEST"
+    fi
+    local mount_point
+    mount_point="/mnt/nfs"
+    echo "WWWW: nfs_maybe_mount_export_and_touch_file"
+    echo
+    # for the time being can only be run on openSUSE Leap 15.2 because
+    # the official SES7 container image has NFS Ganesha 3.2 (mgr/nfs
+    # requires 3.3 or later)
+    if [ "$VERSION_ID" = "15.2" ] && [[ "$ID" =~ "opensuse" ]] ; then
+        if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
+            skipped=""
+            _zypper_ref_on_master
+            _zypper_install_on_master "nfs-client"
+            set -x
+            rm -rf "$mount_point"
+            mkdir -p "$mount_point"
+            mount -t nfs4 "$first_nfs_node:/sesdev_nfs" "$mount_point"
+            set +x
+            echo "Wait for grace period to expire..."
+            count="0"
+            max_count_we_can_tolerate="30"
+            while true ; do
+                count="$(( count + 1 ))"
+                if touch "$mount_point/bubba" ; then
+                    break
+                fi
+                if [ "$count" -gt "$max_count_we_can_tolerate" ] ; then
+                    echo "Unable to touch a file in the NFS export even after waiting for the grace period to expire"
+                    echo "WWWW: nfs_maybe_mount_export_and_touch_file: FAIL"
+                    echo
+                    false
+                fi
+                sleep 5
+                echo "$count times 5 seconds"
+            done
+            echo "Grace period expired!"
+            set -x
+            echo "hubba" > "$mount_point/bubba"
+            test -s "$mount_point/bubba"
+            test "$(cat "$mount_point/bubba")" = "hubba"
+            umount "$mount_point"
+            set +x
+            result="OK"
+        fi
+    fi
+    if [ "$skipped" ] ; then
+        result="SKIPPED"
+    fi
+    echo "WWWW: nfs_maybe_mount_export_and_touch_file: $result"
+    echo
+}

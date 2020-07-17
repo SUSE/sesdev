@@ -175,3 +175,7 @@ systemctl_list_units_test
 dashboard_branding_not_completely_absent_test
 # check that the RGWs are serving requests on the expected nodes/ports
 maybe_rgw_smoke_test
+# NFS Ganesha smoke tests ({octopus,ses7,pacific} only)
+nfs_maybe_list_objects_in_recovery_pool_test
+nfs_maybe_create_export
+nfs_maybe_mount_export_and_touch_file

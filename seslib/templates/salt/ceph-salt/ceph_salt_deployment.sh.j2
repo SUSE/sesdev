@@ -96,10 +96,10 @@ stdbuf -o0 ceph-salt -ldebug apply --non-interactive
 rm -f {{ service_spec_core }}
 touch {{ service_spec_core }}
 
-CEPH_ORCH_APPLY_NEEDED=""
+{% set ceph_orch_apply_needed = False %}
 
 {% if mon_nodes > 1 %}
-CEPH_ORCH_APPLY_NEEDED="yes"
+{% set ceph_orch_apply_needed = True %}
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: mon
@@ -114,7 +114,7 @@ EOF
 {% endif %} {# mon_nodes > 1 #}
 
 {% if mgr_nodes > 1 %}
-CEPH_ORCH_APPLY_NEEDED="yes"
+{% set ceph_orch_apply_needed = True %}
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: mgr
@@ -129,7 +129,7 @@ EOF
 {% endif %} {# mgr_nodes > 1 #}
 
 {% if storage_nodes > 0 %}
-CEPH_ORCH_APPLY_NEEDED="yes"
+{% set ceph_orch_apply_needed = True %}
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: osd
@@ -153,28 +153,13 @@ EOF
 ceph orch device ls --refresh
 {% endif %} {# storage_nodes > 0 #}
 
-{% if mds_nodes > 0 %}
-CEPH_ORCH_APPLY_NEEDED="yes"
-cat >> {{ service_spec_core }} << 'EOF'
----
-service_type: mds
-service_id: sesdevfs
-placement:
-    hosts:
-{% for node in nodes %}
-{% if node.has_role('mds') %}
-        - '{{ node.name }}'
-{% endif %}
-{% endfor %}
-EOF
-{% endif %} {# mds_nodes > 0 #}
-
-if [ "$CEPH_ORCH_APPLY_NEEDED" ] ; then
-    cat {{ service_spec_core }}
-    ceph orch apply -i {{ service_spec_core }}
-fi
+{% if ceph_orch_apply_needed %}
+cat {{ service_spec_core }}
+ceph orch apply -i {{ service_spec_core }}
+{% endif %} {# ceph_orch_apply_needed #}
 
 {% if storage_nodes > 0 %}
+
 {% if mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 %}
 
 # Wait for OSDs to appear
@@ -200,13 +185,40 @@ while true ; do
 done
 set -x
 
+MDS_NODES_COMMA_SEPARATED_LIST=""
+NFS_NODES_COMMA_SEPARATED_LIST=""
+{% for node in nodes %}
+{% if node.has_role('mds') %}
+MDS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
+{% endif %}
+{% if node.has_role('nfs') %}
+NFS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
+{% endif %}
+{% endfor %}
+MDS_NODES_COMMA_SEPARATED_LIST="${MDS_NODES_COMMA_SEPARATED_LIST%,*}"
+NFS_NODES_COMMA_SEPARATED_LIST="${NFS_NODES_COMMA_SEPARATED_LIST%,*}"
+
 {% endif %} {# mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 #}
 
 {% if mds_nodes > 0 %}
-ceph fs volume create sesdevfs
-{% endif %}
 
-{% if rgw_nodes > 0 or nfs_nodes > 0 or igw_nodes > 0 %}
+{% set fs_volume = "sesdev_fs" %}
+ceph fs volume create {{ fs_volume }} "$MDS_NODES_COMMA_SEPARATED_LIST"
+sleep 10
+ceph fs status
+sleep 5
+ceph fs status --format json-pretty
+
+{% if nfs_nodes > 0 %}
+{% set nfs_cluster = "sesdev_nfs" %}
+ceph nfs cluster create cephfs {{ nfs_cluster }} "$NFS_NODES_COMMA_SEPARATED_LIST"
+sleep 10
+ceph nfs cluster ls
+{% endif %} {# nfs_nodes > 0 #}
+
+{% endif %} {# mds_nodes > 0 #}
+
+{% if rgw_nodes > 0 or igw_nodes > 0 %}
 
 {% set service_spec_gw = "/root/service_spec_gw.yml" %}
 rm -f {{ service_spec_gw }}
@@ -230,28 +242,10 @@ placement:
 EOF
 {% endif %} {# rgw_nodes > 0 #}
 
-{% if nfs_nodes > 0 or igw_nodes > 0 %}
+# pre-create pool for IGW if needed
+{% if igw_nodes > 0 %}
 ceph osd pool create rbd
-{% endif %}
-
-{% if nfs_nodes > 0 %}
-ceph osd pool application enable rbd nfs --yes-i-really-mean-it
-cat >> {{ service_spec_gw }} << 'EOF'
----
-service_type: nfs
-service_id: sesdev_nfs_deployment
-placement:
-    hosts:
-{% for node in nodes %}
-{% if node.has_role('nfs') %}
-        - '{{ node.name }}'
-{% endif %}
-{% endfor %}
-spec:
-    pool: rbd
-    namespace: nfs
-EOF
-{% endif %} {# nfs_nodes > 0 #}
+{% endif %} {# igw_nodes > 0 #}
 
 {% if igw_nodes > 0 %}
 ceph osd pool application enable rbd rbd --yes-i-really-mean-it
@@ -285,7 +279,7 @@ EOF
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
 
-{% endif %} {# rgw_nodes > 0 or nfs_nodes > 0 or igw_nodes > 0#}
+{% endif %} {# rgw_nodes > 0 or igw_nodes > 0 #}
 
 {% endif %} {# storage_nodes > 0 #}
 
