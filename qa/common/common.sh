@@ -1038,10 +1038,7 @@ function nfs_maybe_mount_export_and_touch_file {
     mount_point="/mnt/nfs"
     echo "WWWW: nfs_maybe_mount_export_and_touch_file"
     echo
-    # for the time being can only be run on openSUSE Leap 15.2 because
-    # the official SES7 container image has NFS Ganesha 3.2 (mgr/nfs
-    # requires 3.3 or later)
-    if [ "$VERSION_ID" = "15.2" ] && [[ "$ID" =~ "opensuse" ]] ; then
+    if [ "$VERSION_ID" = "15.2" ] ; then
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
             skipped=""
             _zypper_ref_on_master
