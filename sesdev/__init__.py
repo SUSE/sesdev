@@ -448,50 +448,51 @@ def _gen_box_settings_dict(libvirt_host,
     return settings_dict
 
 
-def _gen_settings_dict(version,
-                       roles,
-                       os,
-                       num_disks,
-                       single_node,
-                       libvirt_host,
-                       libvirt_user,
-                       libvirt_private_key_file,
-                       libvirt_storage_pool,
-                       libvirt_networks,
-                       repo,
-                       cpus,
-                       ram,
-                       disk_size,
-                       repo_priority,
-                       devel,
-                       qa_test_opt,
-                       vagrant_box,
-                       scc_user,
-                       scc_pass,
-                       domain,
-                       non_interactive,
-                       force,
-                       synced_folder,
-                       encrypted_osds,
-                       bluestore,
-                       dry_run=None,
-                       salt=None,
-                       stop_before_deepsea_stage=None,
-                       deepsea_repo=None,
-                       deepsea_branch=None,
-                       ceph_salt_repo=None,
-                       ceph_salt_branch=None,
-                       stop_before_ceph_salt_config=None,
-                       stop_before_ceph_salt_apply=None,
-                       stop_before_ceph_orch_apply=None,
-                       image_path=None,
-                       ceph_repo=None,
-                       ceph_branch=None,
-                       username=None,
-                       stop_before_git_clone=None,
-                       stop_before_install_deps=None,
-                       stop_before_run_make_check=None,
-                       ):
+def _gen_settings_dict(
+        version,
+        bluestore=None,
+        ceph_branch=None,
+        ceph_repo=None,
+        ceph_salt_branch=None,
+        ceph_salt_repo=None,
+        cpus=None,
+        deepsea_branch=None,
+        deepsea_repo=None,
+        devel=None,
+        disk_size=None,
+        dry_run=None,
+        domain=None,
+        encrypted_osds=None,
+        force=None,
+        image_path=None,
+        libvirt_host=None,
+        libvirt_networks=None,
+        libvirt_private_key_file=None,
+        libvirt_storage_pool=None,
+        libvirt_user=None,
+        non_interactive=None,
+        num_disks=None,
+        os=None,
+        qa_test_opt=None,
+        ram=None,
+        repo=None,
+        repo_priority=None,
+        roles=None,
+        salt=None,
+        scc_pass=None,
+        scc_user=None,
+        single_node=None,
+        stop_before_ceph_orch_apply=None,
+        stop_before_ceph_salt_apply=None,
+        stop_before_ceph_salt_config=None,
+        stop_before_deepsea_stage=None,
+        stop_before_git_clone=None,
+        stop_before_install_deps=None,
+        stop_before_run_make_check=None,
+        synced_folder=None,
+        username=None,
+        vagrant_box=None,
+        ):
 
     settings_dict = {}
 
@@ -513,53 +514,53 @@ def _gen_settings_dict(version,
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
 
-    if single_node:
+    if single_node is not None:
         settings_dict['single_node'] = single_node
 
-    if os:
+    if os is not None:
         settings_dict['os'] = os
 
-    if cpus:
+    if cpus is not None:
         settings_dict['cpus'] = cpus
         settings_dict['explicit_cpus'] = True
     else:
         settings_dict['explicit_cpus'] = False
 
-    if ram:
+    if ram is not None:
         settings_dict['ram'] = ram
         settings_dict['explicit_ram'] = True
     else:
         settings_dict['explicit_ram'] = False
 
-    if num_disks:
+    if num_disks is not None:
         settings_dict['num_disks'] = num_disks
         settings_dict['explicit_num_disks'] = True
     else:
         settings_dict['explicit_num_disks'] = False
 
-    if disk_size:
+    if disk_size is not None:
         settings_dict['disk_size'] = disk_size
 
-    if bluestore:
+    if bluestore is not None:
         settings_dict['filestore_osds'] = False
     else:
         settings_dict['filestore_osds'] = True
         if not disk_size:
             settings_dict['disk_size'] = 15  # default 8 GB disk size is too small for FileStore
 
-    if libvirt_host:
+    if libvirt_host is not None:
         settings_dict['libvirt_host'] = libvirt_host
 
-    if libvirt_user:
+    if libvirt_user is not None:
         settings_dict['libvirt_user'] = libvirt_user
 
-    if libvirt_private_key_file:
+    if libvirt_private_key_file is not None:
         settings_dict['libvirt_private_key_file'] = libvirt_private_key_file
 
-    if libvirt_storage_pool:
+    if libvirt_storage_pool is not None:
         settings_dict['libvirt_storage_pool'] = libvirt_storage_pool
 
-    if libvirt_networks:
+    if libvirt_networks is not None:
         settings_dict['libvirt_networks'] = libvirt_networks
 
     if salt is not None:
@@ -577,7 +578,7 @@ def _gen_settings_dict(version,
     if version is not None:
         settings_dict['version'] = version
 
-    if repo:
+    if repo is not None:
         settings_dict['repos'] = list(repo)
 
     if repo_priority is not None:
@@ -589,29 +590,30 @@ def _gen_settings_dict(version,
     if qa_test_opt is not None:
         settings_dict['qa_test'] = qa_test_opt
 
-    if vagrant_box:
+    if vagrant_box is not None:
         settings_dict['vagrant_box'] = vagrant_box
 
-    if scc_user:
+    if scc_user is not None:
         settings_dict['scc_username'] = scc_user
 
-    if scc_pass:
+    if scc_pass is not None:
         settings_dict['scc_password'] = scc_pass
 
-    if domain:
+    if domain is not None:
         settings_dict['domain'] = domain
 
     if non_interactive or force:
-        settings_dict['non_interactive'] = non_interactive
+        settings_dict['non_interactive'] = True
 
     if dry_run is not None:
         settings_dict['dry_run'] = dry_run
-        settings_dict['non_interactive'] = True
+        if dry_run:
+            settings_dict['non_interactive'] = True
 
-    if encrypted_osds:
+    if encrypted_osds is not None:
         settings_dict['encrypted_osds'] = encrypted_osds
 
-    if ceph_salt_repo:
+    if ceph_salt_repo is not None:
         if not ceph_salt_branch:
             logger.debug(
                 "User explicitly specified only --ceph-salt-repo; assuming --ceph-salt-branch %s",
@@ -619,7 +621,7 @@ def _gen_settings_dict(version,
                 )
             ceph_salt_branch = Constant.CEPH_SALT_BRANCH
 
-    if ceph_salt_branch:
+    if ceph_salt_branch is not None:
         if not ceph_salt_repo:
             logger.debug(
                 "User explicitly specified only --ceph-salt-branch; assuming --ceph-salt-repo %s",
@@ -642,20 +644,20 @@ def _gen_settings_dict(version,
     if stop_before_ceph_orch_apply is not None:
         settings_dict['stop_before_ceph_orch_apply'] = stop_before_ceph_orch_apply
 
-    if image_path:
+    if image_path is not None:
         settings_dict['image_path'] = image_path
 
-    if ceph_repo:
+    if ceph_repo is not None:
         match = re.search(r'github\.com', ceph_repo)
         if match:
             settings_dict['makecheck_ceph_repo'] = ceph_repo
         else:
             settings_dict['makecheck_ceph_repo'] = 'https://github.com/{}/ceph'.format(ceph_repo)
 
-    if ceph_branch:
+    if ceph_branch is not None:
         settings_dict['makecheck_ceph_branch'] = ceph_branch
 
-    if username:
+    if username is not None:
         settings_dict['makecheck_username'] = username
 
     if stop_before_git_clone is not None:
@@ -689,6 +691,8 @@ def _gen_settings_dict(version,
 
 def _create_command(deployment_id, deploy, settings_dict):
     interactive = not settings_dict.get('non_interactive', False)
+    _log_message = "_create_command: interactive set to {}".format(interactive)
+    logger.debug(_log_message)
     settings = Settings(**settings_dict)
     dep = Deployment.create(deployment_id, settings)
     if not dep.settings.devel_repo:
@@ -745,9 +749,9 @@ def _prep_kwargs(kwargs):
     # Click 6 and Click 7 have different option-naming semantics
     # for options with aliases
     # handle them both
-    if 'non_interactive' in kwargs:
+    if 'non_interactive' in kwargs and kwargs['non_interactive'] is not None:
         kwargs['force'] = kwargs['non_interactive']
-    if 'force' in kwargs:
+    elif 'force' in kwargs and kwargs['force'] is not None:
         kwargs['non_interactive'] = kwargs['force']
 
 
@@ -936,6 +940,7 @@ def _cluster_singular_or_plural(an_iterable):
 @click.argument('deployment_id')
 @click.option('--non-interactive', '-n', '--force', '-f',
               is_flag=True,
+              default=False,
               help='Allow to destroy the deployment without user confirmation',
               )
 @click.option('--destroy-networks', is_flag=True, default=False,
@@ -1132,6 +1137,7 @@ def show(deployment_id):
 @click.option('--non-interactive', '-n', '--force', '-f',
               is_flag=True,
               callback=_abort_if_false,
+              default=False,
               expose_value=False,
               help='Allow to redeploy the cluster without user confirmation',
               prompt='Are you sure you want to redeploy the cluster?')
