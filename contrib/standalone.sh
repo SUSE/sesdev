@@ -117,7 +117,6 @@ function tunnel_gone {
     fi
 }
 
-set -e
 TEMP=$(getopt -o h \
 --long "help,caasp4,ceph-salt-branch:,ceph-salt-repo:,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7" \
 -n 'standalone.sh' -- "$@")
@@ -203,9 +202,20 @@ set -x
 
 if [ "$SES5" ] ; then
     sesdev box remove --non-interactive sles-12-sp3
-    run_cmd sesdev create ses5 --dry-run
-    run_cmd sesdev create ses5 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
+    set +x
+    echo
+    echo "-----------------------------------------"
+    echo "The next command should be interactive."
+    echo "If it isn't, there has been a regression!"
+    echo "Press ENTER to continue"
+    echo "-----------------------------------------"
+    echo
+    read -r a
+    test "$a"
+    set -x
+    run_cmd sesdev create ses5 --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
     run_cmd sesdev destroy --non-interactive ses5-mini
+    run_cmd sesdev create ses5 --dry-run
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
     run_cmd sesdev create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" --qa-test ses5-1node
     run_cmd sesdev add-repo --update ses5-1node

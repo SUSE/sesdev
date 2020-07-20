@@ -299,6 +299,8 @@ class Settings():
 
         for k, v in SETTINGS.items():
             if k not in kwargs and k not in config:
+                Log.debug("Setting {} to default value ->{}<-"
+                          .format(k, v['default']))
                 setattr(self, k, v['default'])
 
     def override(self, setting, new_value):
