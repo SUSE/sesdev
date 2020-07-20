@@ -931,9 +931,21 @@ function osd_objectstore_test {
 
 function dashboard_branding_not_completely_absent_test {
     echo "WWWW: dashboard_branding_not_completely_absent_test"
-    if [ "$VERSION_ID" = "15.1" ] ; then
+    local the_test_is_on
+    if [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "15.2" ] ; then
+        if [[ "$(ceph --version)" =~ "ceph version 16" ]] ; then
+            # ceph version 16 (pacific) is not expected to have downstream
+            # branding
+            true
+        else
+            the_test_is_on="yes"
+        fi
+    fi
+    if [ "$the_test_is_on" ] ; then
         local success
         local dashboard_url
+        _zypper_ref_on_master
+        _zypper_install_on_master curl
         set -x
         dashboard_url="$(ceph mgr services | jq -r .dashboard)"
         if curl --silent --insecure "$dashboard_url" | grep -i suse ; then
@@ -944,7 +956,7 @@ function dashboard_branding_not_completely_absent_test {
             echo "WWWW: dashboard_branding_not_completely_absent_test: OK"
             echo
         else
-            echo "CRITICAL RED DANGER: dashboard branding appears to be completely absent!"
+            echo "ERROR: SUSE dashboard branding appears to be completely absent!"
             echo "WWWW: dashboard_branding_not_completely_absent_test: FAIL"
             echo
             false

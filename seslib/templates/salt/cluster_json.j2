@@ -66,8 +66,11 @@ for role in $ROLES_OF_THIS_NODE ; do
             echo "running instances of $role systemd unit on node {{ node.name }} (systemctl/expected): ${running_instances}/${expected_instances}"
             if [ "$running_instances" = "$expected_instances" ] ; then
                 true
+            elif [ "$role" = "mgr" ] && [ "$running_instances" = "$((expected_instances + 1))" ] ; then
+                # workaround for https://tracker.ceph.com/issues/45093
+                true
             else
-                echo "TEST FAILURE"
+                echo "TEST FAILURE: number of $role instances different than expected"
                 SUCCESS=""
             fi
         fi
