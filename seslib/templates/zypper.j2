@@ -9,10 +9,11 @@ find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/
 # remove RPMs that are often silently assumed to be present
 # removing such RPMs is desirable because these "implied" dependencies become
 # known, allowing them to be explicitly declared
-zypper --non-interactive remove which || true
 {% if version != 'ses5' %}
 zypper --non-interactive remove curl || true
 {% endif %}
+zypper --non-interactive remove rsync || true
+zypper --non-interactive remove which || true
 
 # remove Python 2 so it doesn't pollute the environment
 {% if os != 'sles-12-sp3' %}
