@@ -673,10 +673,11 @@ class Deployment():
                     elif line_arr[1].strip().startswith("paused"):
                         self.nodes[line_arr[0]].status = "suspended"
 
-    def status(self):
+    def configuration_report(self):
         result = "\n"
-        result += "Global deployment parameters (applicable to all VMs):\n"
+        result += "Deployment-wide parameters (applicable to all VMs in deployment):\n"
         result += "\n"
+        result += "- deployment ID:    {}\n".format(self.dep_id)
         result += "- version:          {}\n".format(self.settings.version)
         result += "- OS:               {}\n".format(self.settings.os)
         if self.settings.vagrant_box:

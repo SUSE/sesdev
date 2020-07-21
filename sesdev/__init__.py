@@ -702,7 +702,7 @@ def _create_command(deployment_id, deploy, settings_dict):
     click.echo("=== Creating deployment \"{}\" with the following configuration ==="
                .format(deployment_id)
                )
-    click.echo(dep.status())
+    click.echo(dep.configuration_report())
     if deploy:
         really_want_to = True
         if interactive:
@@ -1058,6 +1058,18 @@ def add_repo(update, deployment_id, custom_repo):
     dep = Deployment.load(deployment_id)
     dep.add_repo_subcommand(custom_repo, update, _print_log)
 
+
+@cli.command()
+@click.argument('deployment_id')
+def detail(deployment_id):
+    """
+    Display detailed configuration of a running deployment - this is the same
+    information that is displayed by the "create" command before asking the user
+    whether they are really sure they want to create the cluster).
+    """
+    dep = Deployment.load(deployment_id)
+    click.echo(dep.configuration_report())
+    
 
 @cli.command()
 @click.argument('deployment_id')
