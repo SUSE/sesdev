@@ -29,26 +29,23 @@ zypper --non-interactive removerepo repo-debug-update-non-oss || true
 zypper --non-interactive removerepo repo-source-non-oss || true
 {% endif %}
 
+# base repos
 {% for os_repo_name, os_repo_url in os_base_repos %}
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
+# devel repos
 {% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
 cat > {{ devel_repo_script }} << 'EOF'
 #!/bin/bash
 [[ "$*" =~ "--update" ]] && UPDATE="yes"
-set -ex
+set -x
+{% set devel_repo_count = version_repos_prio|length %}
 {% for _repo in version_repos_prio %}
-{% if loop.index == 1 %}
-{% set devel_repo_name = "devel-repo" %}
-{% else %}
-{% set devel_repo_name = "devel-repo" ~ loop.index %}
-{% endif %}
+{% set devel_repo_name = "devel-repo-" ~ loop.index %}
 zypper addrepo --refresh
 {%- if _repo.priority %}
  --priority {{ _repo.priority }}
-{%- elif repo_priority %}
- --priority 98
 {%- endif %}
  {{ _repo.url }} {{ devel_repo_name }}
 {% endfor %}
@@ -57,14 +54,18 @@ if [ "$UPDATE" ] ; then
     zypper dist-upgrade \
         --allow-vendor-change \
         --auto-agree-with-licenses \
-        --no-confirm \
-        --from=devel-repo
+{% for r in range(1, devel_repo_count + 1) %}
+{% set devel_repo_name = "devel-repo-" ~ r %}
+        --from={{ devel_repo_name }} \
+{% endfor %}
+        --no-confirm
 fi
 EOF
 chmod 755 {{ devel_repo_script }}
+cat {{ devel_repo_script }}
 
 {% if devel_repo or not core_version %}
-if {{ devel_repo_script }} ; then
+if bash -e "{{ devel_repo_script }}" ; then
     true
 else
     echo "{{ devel_repo_script }} failed! Bailing out."
@@ -72,6 +73,16 @@ else
 fi
 {% endif %}
 
+# custom repos
+{% for _repo in node.custom_repos %}
+zypper addrepo --no-gpgcheck --refresh
+{%- if _repo.priority %}
+ --priority={{ _repo.priority }}
+{%- endif %}
+ {{ _repo.url }} {{ _repo.name }}
+{% endfor %}
+
+# SUSE:CA repo on SLE
 {% if os.startswith("sle") %}
 zypper addrepo --refresh
 {%- if os == 'sles-15-sp2' %}
@@ -82,13 +93,6 @@ zypper addrepo --refresh
  http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo
 {% endif %}
 {% endif %}
-
-{% for repo in node.repos %}
-zypper addrepo --refresh {{ repo.url }} {{ repo.name }}
-{% if repo_priority and repo.priority %}
-zypper modifyrepo --priority {{ repo.priority }} {{ repo.name }}
-{% endif %}
-{% endfor %}
 
 zypper --gpg-auto-import-keys refresh
 zypper repos --details

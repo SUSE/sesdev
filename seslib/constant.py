@@ -309,6 +309,8 @@ class Constant():
         'makecheck': 'tumbleweed',
     }
 
+    ZYPPER_PRIO_ELEVATED = 50
+
     @classmethod
     def init_path_to_qa(cls, full_path_to_sesdev_executable):
         if full_path_to_sesdev_executable.startswith('/usr'):

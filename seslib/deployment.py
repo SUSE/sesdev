@@ -25,6 +25,7 @@ from .exceptions import \
                         NoStorageRolesDeepsea, \
                         NoStorageRolesCephadm, \
                         NoSupportConfigTarballFound, \
+                        ProductOptionOnlyOnSES, \
                         RoleNotKnown, \
                         RoleNotSupported, \
                         ScpInvalidSourceOrDestination, \
@@ -39,18 +40,12 @@ from .exceptions import \
 from .log import Log
 from .node import Node, NodeManager
 from .settings import Settings, SettingsEncoder
+from .zypper import ZypperRepo
 
 
 class Disk():
     def __init__(self, size):
         self.size = size
-
-
-class ZypperRepo():
-    def __init__(self, name, url, priority=None):
-        self.name = name
-        self.url = url
-        self.priority = priority
 
 
 def _vet_dep_id(dep_id):
@@ -296,8 +291,7 @@ class Deployment():
                         networks,
                         public_address=public_address,
                         ram=self.settings.ram * 2**10,
-                        cpus=self.settings.cpus,
-                        repo_priority=self.settings.repo_priority)
+                        cpus=self.settings.cpus)
 
             for role in node_roles:
                 self.nodes_with_role[role].append(name)
@@ -327,10 +321,11 @@ class Deployment():
                         node.storage_disks.append(Disk(self.settings.disk_size))
 
             if self.has_suma():  # if suma is deployed, we need to add client-tools to all nodes
-                node.add_repo(ZypperRepo(
-                    'suma_client_tools',
-                    'https://download.opensuse.org/repositories/systemsmanagement:/Uyuni:/Master:/'
-                    'openSUSE_Leap_15-Uyuni-Client-Tools/openSUSE_Leap_15.0/'))
+                node.add_custom_repo(ZypperRepo(
+                    name='suma_client_tools',
+                    url='https://download.opensuse.org/repositories/systemsmanagement:/'
+                        'Uyuni:/Master:/openSUSE_Leap_15-Uyuni-Client-Tools/openSUSE_Leap_15.0/'
+                    ))
 
             # from https://www.uyuni-project.org/uyuni-docs/uyuni/installation/install-vm.html
             if 'suma' in node_roles:
@@ -343,14 +338,15 @@ class Deployment():
                 # disk for /var/lib/pgsql
                 node.storage_disks.append(Disk(51))
 
-                node.add_repo(ZypperRepo(
-                    'suma_media1',
-                    'https://download.opensuse.org/repositories/systemsmanagement:/Uyuni:/Master/'
-                    'images-openSUSE_Leap_15.1/repo/Uyuni-Server-POOL-x86_64-Media1/'))
+                node.add_custom_repo(ZypperRepo(
+                    name='suma_media1',
+                    url='https://download.opensuse.org/repositories/systemsmanagement:/'
+                        'Uyuni:/Master/images-openSUSE_Leap_15.1/repo/'
+                        'Uyuni-Server-POOL-x86_64-Media1/'
+                    ))
 
-            r_name = 'custom-repo-{}'
-            for idx, repo_url in enumerate(self.settings.repos):
-                node.add_repo(ZypperRepo(r_name.format(idx+1), repo_url))
+            for repo_obj in self.settings.custom_repos:
+                node.add_custom_repo(repo_obj)
 
             self.nodes[node.name] = node
         self.node_list = ','.join(self.nodes.keys())
@@ -435,7 +431,6 @@ class Deployment():
             'deployment_tool': self.settings.deployment_tool,
             'version_repos_prio': version_repos_prio,
             'os_base_repos': os_base_repos,
-            'repo_priority': self.settings.repo_priority,
             'devel_repo': self.settings.devel_repo,
             'core_version': self.settings.version in Constant.CORE_VERSIONS,
             'qa_test': self.settings.qa_test,
@@ -699,14 +694,16 @@ class Deployment():
                 result += "- image_path:       {}\n".format(self.settings.image_path)
             for synced_folder in self.settings.synced_folder:
                 result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
-            if self.settings.repos:
-                result += "- custom_repos:\n"
-                for repo in self.settings.repos:
-                    result += "  - {}\n".format(repo)
+            if self.settings.custom_repos:
+                result += "- custom_repos"
+                if self.settings.repo_priority:
+                    result += " (with elevated priority):\n"
+                else:
+                    result += " (with default priority, because --repo-priority not given):\n"
+                for repo in self.settings.custom_repos:
+                    repo_obj = ZypperRepo(**repo)
+                    result += "  - {}\n".format(repo_obj.url)
             if self.settings.version in Constant.CORE_VERSIONS:
-                result += ("- repo_priority (option controlling whether custom repos "
-                           "get elevated priority):\n")
-                result += "                    {}\n".format(self.settings.repo_priority)
                 result += "- qa_test:          {}\n".format(self.settings.qa_test)
         if show_individual_vms:
             result += "\n"
@@ -791,8 +788,11 @@ class Deployment():
                 raise RoleNotSupported('suma', self.settings.version)
             if self.suma == self.master:
                 raise ExclusiveRoles('master', 'suma')
+        # --product makes sense only with SES
+        if not self.settings.devel_repo and not self.settings.version.startswith('ses'):
+            raise ProductOptionOnlyOnSES(self.settings.version)
         # worker and loadbalancer only in caasp4
-        if self.settings.version not in 'caasp4':
+        if self.settings.version not in ['caasp4']:
             if self.node_counts['worker'] > 0:
                 raise RoleNotSupported('worker', self.settings.version)
             if self.node_counts['loadbalancer'] > 0:
@@ -994,10 +994,13 @@ class Deployment():
             raise SubcommandNotSupportedInVersion('add-repo', self.settings.version)
         if custom_repo:
             for node_name in self.nodes:
+                priority_opt = ''
+                if custom_repo.priority:
+                    priority_opt = "--priority={} ".format(custom_repo.priority)
                 self.ssh(
                     node_name,
-                    ("zypper --non-interactive addrepo {} custom-repo"
-                     .format(custom_repo))
+                    ("zypper --non-interactive addrepo --no-gpgcheck --refresh {}{} {}"
+                     .format(priority_opt, custom_repo.url, custom_repo.name)).split()
                     )
         else:  # no repo given explicitly: use "devel" repo
             provision_target = "add-devel-repo-and-update" if update else "add-devel-repo"

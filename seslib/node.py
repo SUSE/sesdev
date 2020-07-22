@@ -6,17 +6,17 @@ from .log import Log
 class Node():
     _repo_lowest_prio = 94
 
-    def __init__(self,
-                 name,
-                 fqdn,
-                 roles,
-                 networks,
-                 public_address=None,
-                 cluster_address=None,
-                 storage_disks=None,
-                 ram=None,
-                 cpus=None,
-                 repo_priority=None):
+    def __init__(
+            self,
+            name,
+            fqdn,
+            roles,
+            networks,
+            public_address=None,
+            cluster_address=None,
+            storage_disks=None,
+            ram=None,
+            cpus=None):
         self.name = name
         self.fqdn = fqdn
         self.roles = roles
@@ -29,8 +29,7 @@ class Node():
         self.ram = ram
         self.cpus = cpus
         self.status = None
-        self.repos = []
-        self.repo_priority = repo_priority
+        self.custom_repos = []
 
     def has_role(self, role):
         if role not in Constant.KNOWN_ROLES:
@@ -48,13 +47,11 @@ class Node():
             raise RoleNotKnown(role)
         return self.roles == [role]
 
-    def add_repo(self, repo):
-        if self.repo_priority:
-            if repo.priority is None:
-                repo.priority = self._repo_lowest_prio - len(self.repos)
-        else:
-            repo.priority = None
-        self.repos.append(repo)
+    def add_custom_repo(self, zypper_repo):
+        """
+        Takes a ZypperRepo object
+        """
+        self.custom_repos.append(zypper_repo)
 
 
 class NodeManager:

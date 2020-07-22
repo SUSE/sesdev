@@ -14,12 +14,16 @@ from seslib.constant import Constant
 from seslib.deployment import Deployment
 from seslib.exceptions import \
                               SesDevException, \
+                              AddRepoNoUpdateWithExplicitRepo, \
+                              CmdException, \
                               NoExplicitRolesWithSingleNode, \
                               OptionFormatError, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
                               VersionNotKnown
 from seslib.settings import Settings
+from seslib.tools import gen_random_string
+from seslib.zypper import ZypperRepo
 
 
 logger = logging.getLogger(__name__)
@@ -85,7 +89,7 @@ def ceph_salt_options(func):
         click.option('--ceph-salt-branch', type=str, default=None,
                      help='ceph-salt Git branch'),
         click.option('--image-path', type=str, default=None,
-                     help='registry path from which to download Ceph container image'),
+                     help='registry path from which to download Ceph base container image'),
         click.option('--salt/--ceph-salt', default=False,
                      help='Use "salt" (instead of "ceph-salt") to run ceph-salt formula'),
     ]
@@ -114,7 +118,7 @@ def common_create_options(func):
                      help='Number of storage disks in OSD nodes'),
         click.option('--single-node/--no-single-node', default=False,
                      help='Deploy a single node cluster. Overrides --roles'),
-        click.option('--repo', multiple=True, type=str, default=None,
+        click.option('--repo', multiple=True, default=None,
                      help='Custom zypper repo URL. The repo will be added to each node.'),
         click.option('--repo-priority/--no-repo-priority', default=False,
                      help="Automatically set priority on custom zypper repos"),
@@ -578,11 +582,22 @@ def _gen_settings_dict(
     if version is not None:
         settings_dict['version'] = version
 
-    if repo is not None:
-        settings_dict['repos'] = list(repo)
-
     if repo_priority is not None:
         settings_dict['repo_priority'] = repo_priority
+
+    if repo is not None:
+        assert isinstance(repo, (list, tuple)), "repo is not a list or tuple"
+        settings_dict['custom_repos'] = []
+        count = 0
+        # pylint: disable=invalid-name
+        for repo_url in repo:
+            count += 1
+            settings_dict['custom_repos'].append(
+                {
+                    'name': 'custom-repo-{}'.format(count),
+                    'url': repo_url,
+                    'priority': Constant.ZYPPER_PRIO_ELEVATED if repo_priority else None
+                })
 
     if devel is not None:
         settings_dict['devel_repo'] = devel
@@ -1075,19 +1090,30 @@ def qa_test(deployment_id):
 
 
 @cli.command(name='add-repo')
+@click.option('--repo-priority/--no-repo-priority', default=False,
+              help="Set elevated priority on custom zypper repos")
 @click.option('--update/--no-update', is_flag=True,
               help='Update packages after adding devel repo')
 @click.argument('deployment_id')
 @click.argument('custom_repo', required=False)
-def add_repo(update, deployment_id, custom_repo):
+def add_repo(deployment_id, **kwargs):
     """
     Add a custom repo to all nodes of an already-deployed cluster. The repo
     should be specified in the form of an URL, but it is optional: if it is
     omitted, the "devel" repo (which has a specific meaning depending on the
     deployment version) will be added.
     """
+    if kwargs['update'] and kwargs['custom_repo']:
+        raise AddRepoNoUpdateWithExplicitRepo()
     dep = Deployment.load(deployment_id)
-    dep.add_repo_subcommand(custom_repo, update, _print_log)
+    custom_repo = None
+    if kwargs['custom_repo']:
+        custom_repo = ZypperRepo(
+            name='custom_repo_{}'.format(gen_random_string(6)),
+            url=kwargs['custom_repo'],
+            priority=Constant.ZYPPER_PRIO_ELEVATED if kwargs['repo_priority'] else None
+            )
+    dep.add_repo_subcommand(custom_repo, kwargs['update'], _print_log)
 
 
 @cli.command()

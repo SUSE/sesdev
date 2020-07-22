@@ -1,6 +1,8 @@
 import fcntl
 import logging
 import os
+import random
+import string
 import subprocess
 import sys
 import time
@@ -57,3 +59,9 @@ def run_interactive(command, cwd=None):
     if ret != 0:
         logger.warning("SSH interactive session finished with ret=%s", ret)
     return ret
+
+
+def gen_random_string(length):
+    letters = string.ascii_letters
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str.lower()

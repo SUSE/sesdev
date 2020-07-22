@@ -78,7 +78,7 @@ ceph-salt config ls
 ceph-salt export --pretty
 ceph-salt status
 
-zypper repos -upEP
+zypper repos --details
 zypper info cephadm | grep -E '(^Repo|^Version)'
 ceph-salt --version
 
