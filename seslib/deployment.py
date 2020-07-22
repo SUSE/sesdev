@@ -112,7 +112,7 @@ class Deployment():
             if not self.settings.image_path:
                 self.settings.image_path = self.settings.image_paths[self.settings.version]
 
-        if not self.settings.libvirt_networks:
+        if not self.settings.libvirt_networks and not existing:
             self._generate_static_networks()
 
         if self.settings.version == 'makecheck':
