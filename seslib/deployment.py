@@ -144,11 +144,7 @@ class Deployment():
     def _needs_cluster_network(self):
         if len(self.settings.roles) == 1:  # there is only 1 node
             return False
-        num_nodes_with_storage = 0
-        for node in self.settings.roles:
-            if 'storage' in node:
-                num_nodes_with_storage += 1
-        if num_nodes_with_storage > 1:  # at least 2 nodes have storage
+        if self.node_counts['storage'] > 1:  # at least 2 nodes have storage
             return True
         return False
 
