@@ -116,7 +116,7 @@ def common_create_options(func):
                      help='Deploy a single node cluster. Overrides --roles'),
         click.option('--repo', multiple=True, type=str, default=None,
                      help='Custom zypper repo URL. The repo will be added to each node.'),
-        click.option('--repo-priority/--no-repo-priority', default=True,
+        click.option('--repo-priority/--no-repo-priority', default=False,
                      help="Automatically set priority on custom zypper repos"),
         click.option('--devel/--product', default=True,
                      help="Include devel repo, if applicable"),

@@ -514,7 +514,11 @@ version_default_roles:
 
 ##### octopus from filesystems:ceph:octopus
 
-No config.yaml changes are needed, because this is the default configuration.
+This is the default, so no tweaking of config.yaml is necessary. Just:
+
+```
+sesdev create octopus
+```
 
 ##### octopus from filesystems:ceph:octopus&#8203;:upstream
 
@@ -524,31 +528,26 @@ Add the following to your `config.yaml`:
 version_os_repo_mapping:
     octopus:
         leap-15.2:
-            - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/openSUSE_Leap_15.2'
+            - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
+            - '96!https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/openSUSE_Leap_15.2'
 image_paths:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph'
 ```
 
-And use a `sesdev` command line like this:
+(The elevated priority on the `filesystems:ceph:octopus&#8203;:upstream` repo is
+needed to ensure that the ceph package from that project gets installed even if
+RPM evaluates its version number to be lower than that of the ceph packages in 
+the openSUSE Leap 15.2 base and `filesystems:ceph:octopus` repos.)
 
-```
-sesdev create octopus \
-    --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
-    --ceph-salt-branch octopus \
-    --qa-test \
-    --single-node
-```
+The `sesdev create` command line is the same as the one shown in
+[octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus).
 
 ##### ses7 from Devel:Storage:7.0
 
 This is the default, so no tweaking of config.yaml is necessary. Just:
 
 ```
-sesdev create ses7 \
-    --ceph-salt-repo https://github.com/ceph/ceph-salt.git \
-    --ceph-salt-branch master \
-    --qa-test \
-    --single-node
+sesdev create ses7
 ```
 
 Note that this will work even if there is no ceph package visible at
@@ -575,8 +574,13 @@ image_paths:
     ses7: 'registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph'
 ```
 
-Thanks to the `config.yaml` shown above, the sesdev command line is the same as
-in [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70).
+(The elevated priority on the `Devel:Storage:7.0:CR` repo is needed to ensure
+that the ceph package from that project gets installed even if RPM evaluates its
+version number to be lower than that of the ceph packages in the SES7 Product
+and `Devel:Storage:7.0` repos.)
+
+The `sesdev create` command line is the same as the one shown in
+[ses7 from Devel:Storage:7.0](#ses7-from-develstorage70).
 
 ### List existing deployments
 
