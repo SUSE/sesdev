@@ -178,6 +178,7 @@ while true ; do
     echo "OSDs in cluster (actual/expected): $ACTUAL_NUMBER_OF_OSDS/$EXPECTED_NUMBER_OF_OSDS (try $count of ${max_count_we_can_tolerate})"
     [ "$ACTUAL_NUMBER_OF_OSDS" = "$EXPECTED_NUMBER_OF_OSDS" ] && break
     if [ "$count" -ge "$max_count_we_can_tolerate" ] ; then
+        ceph status
         echo "It seems unlikely that this cluster will ever reach the expected number of OSDs. Bailing out!"
         exit 1
     fi  
