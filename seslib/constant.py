@@ -204,7 +204,7 @@ class Constant():
         'ses7': DEFAULT_ROLES["octopus"],
     }
 
-    VERSION_OS_REPO_MAPPING = {
+    VERSION_DEVEL_REPOS = {
         'ses5': {
             'sles-12-sp3': [
                 'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
