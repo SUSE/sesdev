@@ -673,63 +673,74 @@ class Deployment():
                     elif line_arr[1].strip().startswith("paused"):
                         self.nodes[line_arr[0]].status = "suspended"
 
-    def status(self):
-        result = "\n"
-        result += "Global deployment parameters (applicable to all VMs):\n"
-        result += "\n"
-        result += "- version:          {}\n".format(self.settings.version)
-        result += "- OS:               {}\n".format(self.settings.os)
-        if self.settings.vagrant_box:
-            result += "- vagrant_box       {}\n".format(self.settings.vagrant_box)
-        if self.settings.version == 'makecheck':
-            result += ("- git repo:         {}\n"
-                       .format(self.settings.makecheck_ceph_repo))
-            result += ("- git branch:       {}\n"
-                       .format(self.settings.makecheck_ceph_branch))
-        if self.settings.version in Constant.CORE_VERSIONS:
-            result += "- repo_priority:    {}\n".format(self.settings.repo_priority)
-            result += "- qa_test:          {}\n".format(self.settings.qa_test)
-        if self.settings.version in ['octopus', 'ses7', 'pacific']:
-            result += "- image_path:       {}\n".format(self.settings.image_path)
-        for synced_folder in self.settings.synced_folder:
-            result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
-        if self.settings.repos:
-            result += "- custom_repos:\n"
-            for repo in self.settings.repos:
-                result += "  - {}\n".format(repo.url)
-        result += "- number of VMs to be created: {}\n".format(len(self.nodes))
-        result += "\n"
-        result += "Individual VM parameters:\n"
-        result += "\n"
-        for k, v in self.nodes.items():
-            result += "  -- {}:\n".format(k)
-            if v.status:
-                result += "     - status:           {}\n".format(v.status)
-            result += "     - cpus:             {}\n".format(v.cpus)
-            result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
-            if k == 'master':
-                result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
-            result += "     - roles:            {}\n".format(v.roles)
-            if 'storage' in v.roles:
-                result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
-                result += ("                         "
-                           "(device names will be assigned by vagrant-libvirt)\n")
-                result += "     - OSD encryption:   {}\n".format(
-                    "Yes" if self.settings.encrypted_osds else "No")
-                result += "     - OSD objectstore:  {}\n".format(
-                    "FileStore" if self.settings.filestore_osds else "BlueStore")
-            if self.settings.version in ["octopus", "ses7", "pacific"]:
-                if 'admin' not in v.roles and v.roles != [] and v.roles != ['client']:
-                    result += (
-                        "                         (CAVEAT: the 'admin' role is assumed"
-                        " even though not explicitly given!)\n"
-                        )
-            result += "     - fqdn:             {}\n".format(v.fqdn)
-            if v.public_address:
-                result += "     - public_address:   {}\n".format(v.public_address)
-            if v.cluster_address:
-                result += "     - cluster_address:  {}\n".format(v.cluster_address)
+    def configuration_report(self,
+                             show_deployment_wide_params=True,
+                             show_individual_vms=False,
+                             ):
+
+        result = ""
+        if show_deployment_wide_params:
             result += "\n"
+            result += "Deployment-wide parameters (applicable to all VMs in deployment):\n"
+            result += "\n"
+            result += "- deployment ID:    {}\n".format(self.dep_id)
+            result += "- number of VMs:    {}\n".format(len(self.nodes))
+            result += "- version:          {}\n".format(self.settings.version)
+            result += "- OS:               {}\n".format(self.settings.os)
+            result += "- public network:   {}0/24\n".format(self.settings.public_network)
+            if self.settings.vagrant_box:
+                result += "- vagrant_box       {}\n".format(self.settings.vagrant_box)
+            if self.settings.version == 'makecheck':
+                result += ("- git repo:         {}\n"
+                           .format(self.settings.makecheck_ceph_repo))
+                result += ("- git branch:       {}\n"
+                           .format(self.settings.makecheck_ceph_branch))
+            if self.settings.version in ['octopus', 'ses7', 'pacific']:
+                result += "- image_path:       {}\n".format(self.settings.image_path)
+            for synced_folder in self.settings.synced_folder:
+                result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
+            if self.settings.repos:
+                result += "- custom_repos:\n"
+                for repo in self.settings.repos:
+                    result += "  - {}\n".format(repo)
+            if self.settings.version in Constant.CORE_VERSIONS:
+                result += ("- repo_priority (option controlling whether custom repos "
+                           "get elevated priority):\n")
+                result += "                    {}\n".format(self.settings.repo_priority)
+                result += "- qa_test:          {}\n".format(self.settings.qa_test)
+        if show_individual_vms:
+            result += "\n"
+            result += "Individual VM parameters:\n"
+            result += "\n"
+            for k, v in self.nodes.items():
+                result += "  -- {}:\n".format(k)
+                if v.status:
+                    result += "     - status:           {}\n".format(v.status)
+                result += "     - cpus:             {}\n".format(v.cpus)
+                result += "     - ram:              {}G\n".format(int(v.ram / (2 ** 10)))
+                if k == 'master':
+                    result += "     - deployment_tool:  {}\n".format(self.settings.deployment_tool)
+                result += "     - roles:            {}\n".format(v.roles)
+                if 'storage' in v.roles:
+                    result += "     - storage_disks:    {}\n".format(len(v.storage_disks))
+                    result += ("                         "
+                               "(device names will be assigned by vagrant-libvirt)\n")
+                    result += "     - OSD encryption:   {}\n".format(
+                        "Yes" if self.settings.encrypted_osds else "No")
+                    result += "     - OSD objectstore:  {}\n".format(
+                        "FileStore" if self.settings.filestore_osds else "BlueStore")
+                if self.settings.version in ["octopus", "ses7", "pacific"]:
+                    if 'admin' not in v.roles and v.roles != [] and v.roles != ['client']:
+                        result += (
+                            "                         (CAVEAT: the 'admin' role is assumed"
+                            " even though not explicitly given!)\n"
+                            )
+                result += "     - fqdn:             {}\n".format(v.fqdn)
+                if v.public_address:
+                    result += "     - public_address:   {}\n".format(v.public_address)
+                if v.cluster_address:
+                    result += "     - cluster_address:  {}\n".format(v.cluster_address)
+                result += "\n"
         return result
 
     def vet_configuration(self):

@@ -702,14 +702,45 @@ def _create_command(deployment_id, deploy, settings_dict):
     click.echo("=== Creating deployment \"{}\" with the following configuration ==="
                .format(deployment_id)
                )
-    click.echo(dep.status())
+    click.echo(dep.configuration_report(show_individual_vms=(not interactive)))
     if deploy:
         really_want_to = True
         if interactive:
-            really_want_to = click.confirm(
-                'Do you want to continue with the deployment?',
-                default=True,
-                )
+            not_sure = True
+            details_already_shown = False
+            while not_sure:
+                if details_already_shown:
+                    really_want_to = click.prompt(
+                        ('Proceed with deployment (y=yes, n=no, b=show basic config again, '
+                         'd=show details again) ?'),
+                        type=str,
+                        default="y",
+                        )
+                else:
+                    really_want_to = click.prompt(
+                        'Proceed with deployment (y=yes, n=no, d=show details) ?',
+                        type=str,
+                        default="y",
+                        )
+                really_want_to = really_want_to.lower()[0]
+                # pylint: disable=consider-using-in
+                if really_want_to == 'y' or not really_want_to:
+                    really_want_to = True
+                    break
+                if really_want_to == 'n':
+                    really_want_to = False
+                    break
+                if really_want_to == 'b':
+                    click.echo(dep.configuration_report(
+                        show_deployment_wide_params=True,
+                        show_individual_vms=False,
+                        ))
+                if really_want_to == 'd':
+                    details_already_shown = True
+                    click.echo(dep.configuration_report(
+                        show_deployment_wide_params=False,
+                        show_individual_vms=True,
+                        ))
         try:
             if really_want_to:
                 dep.vet_configuration()
@@ -1123,13 +1154,18 @@ def start(deployment_id, node=None):
 
 
 @cli.command()
+@click.option('--detail/--no-detail', is_flag=True, default=False,
+              help='Display details of each VM in additional to deployment-wide configuration')
 @click.argument('deployment_id')
-def show(deployment_id):
+def show(deployment_id, **kwargs):
     """
-    Shows the information of deployment DEPLOYMENT_ID
+    Display the configuration of a running deployment - this is the same
+    information that is displayed by the "create" command before asking the user
+    whether they are really sure they want to create the cluster). Use "--detail"
+    to get information on individual VMs in the deployment.
     """
     dep = Deployment.load(deployment_id)
-    click.echo(dep.status())
+    click.echo(dep.configuration_report(show_individual_vms=kwargs['detail']))
 
 
 @cli.command()
