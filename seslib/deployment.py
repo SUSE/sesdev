@@ -592,20 +592,45 @@ class Deployment():
         Log.debug("should destroy networks: {}, networks: {}"
                   .format(destroy_networks, used_networks))
 
-        for node in self.nodes.values():
-            if node.status == 'not deployed':
-                continue
-            cmd = ["vagrant", "destroy", node.name, "--force"]
-            if Constant.VAGRANT_DEBUG:
-                cmd.append('--debug')
-            tools.run_async(cmd, log_handler, self._dep_dir)
+        errors_encountered = False
+        cmd = ['vagrant', 'destroy', '--force']
+        if Constant.VAGRANT_DEBUG:
+            cmd.append('--debug')
+        try:
+            tools.run_sync(cmd, cwd=self._dep_dir)
+        # pylint: disable=invalid-name
+        except CmdException as e:
+            errors_encountered = True
+            saved_verbose_setting = Constant.VERBOSE
+            Constant.VERBOSE = True
+            Log.error("\"{}\" failed:\n{}".format(' '.join(cmd), e))
+            Log.info("Falling back to node-by-node destroy")
+            Constant.VERBOSE = saved_verbose_setting
+
+        if errors_encountered:
+            # fall back to node-by-node destroy
+            for node in self.nodes.values():
+                if node.status == 'not deployed':
+                    continue
+                cmd = ["vagrant", "destroy", node.name, "--force"]
+                if Constant.VAGRANT_DEBUG:
+                    cmd.append('--debug')
+                try:
+                    tools.run_async(cmd, log_handler, cwd=self._dep_dir)
+                # pylint: disable=invalid-name
+                except CmdException as e:
+                    saved_verbose_setting = Constant.VERBOSE
+                    Constant.VERBOSE = True
+                    Log.error("\"{}\" failed:\n{}".format(' '.join(cmd), e))
+                    Log.info("Forging on in spite of the error")
+                    Constant.VERBOSE = saved_verbose_setting
 
         shutil.rmtree(self._dep_dir)
         # clean up any orphaned volumes
         images_to_remove = self.box.get_images_by_deployment(self.dep_id)
         if images_to_remove:
-            log_handler("Found orphaned volumes: {}".format(images_to_remove))
-            log_handler("Removing them!")
+            Log.warning("Found orphaned volumes: {}".format(images_to_remove))
+            Log.info("Removing orphaned volumes")
             for image in images_to_remove:
                 self.box.remove_image(image)
 
@@ -617,6 +642,26 @@ class Deployment():
             else:
                 Log.info("Destroyed network '{}' for deployment '{}'"
                          .format(network, self.dep_id))
+
+        if errors_encountered:
+            print("""
+ERROR: deployment "{dep_id}" possibly not completely destroyed
+
+sesdev did its best to destroy the deployment, but errors were
+encountered. What this means is some parts of the deployment
+might still be left over.
+
+To check this, consider the following hints (which may or may not
+work when run verbatim in your environment):
+
+    sudo virsh list --all | grep '^ {dep_id}'
+    sudo virsh vol-list default | grep '^ {dep_id}'
+    sudo virsh net-list | grep '^ {dep_id}'
+    (cd ~/.sesdev ; ls -d1 */ | grep '^{dep_id}')
+
+If any of these show lines starting with "{dep_id}", the
+deployment might not be completely destroyed.
+""".format(dep_id=self.dep_id))
 
     def _stop(self, node):
         if self.nodes[node].status != "running":
