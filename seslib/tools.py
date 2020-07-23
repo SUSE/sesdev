@@ -6,13 +6,16 @@ import sys
 import time
 
 from .exceptions import CmdException
+from .log import Log
 
 
 logger = logging.getLogger(__name__)
 
 
 def run_sync(command, cwd=None):
-    logger.info("Running sync command (%s): %s", cwd if cwd else ".", command)
+    Log.debug("Running command in directory {}: {}".format(
+        cwd if cwd else ".",
+        command))
     with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd) as proc:
         stdout, stderr = proc.communicate()
         if proc.returncode != 0:

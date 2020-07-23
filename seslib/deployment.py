@@ -541,7 +541,8 @@ class Deployment():
         Log.info("Checking if vagrant box is already here: {}"
                  .format(vagrant_box))
         found_box = False
-        output = tools.run_sync(["vagrant", "box", "list"])
+        cmd = ['vagrant', 'box', 'list']
+        output = tools.run_sync(cmd)
         lines = output.split('\n')
         for line in lines:
             if line:
@@ -659,7 +660,8 @@ class Deployment():
                 node.status = "not deployed"
             return
 
-        out = tools.run_sync(["vagrant", "status"], cwd=self._dep_dir)
+        cmd = ['vagrant', 'status']
+        out = tools.run_sync(cmd, cwd=self._dep_dir)
         for line in [line.strip() for line in out.split('\n')]:
             if line:
                 line_arr = line.split(' ', 1)
@@ -807,7 +809,8 @@ class Deployment():
         if name not in self.nodes:
             raise NodeDoesNotExist(name)
 
-        out = tools.run_sync(["vagrant", "ssh-config", name], cwd=self._dep_dir)
+        cmd = ["vagrant", "ssh-config", name]
+        out = tools.run_sync(cmd, cwd=self._dep_dir)
 
         address = None
         proxycmd = None
@@ -1047,7 +1050,6 @@ class Deployment():
                 service_url = 'https://{}:{}'.format(local_address, local_port)
                 ssh_cmd = self._ssh_cmd('master')
                 ssh_cmd += ["ceph", "mgr", "services"]
-                Log.debug("About to run: {}".format(ssh_cmd))
                 try:
                     raw_json = tools.run_sync(ssh_cmd)
                     raw_json = raw_json.strip()
@@ -1091,7 +1093,6 @@ class Deployment():
         ssh_cmd.extend(["-M", "-S", "{}-admin-socket".format(self.dep_id), "-fNT", "-L",
                         "{}:{}:{}:{}".format(local_address, local_port, self.nodes[node].fqdn,
                                              remote_port)])
-        Log.debug("About to run: {}".format(ssh_cmd))
         print("You can now access the service in: {}".format(service_url))
         tools.run_sync(ssh_cmd)
 
