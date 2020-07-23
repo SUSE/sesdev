@@ -1,3 +1,4 @@
+import inspect
 import json
 import os
 import random
@@ -75,6 +76,7 @@ def _vet_dep_id(dep_id):
 
 class Deployment():
     def __init__(self, dep_id, settings, existing=False):
+        Log.info("Instantiating deployment {}".format(dep_id))
         if existing:
             self.dep_id = dep_id
         else:
@@ -1351,11 +1353,20 @@ class Deployment():
 
     @classmethod
     def list(cls, load_status=False):
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        Log.debug("Entering deployment.list (called from ->{}<-)".format(calframe[1][3]))
         deps = []
         if not os.path.exists(Constant.A_WORKING_DIR):
             return deps
-        for dep_id in os.listdir(Constant.A_WORKING_DIR):
-            if dep_id.startswith("config.yaml"):
+        dir_listing = os.listdir(Constant.A_WORKING_DIR)
+        Log.debug("Listing of directory {}: {}".format(
+            Constant.A_WORKING_DIR,
+            dir_listing))
+        for dep_id in dir_listing:
+            Log.debug("Considering deployment ->{}<-".format(dep_id))
+            full_path = os.path.join(Constant.A_WORKING_DIR, dep_id)
+            if not os.path.isdir(full_path):
                 Log.debug("Skipping ->{}<- (obviously not a deployment)".format(dep_id))
                 continue
             try:
