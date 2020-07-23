@@ -201,7 +201,7 @@ fi
 set -x
 
 if [ "$SES5" ] ; then
-    sesdev box remove --non-interactive sles-12-sp3
+    sesdev --verbose box remove --non-interactive sles-12-sp3
     set +x
     echo
     echo "-----------------------------------------"
@@ -213,75 +213,75 @@ if [ "$SES5" ] ; then
     read -r a
     test "$a"
     set -x
-    run_cmd sesdev create ses5 --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
-    run_cmd sesdev destroy --non-interactive ses5-mini
-    run_cmd sesdev create ses5 --dry-run
+    run_cmd sesdev --verbose create ses5 --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
+    run_cmd sesdev --verbose destroy --non-interactive ses5-mini
+    run_cmd sesdev --verbose create ses5 --dry-run
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
-    run_cmd sesdev create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" --qa-test ses5-1node
-    run_cmd sesdev add-repo --update ses5-1node
-    run_cmd sesdev destroy --non-interactive ses5-1node
-    run_cmd sesdev create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
-    run_cmd sesdev qa-test ses5-4node
-    run_cmd sesdev supportconfig ses5-4node node1
+    run_cmd sesdev --verbose create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" --qa-test ses5-1node
+    run_cmd sesdev --verbose add-repo --update ses5-1node
+    run_cmd sesdev --verbose destroy --non-interactive ses5-1node
+    run_cmd sesdev --verbose create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
+    run_cmd sesdev --verbose qa-test ses5-4node
+    run_cmd sesdev --verbose supportconfig ses5-4node node1
     rm -f scc*
     # consider uncommenting after the following bugs are fixed:
     # - https://github.com/SUSE/sesdev/issues/276
     # - https://github.com/SUSE/sesdev/issues/291
     # run_cmd test_tunnel ses5-4node openattic http 8080 Redirecting
     # run_cmd tunnel_gone http 8080
-    run_cmd sesdev destroy --non-interactive ses5-4node
+    run_cmd sesdev --verbose destroy --non-interactive ses5-4node
 fi
 
 if [ "$NAUTILUS" ] ; then
-    sesdev box remove --non-interactive leap-15.1
-    run_cmd sesdev create nautilus --dry-run
-    run_cmd sesdev create nautilus --non-interactive --single-node --filestore --qa-test nautilus-1node
-    run_cmd sesdev destroy --non-interactive nautilus-1node
-    run_cmd sesdev create nautilus --non-interactive nautilus-4node
-    run_cmd sesdev qa-test nautilus-4node
-    run_cmd sesdev destroy --non-interactive nautilus-4node
+    sesdev --verbose box remove --non-interactive leap-15.1
+    run_cmd sesdev --verbose create nautilus --dry-run
+    run_cmd sesdev --verbose create nautilus --non-interactive --single-node --filestore --qa-test nautilus-1node
+    run_cmd sesdev --verbose destroy --non-interactive nautilus-1node
+    run_cmd sesdev --verbose create nautilus --non-interactive nautilus-4node
+    run_cmd sesdev --verbose qa-test nautilus-4node
+    run_cmd sesdev --verbose destroy --non-interactive nautilus-4node
 fi
 
 if [ "$SES6" ] ; then
-    sesdev box remove --non-interactive sles-15-sp1
-    run_cmd sesdev create ses6 --dry-run
-    run_cmd sesdev create ses6 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses6-mini
-    run_cmd sesdev destroy --non-interactive ses6-mini
-    run_cmd sesdev create ses6 --product --non-interactive --single-node --qa-test ses6-1node
-    run_cmd sesdev add-repo --update ses6-1node
-    run_cmd sesdev destroy --non-interactive ses6-1node
-    run_cmd sesdev create ses6 --non-interactive ses6-4node
-    run_cmd sesdev qa-test ses6-4node
-    run_cmd sesdev supportconfig ses6-4node node1
+    sesdev --verbose box remove --non-interactive sles-15-sp1
+    run_cmd sesdev --verbose create ses6 --dry-run
+    run_cmd sesdev --verbose create ses6 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses6-mini
+    run_cmd sesdev --verbose destroy --non-interactive ses6-mini
+    run_cmd sesdev --verbose create ses6 --product --non-interactive --single-node --qa-test ses6-1node
+    run_cmd sesdev --verbose add-repo --update ses6-1node
+    run_cmd sesdev --verbose destroy --non-interactive ses6-1node
+    run_cmd sesdev --verbose create ses6 --non-interactive ses6-4node
+    run_cmd sesdev --verbose qa-test ses6-4node
+    run_cmd sesdev --verbose supportconfig ses6-4node node1
     rm -f scc*
     # consider uncommenting after the following bugs are fixed:
     # - https://github.com/SUSE/sesdev/issues/276
     # - https://github.com/SUSE/sesdev/issues/291
     # run_cmd test_tunnel ses6-4node
     # run_cmd tunnel_gone
-    run_cmd sesdev destroy --non-interactive ses6-4node
+    run_cmd sesdev --verbose destroy --non-interactive ses6-4node
 fi
 
 if [ "$OCTOPUS" ] ; then
-    sesdev box remove --non-interactive leap-15.2
-    run_cmd sesdev create octopus --dry-run
-    run_cmd sesdev create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test octopus-1node
-    run_cmd sesdev destroy --non-interactive octopus-1node
-    run_cmd sesdev create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
-    run_cmd sesdev qa-test octopus-4node
-    run_cmd sesdev destroy --non-interactive octopus-4node
+    sesdev --verbose box remove --non-interactive leap-15.2
+    run_cmd sesdev --verbose create octopus --dry-run
+    run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test octopus-1node
+    run_cmd sesdev --verbose destroy --non-interactive octopus-1node
+    run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
+    run_cmd sesdev --verbose qa-test octopus-4node
+    run_cmd sesdev --verbose destroy --non-interactive octopus-4node
 fi
 
 if [ "$SES7" ] ; then
-    sesdev box remove --non-interactive sles-15-sp2
-    run_cmd sesdev create ses7 --dry-run
-    run_cmd sesdev create ses7 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses7-mini
-    run_cmd sesdev destroy --non-interactive ses7-mini
-    run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
-    run_cmd sesdev destroy --non-interactive ses7-1node
-    run_cmd sesdev create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" ses7-4node
-    run_cmd sesdev qa-test ses7-4node
-    run_cmd sesdev supportconfig ses7-4node node1
+    sesdev --verbose box remove --non-interactive sles-15-sp2
+    run_cmd sesdev --verbose create ses7 --dry-run
+    run_cmd sesdev --verbose create ses7 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses7-mini
+    run_cmd sesdev --verbose destroy --non-interactive ses7-mini
+    run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
+    run_cmd sesdev --verbose destroy --non-interactive ses7-1node
+    run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" ses7-4node
+    run_cmd sesdev --verbose qa-test ses7-4node
+    run_cmd sesdev --verbose supportconfig ses7-4node node1
     rm -f scc*
     # consider uncommenting after the following bugs are fixed:
     # - bsc#1170498
@@ -289,37 +289,37 @@ if [ "$SES7" ] ; then
     # - https://github.com/SUSE/sesdev/issues/291
     # run_cmd test_tunnel ses7-4node
     # run_cmd tunnel_gone
-    run_cmd sesdev destroy --non-interactive ses7-4node
+    run_cmd sesdev --verbose destroy --non-interactive ses7-4node
 fi
 
 if [ "$PACIFIC" ] ; then
-    sesdev box remove --non-interactive leap-15.2
-    run_cmd sesdev create pacific --dry-run
-    run_cmd sesdev create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test pacific-1node
-    run_cmd sesdev destroy --non-interactive pacific-1node
-    run_cmd sesdev create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
-    run_cmd sesdev qa-test pacific-4node
-    run_cmd sesdev destroy --non-interactive pacific-4node
+    sesdev --verbose box remove --non-interactive leap-15.2
+    run_cmd sesdev --verbose create pacific --dry-run
+    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test pacific-1node
+    run_cmd sesdev --verbose destroy --non-interactive pacific-1node
+    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
+    run_cmd sesdev --verbose qa-test pacific-4node
+    run_cmd sesdev --verbose destroy --non-interactive pacific-4node
 fi
 
 if [ "$MAKECHECK" ] ; then
-    run_cmd sesdev create makecheck --dry-run
-    run_cmd sesdev create makecheck --non-interactive --stop-before-run-make-check --ram 4
-    run_cmd sesdev destroy --non-interactive makecheck-tumbleweed
-    run_cmd sesdev create makecheck --non-interactive --os sles-12-sp3 --stop-before-run-make-check --ram 4
-    run_cmd sesdev destroy --non-interactive makecheck-sles-12-sp3
-    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp1 --stop-before-run-make-check --ram 4
-    run_cmd sesdev destroy --non-interactive makecheck-sles-15-sp1
-    run_cmd sesdev create makecheck --non-interactive --os sles-15-sp2 --stop-before-run-make-check --ram 4
-    run_cmd sesdev destroy --non-interactive makecheck-sles-15-sp2
+    run_cmd sesdev --verbose create makecheck --dry-run
+    run_cmd sesdev --verbose create makecheck --non-interactive --stop-before-run-make-check --ram 4
+    run_cmd sesdev --verbose destroy --non-interactive makecheck-tumbleweed
+    run_cmd sesdev --verbose create makecheck --non-interactive --os sles-12-sp3 --stop-before-run-make-check --ram 4
+    run_cmd sesdev --verbose destroy --non-interactive makecheck-sles-12-sp3
+    run_cmd sesdev --verbose create makecheck --non-interactive --os sles-15-sp1 --stop-before-run-make-check --ram 4
+    run_cmd sesdev --verbose destroy --non-interactive makecheck-sles-15-sp1
+    run_cmd sesdev --verbose create makecheck --non-interactive --os sles-15-sp2 --stop-before-run-make-check --ram 4
+    run_cmd sesdev --verbose destroy --non-interactive makecheck-sles-15-sp2
 fi
 
 if [ "$CAASP4" ] ; then
-    run_cmd sesdev create caasp4 --dry-run
-    run_cmd sesdev create caasp4 --non-interactive caasp4-default
-    run_cmd sesdev destroy --non-interactive caasp4-default
-    run_cmd sesdev create caasp4 --non-interactive --deploy-ses caasp4-with-rook
-    run_cmd sesdev destroy --non-interactive caasp4-with-rook
+    run_cmd sesdev --verbose create caasp4 --dry-run
+    run_cmd sesdev --verbose create caasp4 --non-interactive caasp4-default
+    run_cmd sesdev --verbose destroy --non-interactive caasp4-default
+    run_cmd sesdev --verbose create caasp4 --non-interactive --deploy-ses caasp4-with-rook
+    run_cmd sesdev --verbose destroy --non-interactive caasp4-with-rook
 fi
 
 if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then

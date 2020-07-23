@@ -65,6 +65,8 @@ class Constant():
         "worker",
     ]
 
+    LOGFILE = None
+
     MAKECHECK_DEFAULT_RAM = 8
 
     MAKECHECK_DEFAULT_REPO_BRANCH = {
@@ -191,7 +193,9 @@ class Constant():
 
     SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
 
-    VAGRANT_DEBUG = False
+    VAGRANT_DEBUG = None
+
+    VERBOSE = None
 
     VERSION_DEFAULT_ROLES = {
         'caasp4': DEFAULT_ROLES["caasp4"],
