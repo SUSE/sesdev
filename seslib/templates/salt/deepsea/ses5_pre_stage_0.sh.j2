@@ -42,27 +42,8 @@ cat > /root/mds-get-name.patch <<EOF
      return host
 EOF
 
-{% raw %}
-cat > /root/ntp.patch <<EOF
---- srv/salt/ceph/time/ntp/default.sls
-+++ srv/salt/ceph/time/ntp/default.sls
-@@ -26,8 +26,7 @@ sync time:
-     - fire_event: True
-
- start ntp:
--  service.running:
--    - name: ntpd
--    - enable: True
-+  cmd.run:
-+    - name: "systemctl enable ntpd.service && systemctl start ntpd.service"
- {% endif %}
-
-EOF
-{% endraw %}
-
 pushd /
 patch -p0 < /root/mds-get-name.patch
-patch -p0 < /root/ntp.patch
 popd
 
 {% if total_osds < 6 %}
