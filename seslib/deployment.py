@@ -963,10 +963,13 @@ class Deployment():
             self.dep_id,
             self.settings.os
             ))
-        self.ssh(name, ('supportconfig',))
+        ssh_cmd = ('timeout', '1h', 'supportconfig',)
+        self.ssh(name, ssh_cmd)
         log_handler("=> Grabbing the resulting tarball from the cluster node\n")
-        scc_exists = self.ssh(name, ('ls', '/var/log/scc*'))
-        nts_exists = self.ssh(name, ('ls', 'var/log/nts*'))
+        ssh_cmd = ('ls', '/var/log/scc*')
+        scc_exists = self.ssh(name, ssh_cmd)
+        ssh_cmd = ('ls', 'var/log/nts*')
+        nts_exists = self.ssh(name, ssh_cmd)
         glob_to_get = None
         if scc_exists == 0:
             log_handler("Found /var/log/scc* (supportconfig) files on {}\n".format(name))
@@ -978,7 +981,8 @@ class Deployment():
             raise NoSupportConfigTarballFound(name)
         self.scp('{n}:/var/log/{g}'.format(n=name, g=glob_to_get), '.')
         log_handler("=> Deleting the tarball from the cluster node\n")
-        self.ssh(name, ('rm', '/var/log/{}'.format(glob_to_get)))
+        ssh_cmd = ('rm', '/var/log/{}'.format(glob_to_get),)
+        self.ssh(name, ssh_cmd)
 
     def qa_test(self, log_handler):
         tools.run_async(
