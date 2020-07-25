@@ -1113,6 +1113,61 @@ def destroy(deployment_id, **kwargs):
         click.echo("Deployment {} destroyed!".format(dep.dep_id))
 
 
+def _link_load_deployment(dep_id):
+    click.echo("Loading deployment {}".format(dep_id))
+    dep = Deployment.load(dep_id)
+    dep_ssh_public_key = dep.sync_ssh("master",
+                                      ["cat", "~/.ssh/id_rsa.pub"]
+                                     ).rstrip()
+    Log.info("Deployment {} SSH public key: {}"
+             .format(dep_id, dep_ssh_public_key)
+            )
+    return (dep, dep_ssh_public_key)
+
+
+def _link_populate_files(dep_1, dep_2, dep_2_ssh_public_key):
+    click.echo()
+    for (dep_1_node_name, _) in dep_1.nodes.items():
+        click.echo("=> populating /etc/hosts and ~/.ssh/authorized_keys on "
+                   "node \"{}\" of deployment \"{}\""
+                   .format(dep_1_node_name, dep_1.dep_id)
+                  )
+        for (_, dep_2_node_obj) in dep_2.nodes.items():
+            dep_1.ssh(dep_1_node_name,
+                      ["echo {} {} >> /etc/hosts ; echo {} >> ~/.ssh/authorized_keys"
+                       .format(dep_2_node_obj.public_address,
+                               dep_2_node_obj.fqdn,
+                               dep_2_ssh_public_key
+                              )
+                      ],
+                     )
+
+
+@cli.command(name='link')
+@click.argument('dep_id_1')
+@click.argument('dep_id_2')
+def link(dep_id_1, dep_id_2):
+    """
+    Link two clusters together (EXPERIMENTAL)
+
+    See README.md for more information on using this feature.
+    """
+    (dep_1, dep_1_ssh_public_key) = _link_load_deployment(dep_id_1)
+    (dep_2, dep_2_ssh_public_key) = _link_load_deployment(dep_id_2)
+    _link_populate_files(dep_1, dep_2, dep_2_ssh_public_key)
+    _link_populate_files(dep_2, dep_1, dep_1_ssh_public_key)
+    click.echo()
+    click.echo("Before you will be able to send network packets from one deployment to")
+    click.echo("the other, the obstacles preventing such communication must be removed.")
+    click.echo("This can be accomplished by issuing the following two commands, as root,")
+    click.echo("on the libvirt host:")
+    click.echo()
+    click.echo("# iptables -F LIBVIRT_FWI")
+    click.echo("# iptables -A LIBVIRT_FWI -j ACCEPT")
+    click.echo()
+    click.echo("Have a nice day!")
+
+
 @click.option('--format', 'format_opt', type=str, default=None)
 @cli.command(name='list')
 def list_deps(format_opt):

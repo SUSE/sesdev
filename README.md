@@ -72,6 +72,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [Replace ceph-salt](#replace-ceph-salt)
    * [Replace MGR modules](#replacing-mgr-modules)
    * [Add a repo to a cluster](#add-a-repo-to-a-cluster)
+   * [Link two clusters together](#link-two-clusters-together)
    * [Temporarily stop a cluster](#temporarily-stop-a-cluster)
    * [Destroy a cluster](#destroy-a-cluster)
    * [Run "make check"](#run-make-check)
@@ -882,6 +883,52 @@ the packages staged in the "devel" project:
 ```
 $ sesdev add-repo --update <deployment_id>
 ```
+
+### Link two clusters together
+
+When sesdev deploys a Ceph cluster, the "public network" of the cluster points
+at a virtual network that was created by libvirt together with the cluster VMs.
+Although Ceph calls it the "public network", this network is actually *private*
+in the sense that, due to iptables rules created by libvirt, packets from this
+network cannot reach the "public networks" of other Ceph clusters deployed by
+sesdev, even though they are all on the same host (the libvirt host).
+
+Under ordinary circumstances, this is a good thing because it prevents packets
+from one sesdev environment from reaching other sesdev environments. But there
+are times when one might wish the various libvirt networks were not so isolated
+from each other -- such as when trying to set up RGW Multisite, RBD Mirroring,
+or CephFS Snapshot Sync between two sesdev clusters.
+
+If you need your clusters to be able to communicate with each other over
+the network and you are desperate enough to mess with iptables on the libvirt
+host to accomplish it, run the following commands as root on the libvirt
+host:
+
+```
+# iptables -F LIBVIRT_FWI
+# iptables -A LIBVIRT_FWI -j ACCEPT
+```
+
+The LIBVIRT_FWI chain (part of the FORWARD table) contains the rules ensuring
+that Vagrant environments cannot see or communicate with one another over the
+network. The first command flushes the chain (deletes all these rules), and the
+second one replaces them all with a single rule which unconditionally accepts
+any packets that are processed through this chain. This has the effect of
+completely opening up all libvirt VMs to communicate with all other libvirt VMs
+on the same host.
+
+It can also be useful to add lines to `/etc/hosts` and
+`/root/.ssh/authorized_keys` on the two clusters so nodes on the "other"
+cluster can be referred to by their Fully Qualified Domain Names (FQDNs, e.g.
+"master.octopus2.test") and to facilitate SSHing between the two clusters. This
+can be accomplished very easily by issuing the following command:
+
+```
+$ sesdev link <deployment_id_1> <deployment_id_2>
+```
+
+where `<deployment_id_1>` and `<deployment_id_2>` are the deployment IDs of two
+existing sesdev clusters.
 
 ### Temporarily stop a cluster
 

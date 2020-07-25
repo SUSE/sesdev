@@ -1,5 +1,4 @@
 import fcntl
-import logging
 import os
 import random
 import string
@@ -11,15 +10,12 @@ from .exceptions import CmdException
 from .log import Log
 
 
-logger = logging.getLogger(__name__)
-
-
 def run_sync(command, cwd=None):
-    Log.info("Running command in directory {}: {}".format(
-        cwd if cwd else ".",
-        command))
+    Log.info("Running sync command in directory {}: {}"
+             .format(cwd if cwd else ".", command)
+            )
     with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd) as proc:
-        stdout, stderr = proc.communicate()
+        (stdout, stderr) = proc.communicate()
         if proc.returncode != 0:
             raise CmdException(command, proc.returncode, stderr)
     return stdout.decode('utf-8')
@@ -37,7 +33,9 @@ def _non_block_read(fout):
 
 
 def run_async(command, callback, cwd=None):
-    logger.info("Running async command (%s): %s", cwd if cwd else ".", command)
+    Log.info("Running async command in directory {}: {}"
+             .format(cwd if cwd else ".", command)
+            )
     callback("=== Running shell command ===\n{}\n".format(" ".join(command)))
     _command = ["stdbuf", "-oL"]
     _command.extend(command)
@@ -57,10 +55,12 @@ def run_async(command, callback, cwd=None):
 
 
 def run_interactive(command, cwd=None):
-    logger.info("Running interactive command (%s): %s", cwd if cwd else ".", command)
+    Log.info("Running interactive command in directory {}: {}"
+             .format(cwd if cwd else ".", command)
+            )
     ret = subprocess.call(command, stdout=sys.stdout, stdin=sys.stdin)
     if ret != 0:
-        logger.warning("SSH interactive session finished with ret=%s", ret)
+        Log.warning("SSH interactive session finished with ret={}".format(ret))
     return ret
 
 
