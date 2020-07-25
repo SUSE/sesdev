@@ -286,75 +286,6 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
         Constant.CONFIG_FILE = config_file  # set once here, never to change again
 
 
-@click.option('--format', 'format_opt', type=str, default=None)
-@cli.command(name='list')
-def list_deps(format_opt):
-    """
-    Lists all the available deployments.
-    """
-    p_table = None
-    deployments_list = []
-    deps = Deployment.list(True)
-    if deps:
-        Log.info("list_deps: Found deployments: {}".format(", ".join(d.dep_id for d in deps)))
-    else:
-        msg = "No deployments found"
-        Log.info("list_deps: {}".format(msg))
-        if format_opt in ['json']:
-            click.echo(json.dumps([], sort_keys=True, indent=4))
-        else:
-            click.echo(msg)
-        return None
-
-    def _status(nodes):
-        status = None
-        for node in nodes.values():
-            if status is None:
-                status = node.status
-            elif node.status == 'running' and status == 'not deployed':
-                status = 'partially deployed'
-            elif node.status == 'stopped' and status == 'running':
-                status = 'partially running'
-            elif node.status == 'suspended' and status == 'running':
-                status = 'partially running'
-            elif node.status == 'running' and status == 'stopped':
-                status = 'partially running'
-            elif node.status == 'running' and status == 'suspended':
-                status = 'partially running'
-        return status
-
-    if format_opt not in ['json']:
-        p_table = PrettyTable(["ID", "Version", "Status", "Nodes"])
-        p_table.align = "l"
-
-    for dep in deps:
-        Log.debug("_status: Looping over deployments ({})".format(dep.dep_id))
-        status = str(_status(dep.nodes))
-        Log.debug("_status: -> status: {}".format(status))
-        version = getattr(dep.settings, 'version', None)
-        Log.debug("_status: -> version: {}".format(version))
-        nodes = getattr(dep, 'nodes', None)
-        node_names = '(unknown)' if nodes is None else ', '.join(nodes)
-        Log.debug("_status: -> node_names: {}".format(node_names))
-        if format_opt in ['json']:
-            deployments_list.append({
-                "id": dep.dep_id,
-                "version": version,
-                "status": status,
-                "nodes": list(nodes),
-                })
-        else:
-            p_table.add_row([dep.dep_id, version, status, node_names])
-    if format_opt in ['json']:
-        click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
-    else:
-        deployment_word = "deployments" if len(deps) > 1 else "deployment"
-        click.echo("Found {} {}:".format(len(deps), deployment_word))
-        click.echo()
-        click.echo(p_table)
-        click.echo()
-
-
 @cli.group()
 def box():
     """
@@ -1007,6 +938,33 @@ def _cluster_singular_or_plural(an_iterable):
     return "clusters"
 
 
+@cli.command(name='add-repo')
+@click.option('--repo-priority/--no-repo-priority', default=False,
+              help="Set elevated priority on custom zypper repos")
+@click.option('--update/--no-update', is_flag=True,
+              help='Update packages after adding devel repo')
+@click.argument('deployment_id')
+@click.argument('custom_repo', required=False)
+def add_repo(deployment_id, **kwargs):
+    """
+    Add a custom repo to all nodes of an already-deployed cluster. The repo
+    should be specified in the form of an URL, but it is optional: if it is
+    omitted, the "devel" repo (which has a specific meaning depending on the
+    deployment version) will be added.
+    """
+    if kwargs['update'] and kwargs['custom_repo']:
+        raise AddRepoNoUpdateWithExplicitRepo()
+    dep = Deployment.load(deployment_id)
+    custom_repo = None
+    if kwargs['custom_repo']:
+        custom_repo = ZypperRepo(
+            name='custom_repo_{}'.format(gen_random_string(6)),
+            url=kwargs['custom_repo'],
+            priority=Constant.ZYPPER_PRIO_ELEVATED if kwargs['repo_priority'] else None
+            )
+    dep.add_repo_subcommand(custom_repo, kwargs['update'], _print_log)
+
+
 @cli.command()
 @click.argument('deployment_id')
 @click.option('--non-interactive', '-n', '--force', '-f',
@@ -1040,25 +998,147 @@ def destroy(deployment_id, **kwargs):
         click.echo("Deployment {} destroyed!".format(dep.dep_id))
 
 
-@cli.command()
-@click.argument('deployment_id')
-@click.argument('node', required=False)
-@click.argument('command', required=False, nargs=-1)
-def ssh(deployment_id, node=None, command=None):
+@click.option('--format', 'format_opt', type=str, default=None)
+@cli.command(name='list')
+def list_deps(format_opt):
     """
-    Opens an SSH shell to, or runs optional COMMAND on, node NODE in deployment
-    DEPLOYMENT_ID.
+    Lists all the available deployments.
+    """
+    p_table = None
+    deployments_list = []
+    deps = Deployment.list(True)
+    if deps:
+        Log.info("list_deps: Found deployments: {}".format(", ".join(d.dep_id for d in deps)))
+    else:
+        msg = "No deployments found"
+        Log.info("list_deps: {}".format(msg))
+        if format_opt in ['json']:
+            click.echo(json.dumps([], sort_keys=True, indent=4))
+        else:
+            click.echo(msg)
+        return None
 
-    If the node is not specified, it defaults to "master".
+    def _status(nodes):
+        status = None
+        for node in nodes.values():
+            if status is None:
+                status = node.status
+            elif node.status == 'running' and status == 'not deployed':
+                status = 'partially deployed'
+            elif node.status == 'stopped' and status == 'running':
+                status = 'partially running'
+            elif node.status == 'suspended' and status == 'running':
+                status = 'partially running'
+            elif node.status == 'running' and status == 'stopped':
+                status = 'partially running'
+            elif node.status == 'running' and status == 'suspended':
+                status = 'partially running'
+        return status
 
-    Note: You can check the existing node names with the command
-    "sesdev show <deployment_id>"
+    if format_opt not in ['json']:
+        p_table = PrettyTable(["ID", "Version", "Status", "Nodes"])
+        p_table.align = "l"
+
+    for dep in deps:
+        Log.debug("_status: Looping over deployments ({})".format(dep.dep_id))
+        status = str(_status(dep.nodes))
+        Log.debug("_status: -> status: {}".format(status))
+        version = getattr(dep.settings, 'version', None)
+        Log.debug("_status: -> version: {}".format(version))
+        nodes = getattr(dep, 'nodes', None)
+        node_names = '(unknown)' if nodes is None else ', '.join(nodes)
+        Log.debug("_status: -> node_names: {}".format(node_names))
+        if format_opt in ['json']:
+            deployments_list.append({
+                "id": dep.dep_id,
+                "version": version,
+                "status": status,
+                "nodes": list(nodes),
+                })
+        else:
+            p_table.add_row([dep.dep_id, version, status, node_names])
+    if format_opt in ['json']:
+        click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
+    else:
+        deployment_word = "deployments" if len(deps) > 1 else "deployment"
+        click.echo("Found {} {}:".format(len(deps), deployment_word))
+        click.echo()
+        click.echo(p_table)
+        click.echo()
+
+
+@cli.command(name='qa-test')
+@click.argument('deployment_id')
+def qa_test(deployment_id):
+    """
+    Runs QA test on an already-deployed cluster.
     """
     dep = Deployment.load(deployment_id)
-    node_name = 'master' if node is None else node
-    if command:
-        Log.info("Running SSH command on {}: {}".format(node_name, command))
-    dep.ssh(node_name, command)
+    dep.qa_test(_print_log)
+
+
+@cli.command()
+@click.argument('deployment_id')
+@click.option('--non-interactive', '-n', '--force', '-f',
+              is_flag=True,
+              callback=_abort_if_false,
+              default=False,
+              expose_value=False,
+              help='Allow to redeploy the cluster without user confirmation',
+              prompt='Are you sure you want to redeploy the cluster?')
+def redeploy(deployment_id, **kwargs):
+    """
+    Destroys the VMs of the deployment DEPLOYMENT_ID and deploys again the cluster
+    from scratch with the same configuration.
+    """
+    interactive = not (kwargs.get('non_interactive', False) or kwargs.get('force', False))
+    if interactive:
+        really_want_to = True
+        if interactive:
+            really_want_to = click.confirm(
+                'Do you want to continue with the deployment?',
+                default=True,
+                )
+        if not really_want_to:
+            raise click.Abort()
+    dep = Deployment.load(deployment_id)
+    dep.destroy(_print_log)
+    dep = Deployment.create(deployment_id, dep.settings)
+    dep.start(_print_log)
+
+
+@cli.command(name='replace-ceph-salt')
+@click.argument('deployment_id')
+@click.option('--local', default=None, type=str, show_default=True,
+              help='The local path for "ceph-salt" source')
+def replace_ceph_salt(deployment_id, local=None):
+    """
+    Install ceph-salt from source
+    """
+    dep = Deployment.load(deployment_id)
+    dep.replace_ceph_salt(local)
+
+
+@cli.command(name='replace-mgr-modules')
+@click.argument('deployment_id')
+@click.option('--local', type=str, help='The local repository path. E.g.: ~/ceph')
+@click.option('--pr', type=int, help='The PR to be fetched from a remote repository')
+@click.option('--branch', default='master', type=str, show_default=True,
+              help='The branch to be fetched from a remote repository')
+@click.option('--repo', default='ceph', type=str, show_default=True,
+              help='The remote repository from which to fetch PRs or branches')
+@click.option('--langs', default='en-US', type=str, show_default=True,
+              help='Dashboard languages to be built')
+def replace_mgr_modules(deployment_id, **kwargs):
+    """
+    Fetches a different version of Ceph MGR modules from a local repository or github,
+    replacing the installed ones.
+
+    --local, --pr and --branch conflict with each other,
+    when the first is found the remaining are ignored.
+    """
+    dep = Deployment.load(deployment_id)
+    dep.replace_mgr_modules(**kwargs)
 
 
 @cli.command()
@@ -1102,80 +1182,40 @@ def scp(recursive, deployment_id, source, destination):
     dep.scp(source, destination, recurse=recursive)
 
 
-@cli.command(name='qa-test')
+@cli.command()
+@click.option('--detail/--no-detail', is_flag=True, default=False,
+              help='Display details of each VM in additional to deployment-wide configuration')
 @click.argument('deployment_id')
-def qa_test(deployment_id):
+def show(deployment_id, **kwargs):
     """
-    Runs QA test on an already-deployed cluster.
+    Display the configuration of a running deployment - this is the same
+    information that is displayed by the "create" command before asking the user
+    whether they are really sure they want to create the cluster). Use "--detail"
+    to get information on individual VMs in the deployment.
     """
     dep = Deployment.load(deployment_id)
-    dep.qa_test(_print_log)
-
-
-@cli.command(name='add-repo')
-@click.option('--repo-priority/--no-repo-priority', default=False,
-              help="Set elevated priority on custom zypper repos")
-@click.option('--update/--no-update', is_flag=True,
-              help='Update packages after adding devel repo')
-@click.argument('deployment_id')
-@click.argument('custom_repo', required=False)
-def add_repo(deployment_id, **kwargs):
-    """
-    Add a custom repo to all nodes of an already-deployed cluster. The repo
-    should be specified in the form of an URL, but it is optional: if it is
-    omitted, the "devel" repo (which has a specific meaning depending on the
-    deployment version) will be added.
-    """
-    if kwargs['update'] and kwargs['custom_repo']:
-        raise AddRepoNoUpdateWithExplicitRepo()
-    dep = Deployment.load(deployment_id)
-    custom_repo = None
-    if kwargs['custom_repo']:
-        custom_repo = ZypperRepo(
-            name='custom_repo_{}'.format(gen_random_string(6)),
-            url=kwargs['custom_repo'],
-            priority=Constant.ZYPPER_PRIO_ELEVATED if kwargs['repo_priority'] else None
-            )
-    dep.add_repo_subcommand(custom_repo, kwargs['update'], _print_log)
+    click.echo(dep.configuration_report(show_individual_vms=kwargs['detail']))
 
 
 @cli.command()
 @click.argument('deployment_id')
 @click.argument('node', required=False)
-def supportconfig(deployment_id, node):
+@click.argument('command', required=False, nargs=-1)
+def ssh(deployment_id, node=None, command=None):
     """
-    Runs supportconfig on a node within an already-deployed cluster. Dumps the
-    resulting tarball in the current working directory.
+    Opens an SSH shell to, or runs optional COMMAND on, node NODE in deployment
+    DEPLOYMENT_ID.
 
     If the node is not specified, it defaults to "master".
 
-    NOTE: supportconfig is only available in deployments running on SUSE Linux
-    Enterprise.
+    Note: You can check the existing node names with the command
+    "sesdev show <deployment_id>"
     """
     dep = Deployment.load(deployment_id)
-    _node = 'master' if node is None else node
-    dep.supportconfig(_print_log, _node)
-
-
-@cli.command()
-@click.argument('deployment_id')
-@click.argument('node', required=False)
-def stop(deployment_id, node=None):
-    """
-    Stops the VMs of the deployment DEPLOYMENT_SPEC, where DEPLOYMENT_SPEC
-    might be either a literal deployment ID or a glob ("octopus_*").
-    """
-    matching_deployments = _maybe_glob_deps(deployment_id)
-    click.echo("Stopping {} {}".format(
-        len(matching_deployments),
-        _cluster_singular_or_plural(matching_deployments),
-        ))
-    if len(matching_deployments) > 1 and node:
-        click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
-        node = None
-    for dep in matching_deployments:
-        dep.stop(_print_log, node)
-        click.echo("Deployment {} stopped!".format(dep.dep_id))
+    node_name = 'master' if node is None else node
+    if command:
+        Log.info("Running SSH command on {}: {}".format(node_name, command))
+    dep.ssh(node_name, command)
 
 
 @cli.command()
@@ -1203,48 +1243,42 @@ def start(deployment_id, node=None):
 
 
 @cli.command()
-@click.option('--detail/--no-detail', is_flag=True, default=False,
-              help='Display details of each VM in additional to deployment-wide configuration')
 @click.argument('deployment_id')
-def show(deployment_id, **kwargs):
+@click.argument('node', required=False)
+def stop(deployment_id, node=None):
     """
-    Display the configuration of a running deployment - this is the same
-    information that is displayed by the "create" command before asking the user
-    whether they are really sure they want to create the cluster). Use "--detail"
-    to get information on individual VMs in the deployment.
+    Stops the VMs of the deployment DEPLOYMENT_SPEC, where DEPLOYMENT_SPEC
+    might be either a literal deployment ID or a glob ("octopus_*").
     """
-    dep = Deployment.load(deployment_id)
-    click.echo(dep.configuration_report(show_individual_vms=kwargs['detail']))
+    matching_deployments = _maybe_glob_deps(deployment_id)
+    click.echo("Stopping {} {}".format(
+        len(matching_deployments),
+        _cluster_singular_or_plural(matching_deployments),
+        ))
+    if len(matching_deployments) > 1 and node:
+        click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
+        node = None
+    for dep in matching_deployments:
+        dep.stop(_print_log, node)
+        click.echo("Deployment {} stopped!".format(dep.dep_id))
 
 
 @cli.command()
 @click.argument('deployment_id')
-@click.option('--non-interactive', '-n', '--force', '-f',
-              is_flag=True,
-              callback=_abort_if_false,
-              default=False,
-              expose_value=False,
-              help='Allow to redeploy the cluster without user confirmation',
-              prompt='Are you sure you want to redeploy the cluster?')
-def redeploy(deployment_id, **kwargs):
+@click.argument('node', required=False)
+def supportconfig(deployment_id, node):
     """
-    Destroys the VMs of the deployment DEPLOYMENT_ID and deploys again the cluster
-    from scratch with the same configuration.
+    Runs supportconfig on a node within an already-deployed cluster. Dumps the
+    resulting tarball in the current working directory.
+
+    If the node is not specified, it defaults to "master".
+
+    NOTE: supportconfig is only available in deployments running on SUSE Linux
+    Enterprise.
     """
-    interactive = not (kwargs.get('non_interactive', False) or kwargs.get('force', False))
-    if interactive:
-        really_want_to = True
-        if interactive:
-            really_want_to = click.confirm(
-                'Do you want to continue with the deployment?',
-                default=True,
-                )
-        if not really_want_to:
-            raise click.Abort()
     dep = Deployment.load(deployment_id)
-    dep.destroy(_print_log)
-    dep = Deployment.create(deployment_id, dep.settings)
-    dep.start(_print_log)
+    _node = 'master' if node is None else node
+    dep.supportconfig(_print_log, _node)
 
 
 @cli.command()
@@ -1286,40 +1320,6 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
                        dep.dep_id)
                    )
     dep.start_port_forwarding(service, node, remote_port, local_port, local_address)
-
-
-@cli.command(name='replace-ceph-salt')
-@click.argument('deployment_id')
-@click.option('--local', default=None, type=str, show_default=True,
-              help='The local path for "ceph-salt" source')
-def replace_ceph_salt(deployment_id, local=None):
-    """
-    Install ceph-salt from source
-    """
-    dep = Deployment.load(deployment_id)
-    dep.replace_ceph_salt(local)
-
-
-@cli.command(name='replace-mgr-modules')
-@click.argument('deployment_id')
-@click.option('--local', type=str, help='The local repository path. E.g.: ~/ceph')
-@click.option('--pr', type=int, help='The PR to be fetched from a remote repository')
-@click.option('--branch', default='master', type=str, show_default=True,
-              help='The branch to be fetched from a remote repository')
-@click.option('--repo', default='ceph', type=str, show_default=True,
-              help='The remote repository from which to fetch PRs or branches')
-@click.option('--langs', default='en-US', type=str, show_default=True,
-              help='Dashboard languages to be built')
-def replace_mgr_modules(deployment_id, **kwargs):
-    """
-    Fetches a different version of Ceph MGR modules from a local repository or github,
-    replacing the installed ones.
-
-    --local, --pr and --branch conflict with each other,
-    when the first is found the remaining are ignored.
-    """
-    dep = Deployment.load(deployment_id)
-    dep.replace_mgr_modules(**kwargs)
 
 
 if __name__ == '__main__':
