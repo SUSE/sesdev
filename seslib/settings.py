@@ -280,10 +280,15 @@ SETTINGS = {
         'help': 'Default roles for each node - one set of default roles per deployment version',
         'default': Constant.VERSION_DEFAULT_ROLES,
     },
+    'version_devel_repos': {
+        'type': dict,
+        'help': 'the "devel repo", whatever that means on a particular VERSION:OS combination',
+        'default': Constant.VERSION_DEVEL_REPOS,
+    },
     'version_os_repo_mapping': {
         'type': dict,
-        'help': 'additional repos to be added on particular VERSION:OS combinations',
-        'default': Constant.VERSION_OS_REPO_MAPPING,
+        'help': 'DEPRECATED: additional repos to be added on particular VERSION:OS combinations',
+        'default': Constant.VERSION_DEVEL_REPOS,
     },
     'vm_engine': {
         'type': str,

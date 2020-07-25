@@ -355,7 +355,7 @@ class Deployment():
         try:
             version = self.settings.version
             os_setting = self.settings.os
-            version_repos = self.settings.version_os_repo_mapping[version][os_setting]
+            version_repos = self.settings.version_devel_repos[version][os_setting]
         except KeyError:
             raise VersionOSNotSupported(self.settings.version, self.settings.os)
 

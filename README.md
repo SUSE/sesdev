@@ -443,7 +443,7 @@ completely wrong for your use case, you can override them via
 `~/.sesdev/config.yaml`.
 
 To do this, you have to be familiar with two of sesdev's internal dictionaries:
-`OS_REPOS` and `VERSION_OS_REPO_MAPPING`. The former specifies repos that are
+`OS_REPOS` and `VERSION_DEVEL_REPOS`. The former specifies repos that are
 added to all VMs with a given operating system, regardless of the Ceph version
 being deployed, and the latter specifies additional repos that are added to VMs
 depending on the Ceph version being deployed. Refer to `seslib/__init__.py` for
@@ -451,7 +451,7 @@ the current defaults.
 
 To override `OS_REPOS`, add an `os_repos:` stanza to your `~/.sesdev/config.yaml`.
 
-To override `VERSION_OS_REPO_MAPPING`, add a `version_os_repo_mapping:` stanza to your `~/.sesdev/config.yaml`.
+To override `VERSION_DEVEL_REPOS`, add a `version_devel_repos:` stanza to your `~/.sesdev/config.yaml`.
 
 Please note that you need not copy-paste any parts of these internal
 dictionaries from the source code into your config. You can selectively override
@@ -460,18 +460,18 @@ override the default additional repos for "octopus" deployments on "leap-15.2",
 but it will not change the defaults for any of the other deployment versions:
 
 ```
-version_os_repo_mapping:
+version_devel_repos:
     octopus:
         leap-15.2:
             - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
 ```
 
 If you need a higher priority on one or more of the repos,
-`version_os_repo_mapping` supports a "magic priority prefix" on the repo URL,
+`version_devel_repos` supports a "magic priority prefix" on the repo URL,
 like so:
 
 ```
-version_os_repo_mapping:
+version_devel_repos:
     octopus:
         leap-15.2:
             - '96!https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
@@ -536,7 +536,7 @@ Alternatively, add the following to your `config.yaml` to always use these
 options when deploying `octopus` clusters:
 
 ```
-version_os_repo_mapping:
+version_devel_repos:
     octopus:
         leap-15.2:
             - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
@@ -579,7 +579,7 @@ Alternatively, add the following to your `config.yaml` to always use
 these options when deploying `ses7` clusters:
 
 ```
-version_os_repo_mapping:
+version_devel_repos:
     ses7:
         sles-15-sp2:
             - 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
