@@ -2,6 +2,13 @@ class SesDevException(Exception):
     pass
 
 
+class AddRepoNoUpdateWithExplicitRepo(SesDevException):
+    def __init__(self):
+        super(AddRepoNoUpdateWithExplicitRepo, self).__init__(
+            "The --update option does not work with an explicit custom repo."
+            )
+
+
 class BadMakeCheckRolesNodes(SesDevException):
     def __init__(self):
         super(BadMakeCheckRolesNodes, self).__init__(
@@ -143,6 +150,14 @@ class OptionValueError(SesDevException):
         super(OptionValueError, self).__init__(
             "Wrong value for option '{}'. {}. Actual value: '{}'"
             .format(option, message, value))
+
+
+class ProductOptionOnlyOnSES(SesDevException):
+    def __init__(self, version):
+        super(ProductOptionOnlyOnSES, self).__init__(
+            "You asked to create a {} cluster with the --product option, "
+            "but this option only works with versions starting with \"ses\""
+            .format(version))
 
 
 class RoleNotKnown(SesDevException):

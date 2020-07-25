@@ -522,7 +522,17 @@ sesdev create octopus
 
 ##### octopus from filesystems:ceph:octopus&#8203;:upstream
 
-Add the following to your `config.yaml`:
+Run `sesdev create octopus` with the following options:
+
+```
+sesdev create octopus \
+    --repo-priority \
+    --repo https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/openSUSE_Leap_15.2 \
+    --image-path registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph
+```
+
+Alternatively, add the following to your `config.yaml` to always use these
+options when deploying `octopus` clusters:
 
 ```
 version_os_repo_mapping:
@@ -534,13 +544,10 @@ image_paths:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph'
 ```
 
-(The elevated priority on the `filesystems:ceph:octopus&#8203;:upstream` repo is
-needed to ensure that the ceph package from that project gets installed even if
-RPM evaluates its version number to be lower than that of the ceph packages in 
-the openSUSE Leap 15.2 base and `filesystems:ceph:octopus` repos.)
-
-The `sesdev create` command line is the same as the one shown in
-[octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus).
+Note: The elevated priority on the `filesystems:ceph:octopus:upstream`
+repo is needed to ensure that the ceph package from that project gets installed
+even if RPM evaluates its version number to be lower than that of the ceph
+packages in the openSUSE Leap 15.2 base and `filesystems:ceph:octopus` repos.
 
 ##### ses7 from Devel:Storage:7.0
 
@@ -556,12 +563,19 @@ installation media repo, not the "SLE_15_SP2" repo.
 
 ##### ses7 from Devel:Storage:7.0:CR
 
-Since `Devel:Storage:7.0:CR/ceph` has the same version as
-`filesystems:ceph:master:upstream/ceph`, this is an unadulterated upstream
-build which requires special zypper priority to get it to install correctly in
-SLE-15-SP2.
+The ceph package in `Devel:Storage:7.0:CR` has the same version as
+the one in `filesystems:ceph:master:upstream`, so the procedure for
+using it is similar:
 
-config.yaml:
+```
+sesdev create ses7 \
+    --repo-priority \
+    --repo http://download.suse.de/ibs/Devel:/Storage:/7.0:/CR/SLE_15_SP2/ \
+    --image-path registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph
+```
+
+Alternatively, add the following to your `config.yaml` to always use
+these options when deploying `ses7` clusters:
 
 ```
 version_os_repo_mapping:
@@ -574,13 +588,10 @@ image_paths:
     ses7: 'registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph'
 ```
 
-(The elevated priority on the `Devel:Storage:7.0:CR` repo is needed to ensure
-that the ceph package from that project gets installed even if RPM evaluates its
-version number to be lower than that of the ceph packages in the SES7 Product
-and `Devel:Storage:7.0` repos.)
-
-The `sesdev create` command line is the same as the one shown in
-[ses7 from Devel:Storage:7.0](#ses7-from-develstorage70).
+Note: The elevated priority on the `Devel:Storage:7.0:CR` repo is needed to
+ensure that the ceph package from that project gets installed even if RPM
+evaluates its version number to be lower than that of the ceph packages in the
+SES7 Product and `Devel:Storage:7.0` repos.
 
 ### List existing deployments
 

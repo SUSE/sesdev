@@ -35,6 +35,11 @@ SETTINGS = {
         'help': 'Number of virtual CPUs in each node',
         'default': 2,
     },
+    'custom_repos': {
+        'type': list,
+        'help': 'Optional custom zypper repos to apply to all nodes',
+        'default': [],
+    },
     'deepsea_git_repo': {
         'type': str,
         'help': 'If set, it will install DeepSea from this git repo',
@@ -52,7 +57,7 @@ SETTINGS = {
     },
     'devel_repo': {
         'type': bool,
-        'help': 'Include devel repo, if applicable',
+        'help': 'Include "devel" zypper repo, if applicable',
         'default': True,
     },
     'disk_size': {
@@ -200,15 +205,15 @@ SETTINGS = {
         'help': 'RAM size in gigabytes for each node',
         'default': 4,
     },
-    'repos': {
-        'type': list,
-        'help': 'Custom repos dictionary to apply to all nodes',
-        'default': [],
-    },
     'repo_priority': {
         'type': bool,
-        'help': 'Automatically set priority on custom zypper repos',
+        'help': 'One or more zypper repos will have elevated priority',
         'default': True,
+    },
+    'repos': {
+        'type': list,
+        'help': 'DEPRECATED: use custom_repos instead',
+        'default': [],
     },
     'roles': {
         'type': list,
