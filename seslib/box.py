@@ -45,7 +45,8 @@ class Box():
     def _populate_box_list(self):
         self.all_possible_boxes = Constant.OS_BOX_MAPPING.keys()
         self.boxes = []
-        output = tools.run_sync(["vagrant", "box", "list"])
+        cmd = ["vagrant", "box", "list"]
+        output = tools.run_sync(cmd)
         lines = output.split('\n')
         for line in lines:
             if 'libvirt' in line:

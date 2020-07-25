@@ -1,3 +1,4 @@
+import inspect
 import json
 import os
 import random
@@ -70,6 +71,7 @@ def _vet_dep_id(dep_id):
 
 class Deployment():
     def __init__(self, dep_id, settings, existing=False):
+        Log.info("Instantiating deployment {}".format(dep_id))
         if existing:
             self.dep_id = dep_id
         else:
@@ -139,11 +141,7 @@ class Deployment():
     def _needs_cluster_network(self):
         if len(self.settings.roles) == 1:  # there is only 1 node
             return False
-        num_nodes_with_storage = 0
-        for node in self.settings.roles:
-            if 'storage' in node:
-                num_nodes_with_storage += 1
-        if num_nodes_with_storage > 1:  # at least 2 nodes have storage
+        if self.node_counts['storage'] > 1:  # at least 2 nodes have storage
             return True
         return False
 
@@ -536,7 +534,8 @@ class Deployment():
         Log.info("Checking if vagrant box is already here: {}"
                  .format(vagrant_box))
         found_box = False
-        output = tools.run_sync(["vagrant", "box", "list"])
+        cmd = ['vagrant', 'box', 'list']
+        output = tools.run_sync(cmd)
         lines = output.split('\n')
         for line in lines:
             if line:
@@ -699,7 +698,8 @@ deployment might not be completely destroyed.
                 node.status = "not deployed"
             return
 
-        out = tools.run_sync(["vagrant", "status"], cwd=self._dep_dir)
+        cmd = ['vagrant', 'status']
+        out = tools.run_sync(cmd, cwd=self._dep_dir)
         for line in [line.strip() for line in out.split('\n')]:
             if line:
                 line_arr = line.split(' ', 1)
@@ -852,7 +852,8 @@ deployment might not be completely destroyed.
         if name not in self.nodes:
             raise NodeDoesNotExist(name)
 
-        out = tools.run_sync(["vagrant", "ssh-config", name], cwd=self._dep_dir)
+        cmd = ["vagrant", "ssh-config", name]
+        out = tools.run_sync(cmd, cwd=self._dep_dir)
 
         address = None
         proxycmd = None
@@ -1095,7 +1096,6 @@ deployment might not be completely destroyed.
                 service_url = 'https://{}:{}'.format(local_address, local_port)
                 ssh_cmd = self._ssh_cmd('master')
                 ssh_cmd += ["ceph", "mgr", "services"]
-                Log.debug("About to run: {}".format(ssh_cmd))
                 try:
                     raw_json = tools.run_sync(ssh_cmd)
                     raw_json = raw_json.strip()
@@ -1139,7 +1139,6 @@ deployment might not be completely destroyed.
         ssh_cmd.extend(["-M", "-S", "{}-admin-socket".format(self.dep_id), "-fNT", "-L",
                         "{}:{}:{}:{}".format(local_address, local_port, self.nodes[node].fqdn,
                                              remote_port)])
-        Log.debug("About to run: {}".format(ssh_cmd))
         print("You can now access the service in: {}".format(service_url))
         tools.run_sync(ssh_cmd)
 
@@ -1402,11 +1401,20 @@ deployment might not be completely destroyed.
 
     @classmethod
     def list(cls, load_status=False):
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        Log.debug("Entering deployment.list (called from ->{}<-)".format(calframe[1][3]))
         deps = []
         if not os.path.exists(Constant.A_WORKING_DIR):
             return deps
-        for dep_id in os.listdir(Constant.A_WORKING_DIR):
-            if dep_id.startswith("config.yaml"):
+        dir_listing = os.listdir(Constant.A_WORKING_DIR)
+        Log.debug("Listing of directory {}: {}".format(
+            Constant.A_WORKING_DIR,
+            dir_listing))
+        for dep_id in dir_listing:
+            Log.debug("Considering deployment ->{}<-".format(dep_id))
+            full_path = os.path.join(Constant.A_WORKING_DIR, dep_id)
+            if not os.path.isdir(full_path):
                 Log.debug("Skipping ->{}<- (obviously not a deployment)".format(dep_id))
                 continue
             try:
