@@ -111,6 +111,12 @@ class MultipleRolesPerMachineNotAllowedInCaaSP(SesDevException):
         )
 
 
+class FeatureNotAvailable(SesDevException):
+    def __init__(self, feature):
+        super(FeatureNotAvailable, self).__init__(
+            "{}: feature not available".format(feature))
+
+
 class NodeDoesNotExist(SesDevException):
     def __init__(self, node):
         super().__init__(
@@ -186,6 +192,13 @@ class NoSupportConfigTarballFound(SesDevException):
     def __init__(self, node):
         super().__init__(
             "No supportconfig tarball found on node {}".format(node)
+        )
+
+
+class NotRunningAsRoot(SesDevException):
+    def __init__(self):
+        super().__init__(
+            "You are not root. This feature requires root privileges."
         )
 
 

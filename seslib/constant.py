@@ -18,6 +18,10 @@ class Constant():
 
     DEBUG = False
 
+    FEATURE = {
+        'iptables': None,
+    }
+
     IMAGE_PATHS = {
         'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
         'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',

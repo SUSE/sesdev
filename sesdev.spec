@@ -46,6 +46,7 @@ Requires:       python3-prettytable
 Requires:       python3-pyyaml >= 3.13
 %endif
 Requires:       python3-click >= 6.7
+Requires:       python3-iptables >= 0.13.0
 Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-setuptools
 Requires:       vagrant > 2.2.2

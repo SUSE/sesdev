@@ -1,7 +1,7 @@
 import fnmatch
 import json
 import logging
-from os import environ, path
+from os import geteuid, environ, path
 import re
 import sys
 
@@ -20,11 +20,13 @@ from seslib.exceptions import \
                               CmdException, \
                               DebugWithoutLogFileDoesNothing, \
                               NoExplicitRolesWithSingleNode, \
+                              NotRunningAsRoot, \
                               OptionFormatError, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
                               RemoveBoxNeedsBoxNameOrAllOption, \
                               VersionNotKnown
+from seslib.iptables import IPTables
 from seslib.log import Log
 from seslib.settings import Settings
 from seslib import tools
@@ -1111,6 +1113,38 @@ def destroy(deployment_id, **kwargs):
                   .format(deployment_id, destroy_networks))
         dep.destroy(_print_log, destroy_networks)
         click.echo("Deployment {} destroyed!".format(dep.dep_id))
+
+
+@cli.command(name='link')
+@click.argument('dep_id_1')
+@click.argument('dep_id_2')
+def link(dep_id_1, dep_id_2):
+    """
+    Link two clusters together (EXPERIMENTAL)
+
+    Ordinarily, when two sesdev clusters are deployed, the network connection
+    between them is forbidden at the iptables level on the host, yet sometimes
+    there is a need for two sesdev clusters to communicate with eachother over
+    the network (e.g. RGW Multisite, CephFS snapshots sync, RBD mirroring).
+
+    This command takes two deployment IDs. It makes changes to the LIBVIRT_FWI
+    chain to allow the two specified deployments to "see each other".
+    """
+    if geteuid() == 0:
+        Log.info("Running as root. Good.")
+    else:
+        raise NotRunningAsRoot()
+    dep_1 = Deployment.load(dep_id_1)
+    dep_2 = Deployment.load(dep_id_2)
+    net_1 = dep_1.public_network_segment
+    click.echo("Deployment {} has public network {}".format(dep_1, net_1))
+    net_2 = dep_2.public_network_segment
+    click.echo("Deployment {} has public network {}".format(dep_2, net_2))
+    click.echo("Modifying iptables so these two networks can talk to each other")
+    ipt = IPTables()
+    ipt.dump_chain()
+    ipt.traverse_chain(net_1, net_2)
+    ipt.insert_new_rules()
 
 
 @click.option('--format', 'format_opt', type=str, default=None)

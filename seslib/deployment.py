@@ -85,6 +85,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.nodes = {}
         self.node_counts = {}
         self.nodes_with_role = {}
+        self.public_network_segment = "{}0/24".format(self.settings.public_network)
         self.roles_of_nodes = {}
         for role in Constant.ROLES_KNOWN:
             self.node_counts[role] = 0
@@ -231,6 +232,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             else:
                 break
         self.settings.public_network = public_network
+        self.public_network_segment = "{}0/24".format(public_network)
 
         if self._needs_cluster_network():
             existing_networks = [dep.settings.cluster_network for dep in deps
