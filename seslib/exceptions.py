@@ -29,6 +29,12 @@ class CmdException(SesDevException):
         self.stderr = stderr
 
 
+class DebugWithoutLogFileDoesNothing(SesDevException):
+    def __init__(self):
+        super(DebugWithoutLogFileDoesNothing, self).__init__(
+            "--debug without --log-file has no effect (maybe you want --verbose?)")
+
+
 class DepIDIllegalChars(SesDevException):
     def __init__(self, dep_id):
         super(DepIDIllegalChars, self).__init__(

@@ -16,11 +16,13 @@ from seslib.exceptions import \
                               SesDevException, \
                               AddRepoNoUpdateWithExplicitRepo, \
                               CmdException, \
+                              DebugWithoutLogFileDoesNothing, \
                               NoExplicitRolesWithSingleNode, \
                               OptionFormatError, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
                               VersionNotKnown
+from seslib.log import Log
 from seslib.settings import Settings
 from seslib.tools import gen_random_string
 from seslib.zypper import ZypperRepo
@@ -151,10 +153,8 @@ def _parse_roles(roles):
     if roles.startswith('[[') and roles.endswith(']]'):
         roles = roles[1:-1]
     roles = roles.split(",")
-    log_msg = "_parse_roles: raw roles from user: {}".format(roles)
-    logger.debug(log_msg)
-    log_msg = "_parse_roles: pre-processed roles array: {}".format(roles)
-    logger.debug(log_msg)
+    Log.debug("_parse_roles: raw roles from user: {}".format(roles))
+    Log.debug("_parse_roles: pre-processed roles array: {}".format(roles))
     _roles = []
     _node = None
     for role in roles:
@@ -209,13 +209,23 @@ def _maybe_gen_dep_id(version, dep_id, settings_dict):
 @click.option('-c', '--config-file', required=False,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Configuration file location')
-@click.option('--debug/--no-debug', default=False,
+@click.option('-d', '--debug/--no-debug', default=False,
               help='Whether to emit DEBUG-level log messages')
-@click.option('--log-file', type=str, default=None)
+@click.option('--log-file', type=str, default=None,
+              help='Whether to append log messages to a file (and which file)')
 @click.option('--vagrant-debug/--no-vagrant-debug', default=False,
               help='Whether to run vagrant with --debug option')
+@click.option('-v', '--verbose/--no-verbose', default=False,
+              help='Whether to emit INFO- and WARNING-level log messages')
 @click.version_option(pkg_resources.get_distribution('sesdev'), message="%(version)s")
-def cli(work_path=None, config_file=None, debug=False, log_file=None, vagrant_debug=False):
+def cli(
+        config_file=None,
+        debug=None,
+        log_file=None,
+        vagrant_debug=None,
+        verbose=None,
+        work_path=None,
+        ):
     """
     Welcome to the sesdev tool.
 
@@ -234,14 +244,7 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
        --num-disks=4 --disk-size=10 my-octopus-cluster
 
     """
-    if debug:
-        logger.info("Debug mode: ON")
-        Constant.DEBUG = debug
-
-    if vagrant_debug:
-        logger.info("vagrant will be run with --debug option")
-        Constant.VAGRANT_DEBUG = vagrant_debug
-
+    Constant.LOG_FILE = bool(log_file)  # set once here, never to change again
     if log_file:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
                             filename=log_file, filemode='w',
@@ -249,13 +252,37 @@ $ sesdev create octopus --roles="[master, mon, mgr], \\
     else:
         logging.basicConfig(format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
                             level=logging.CRITICAL)
+        # note: we can't go any lower than CRITICAL here without causing
+        # Python tracebacks to be barfed out to the screen
+
+    Constant.DEBUG = bool(debug)  # set once here, never to change again
+    Constant.VERBOSE = bool(verbose)  # set once here, never to change again
+
+    if debug:
+        if not Constant.LOG_FILE:
+            raise DebugWithoutLogFileDoesNothing()
+        Constant.VERBOSE = True
+
+    if Constant.DEBUG:
+        Log.info("Debug mode: ON")
+    else:
+        Log.debug("Debug mode: OFF")
+
+    if Constant.VERBOSE:
+        Log.info("Verbose mode: ON")
+    else:
+        Log.debug("Verbose mode: OFF")
+
+    Constant.VAGRANT_DEBUG = bool(vagrant_debug)  # set once here, never to change again
+    if vagrant_debug:
+        Log.info("vagrant will be run with --debug option")
 
     if work_path:
-        logger.info("Working path: %s", work_path)
+        Log.info("Working path: {}".format(work_path))
         Constant.A_WORKING_DIR = work_path  # set once here, never to change again
 
     if config_file:
-        logger.info("Config file: %s", config_file)
+        Log.info("Config file: {}".format(config_file))
         Constant.CONFIG_FILE = config_file  # set once here, never to change again
 
 
@@ -269,11 +296,10 @@ def list_deps(format_opt):
     deployments_list = []
     deps = Deployment.list(True)
     if deps:
-        log_msg = "Found deployments: {}".format(", ".join(d.dep_id for d in deps))
-        logger.info(log_msg)
+        Log.info("list_deps: Found deployments: {}".format(", ".join(d.dep_id for d in deps)))
     else:
         msg = "No deployments found"
-        logger.info(msg)
+        Log.info("list_deps: {}".format(msg))
         if format_opt in ['json']:
             click.echo(json.dumps([], sort_keys=True, indent=4))
         else:
@@ -302,14 +328,14 @@ def list_deps(format_opt):
         p_table.align = "l"
 
     for dep in deps:
-        logger.debug("Looping over deployments: %s", dep.dep_id)
+        Log.debug("_status: Looping over deployments ({})".format(dep.dep_id))
         status = str(_status(dep.nodes))
-        logger.debug("-> status: %s", status)
+        Log.debug("_status: -> status: {}".format(status))
         version = getattr(dep.settings, 'version', None)
-        logger.debug("-> version: %s", version)
+        Log.debug("_status: -> version: {}".format(version))
         nodes = getattr(dep, 'nodes', None)
         node_names = '(unknown)' if nodes is None else ', '.join(nodes)
-        logger.debug("-> node_names: %s", node_names)
+        Log.debug("_status: -> node_names: {}".format(node_names))
         if format_opt in ['json']:
             deployments_list.append({
                 "id": dep.dep_id,
@@ -630,17 +656,17 @@ def _gen_settings_dict(
 
     if ceph_salt_repo is not None:
         if not ceph_salt_branch:
-            logger.debug(
-                "User explicitly specified only --ceph-salt-repo; assuming --ceph-salt-branch %s",
-                Constant.CEPH_SALT_BRANCH
+            Log.info(
+                "User explicitly specified only --ceph-salt-repo; assuming --ceph-salt-branch {}"
+                .format(Constant.CEPH_SALT_BRANCH)
                 )
             ceph_salt_branch = Constant.CEPH_SALT_BRANCH
 
     if ceph_salt_branch is not None:
         if not ceph_salt_repo:
-            logger.debug(
-                "User explicitly specified only --ceph-salt-branch; assuming --ceph-salt-repo %s",
-                Constant.CEPH_SALT_REPO
+            Log.info(
+                "User explicitly specified only --ceph-salt-branch; assuming --ceph-salt-repo {}"
+                .format(Constant.CEPH_SALT_REPO)
                 )
             ceph_salt_repo = Constant.CEPH_SALT_REPO
 
@@ -706,8 +732,7 @@ def _gen_settings_dict(
 
 def _create_command(deployment_id, deploy, settings_dict):
     interactive = not settings_dict.get('non_interactive', False)
-    _log_message = "_create_command: interactive set to {}".format(interactive)
-    logger.debug(_log_message)
+    Log.debug("_create_command: interactive set to {}".format(interactive))
     settings = Settings(**settings_dict)
     dep = Deployment.create(deployment_id, settings)
     if not dep.settings.devel_repo:
@@ -1009,9 +1034,8 @@ def destroy(deployment_id, **kwargs):
         if not really_want_to:
             raise click.Abort()
     for dep in matching_deployments:
-        logger.debug("destroy deployment: '%s', destroy networks: %s",
-                     deployment_id,
-                     destroy_networks)
+        Log.debug("destroy deployment: '{}', destroy networks: {}"
+                  .format(deployment_id, destroy_networks))
         dep.destroy(_print_log, destroy_networks)
         click.echo("Deployment {} destroyed!".format(dep.dep_id))
 
@@ -1033,8 +1057,7 @@ def ssh(deployment_id, node=None, command=None):
     dep = Deployment.load(deployment_id)
     node_name = 'master' if node is None else node
     if command:
-        log_msg = "Running SSH command on {}: {}".format(node_name, command)
-        logger.info(log_msg)
+        Log.info("Running SSH command on {}: {}".format(node_name, command))
     dep.ssh(node_name, command)
 
 
