@@ -72,6 +72,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
    * [When sesdev deployments get destroyed, virtual networks get left behind](#when-sesdev-deployments-get-destroyed-virtual-networks-get-left-behind)
+   * [sesdev destroy reported an error](#sesdev-destroy-reported-an-error)
    * ["Failed to connect socket" error when attempting to use remote libvirt server](#failed-to-connect-socket-error-when-attempting-to-use-remote-libvirt-server)
    * [mount.nfs: Unknown error 521](#mountnfs-unknown-error-521)
 * [Contributing](#contributing)
@@ -924,6 +925,57 @@ The script should be run as root on the libvirt server.
 
 An unsupported, user-contributed version of this script -- `contrib/nukenetz.sh`
 -- can be found in the source-code tree.
+
+Also, read the [next section](#sesdev-destroy-reported-an-error) for more
+relevant information.
+
+### sesdev destroy reported an error
+
+#### Symptom
+
+You ran `sesdev destroy` but there were errors and you suspect that a deployment
+(or deployments) might not have been completely destroyed.
+
+#### Analysis
+
+The command `sesdev destroy` has been known to fail, leaving a deployment "not
+completely destroyed".
+
+A sesdev deployment `DEP_ID` consists of several components:
+
+* a subdirectory under `~/.sesdev/DEP_ID`
+* some number of libvirt domains
+* some number of libvirt storage volumes in the `default` storage pool
+* some number of libvirt networks
+
+and the names of all the libvirt domains, volumes, and networks used by domain
+`DEP_ID` can be expected to begin with `DEP_ID`. For example, if the DEP_ID
+is "octopus", the associated libvirt artifacts will have names starting with
+"octopus".
+
+#### Resolution
+
+Use the following commands to check for vestiges of your deployment:
+
+```
+sudo virsh list --all | grep '^ DEP_ID'
+sudo virsh vol-list default | grep '^ DEP_ID'
+sudo virsh net-list | grep '^ DEP_ID'
+(cd ~/.sesdev ; ls -d1 */ | grep '^DEP_ID')
+```
+
+Then, **assuming you use your libvirt instance is dedicated to `sesdev` and not
+used for anything else**, you could use the following commands to delete
+everything you found, and that would clean up the partially-destroyed
+deployment:
+
+```
+sudo virsh destroy LIBVIRT_DOMAIN
+sudo virsh undefine LIBVIRT_DOMAIN
+sudo virsh vol-delete --pool default LIBVIRT_STORAGE_POOL
+sudo virsh net-destroy LIBVIRT_NETWORK
+sudo virsh net-undefine LIBVIRT_NETWORK
+```
 
 ### "Failed to connect socket" error when attempting to use remote libvirt server
 
