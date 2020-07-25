@@ -23,6 +23,10 @@ cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
 # set hostname
 hostnamectl set-hostname {{ node.name }}
 
+# persist the journal
+sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf
+systemctl restart systemd-journald
+
 # zypper-related setup (tweak settings, repos, system packages)
 {% include "zypper.j2" %}
 
