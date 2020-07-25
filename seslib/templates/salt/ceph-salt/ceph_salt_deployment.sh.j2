@@ -170,19 +170,22 @@ function number_of_osds_in_ceph_osd_tree {
 EXPECTED_NUMBER_OF_OSDS="{{ total_osds }}"
 
 set +x
-count="0"
-max_count_we_can_tolerate="50"
+timeout_seconds="900"
+remaining_seconds="$timeout_seconds"
+interval_seconds="10"
 while true ; do
-    count="$(( count + 1 ))"
     ACTUAL_NUMBER_OF_OSDS="$(number_of_osds_in_ceph_osd_tree)"
-    echo "OSDs in cluster (actual/expected): $ACTUAL_NUMBER_OF_OSDS/$EXPECTED_NUMBER_OF_OSDS (try $count of ${max_count_we_can_tolerate})"
+    echo "OSDs in cluster (actual/expected): $ACTUAL_NUMBER_OF_OSDS/$EXPECTED_NUMBER_OF_OSDS (${remaining_seconds} seconds to timeout)"
+    remaining_seconds="$(( remaining_seconds - interval_seconds ))"
     [ "$ACTUAL_NUMBER_OF_OSDS" = "$EXPECTED_NUMBER_OF_OSDS" ] && break
-    if [ "$count" -ge "$max_count_we_can_tolerate" ] ; then
+    if [ "$remaining_seconds" -le "0" ] ; then
+        set -x
         ceph status
+        set +x
         echo "It seems unlikely that this cluster will ever reach the expected number of OSDs. Bailing out!"
         exit 1
     fi  
-    sleep 5   
+    sleep "$interval_seconds"
 done
 set -x
 
