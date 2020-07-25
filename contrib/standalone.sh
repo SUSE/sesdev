@@ -198,6 +198,12 @@ if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
     exit 1
 fi
 
+if [ -e "$HOME/.sesdev/config.yaml" ] ; then
+    echo "ERROR: detected $HOME/.sesdev/config.yaml"
+    echo "(The existence of this file can skew the test results!)"
+    exit 1
+fi
+
 set -x
 
 if [ "$SES5" ] ; then
