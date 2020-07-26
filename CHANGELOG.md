@@ -7,6 +7,41 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.6.0] - 2020-07-26
+
+### Added
+- sesdev: implement --dry-run for create commands (PR #384)
+- ceph_salt_deployment: use mgr/nfs CLI to deploy NFS Ganesha (PR #385)
+- 'sesdev replace-mgr-modules' should also replace 'bin/cephadm' (PR #387)
+- qa: enable dashboard branding test on {octopus,ses7} (PR #392)
+- zypper: remove rsync if it's installed in the Vagrant Box (PR #395)
+- ceph_salt_deployment: "ceph -s" when OSDs fail to come up (PR #409)
+- deployment: run supportconfig with 1-hour timeout (PR #410)
+- provision.sh: persist the journal (PR #411)
+
+### Removed
+- ses5: stop patching srv/salt/ceph/time/ntp/default.sls (PR #407)
+
+### Changed
+- split seslib/__init__.py into several smaller files (PR #377, #380)
+- provision.sh: add all repos before installing packages (PR #381)
+- Refactor seslib/templates/provision.sh (PR #383)
+- deployment/status: aggregate global parameters (PR #393)
+- Improve the "show" subcommand and deployment configuration listing (PR #399)
+- Change --repo-priority default from "True" to "False" (PR #400)
+- seslib: revamp custom_repo (PR #402)
+- seslib/deployment: try to destroy the whole cluster at once (PR #403)
+- log: print log messages to the screen under certain circumstances (PR #404)
+- Rename "version_os_repo_mapping" to "version_devel_repos" (PR #408)
+- ceph_salt_deployment.sh: extend OSD timeout (PR #413)
+
+### Fixed
+- qa/common/rgw: fix curl try-wait (PR #379)
+- sesdev: use Luminous roles for SES5 (PR #382)
+- ceph_salt_deployment: fix off-by-one error in OSDs wait loop (PR #394)
+- sesdev: fix --non-interactive/--force handling (PR #395)
+- deployment: generate static networks on create only (PR #401)
+
 ## [1.5.0] - 2020-07-03
 
 ### Added
@@ -438,7 +473,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.5.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/SUSE/sesdev/releases/tag/v1.6.0
 [1.5.0]: https://github.com/SUSE/sesdev/releases/tag/v1.5.0
 [1.4.0]: https://github.com/SUSE/sesdev/releases/tag/v1.4.0
 [1.3.0]: https://github.com/SUSE/sesdev/releases/tag/v1.3.0
