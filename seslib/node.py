@@ -32,7 +32,7 @@ class Node():
         self.custom_repos = []
 
     def has_role(self, role):
-        if role not in Constant.KNOWN_ROLES:
+        if role not in Constant.ROLES_KNOWN:
             raise RoleNotKnown(role)
         return role in self.roles
 
@@ -43,7 +43,7 @@ class Node():
     def has_exclusive_role(self, role):
         Log.debug("Node {}: has_exclusive_role: self.roles: {}"
                   .format(self.fqdn, self.roles))
-        if role not in Constant.KNOWN_ROLES:
+        if role not in Constant.ROLES_KNOWN:
             raise RoleNotKnown(role)
         return self.roles == [role]
 

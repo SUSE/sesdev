@@ -18,23 +18,6 @@ class Constant():
 
     DEBUG = False
 
-    DEFAULT_ROLES = {
-        "caasp4": [["master"], ["worker"], ["worker"], ["loadbalancer"]],
-        "luminous": [["master", "client", "openattic"],
-                     ["storage", "mon", "mgr", "rgw", "igw"],
-                     ["storage", "mon", "mgr", "mds", "nfs"],
-                     ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
-        "makecheck": [["makecheck"]],
-        "nautilus": [["master", "client", "prometheus", "grafana"],
-                     ["storage", "mon", "mgr", "rgw", "igw"],
-                     ["storage", "mon", "mgr", "mds", "igw", "nfs"],
-                     ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
-        "octopus": [["master", "client", "prometheus", "grafana"],
-                    ["bootstrap", "storage", "mon", "mgr", "rgw", "igw"],
-                    ["storage", "mon", "mgr", "mds", "igw", "nfs"],
-                    ["storage", "mon", "mgr", "mds", "rgw", "nfs"]]
-    }
-
     IMAGE_PATHS = {
         'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
         'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
@@ -42,28 +25,6 @@ class Constant():
     }
 
     JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
-
-    KNOWN_ROLES = [
-        "admin",
-        "bootstrap",
-        "client",
-        "ganesha",       # deprecated (replaced by "nfs")
-        "grafana",
-        "igw",
-        "loadbalancer",
-        "makecheck",
-        "master",
-        "mds",
-        "mgr",
-        "mon",
-        "nfs",
-        "openattic",
-        "prometheus",
-        "rgw",
-        "storage",
-        "suma",
-        "worker",
-    ]
 
     LOGFILE = None
 
@@ -177,36 +138,71 @@ class Constant():
         },
     }
 
-    ROLES_SINGLE_NODE_LUMINOUS = (
-        "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]"
-    )
+    ROLES_DEFAULT = {
+        "caasp4": [["master"], ["worker"], ["worker"], ["loadbalancer"]],
+        "luminous": [["master", "client", "openattic"],
+                     ["storage", "mon", "mgr", "rgw", "igw"],
+                     ["storage", "mon", "mgr", "mds", "nfs"],
+                     ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
+        "makecheck": [["makecheck"]],
+        "nautilus": [["master", "client", "prometheus", "grafana"],
+                     ["storage", "mon", "mgr", "rgw", "igw"],
+                     ["storage", "mon", "mgr", "mds", "igw", "nfs"],
+                     ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
+        "octopus": [["master", "client", "prometheus", "grafana", "alertmanager", "node-exporter"],
+                    ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
+                    ["storage", "mon", "mgr", "mds", "igw", "nfs", "node-exporter"],
+                    ["storage", "mon", "mgr", "mds", "rgw", "nfs", "node-exporter"]]
+    }
 
-    ROLES_SINGLE_NODE_NAUTILUS = (
-        "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
-        "nfs ]"
-    )
+    ROLES_DEFAULT_BY_VERSION = {
+        'caasp4': ROLES_DEFAULT["caasp4"],
+        'makecheck': ROLES_DEFAULT["makecheck"],
+        'nautilus': ROLES_DEFAULT["nautilus"],
+        'octopus': ROLES_DEFAULT["octopus"],
+        'pacific': ROLES_DEFAULT["octopus"],
+        'ses5': ROLES_DEFAULT["luminous"],
+        'ses6': ROLES_DEFAULT["nautilus"],
+        'ses7': ROLES_DEFAULT["octopus"],
+    }
 
-    ROLES_SINGLE_NODE_OCTOPUS = (
-        "[ master, bootstrap, storage, mon, mgr, prometheus, grafana, mds, "
-        "igw, rgw, nfs ]"
-    )
+    ROLES_KNOWN = [
+        "admin",
+        "alertmanager",
+        "bootstrap",
+        "client",
+        "ganesha",       # deprecated (replaced by "nfs")
+        "grafana",
+        "igw",
+        "loadbalancer",
+        "makecheck",
+        "master",
+        "mds",
+        "mgr",
+        "mon",
+        "nfs",
+        "node-exporter",
+        "openattic",
+        "prometheus",
+        "rgw",
+        "storage",
+        "suma",
+        "worker",
+    ]
+
+    ROLES_SINGLE_NODE = {
+        "luminous": "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]",
+        "nautilus": "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
+                    "nfs ]",
+        "octopus": "[ master, bootstrap, storage, mon, mgr, mds, igw, rgw, nfs, "
+                   "prometheus, grafana, alertmanager, node-exporter ]",
+    }
 
     SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
 
     VAGRANT_DEBUG = None
 
     VERBOSE = None
-
-    VERSION_DEFAULT_ROLES = {
-        'caasp4': DEFAULT_ROLES["caasp4"],
-        'makecheck': DEFAULT_ROLES["makecheck"],
-        'nautilus': DEFAULT_ROLES["nautilus"],
-        'octopus': DEFAULT_ROLES["octopus"],
-        'pacific': DEFAULT_ROLES["octopus"],
-        'ses5': DEFAULT_ROLES["luminous"],
-        'ses6': DEFAULT_ROLES["nautilus"],
-        'ses7': DEFAULT_ROLES["octopus"],
-    }
 
     VERSION_DEVEL_REPOS = {
         'ses5': {

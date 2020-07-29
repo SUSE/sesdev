@@ -278,7 +278,7 @@ SETTINGS = {
     'version_default_roles': {
         'type': dict,
         'help': 'Default roles for each node - one set of default roles per deployment version',
-        'default': Constant.VERSION_DEFAULT_ROLES,
+        'default': Constant.ROLES_DEFAULT_BY_VERSION,
     },
     'version_devel_repos': {
         'type': dict,
@@ -368,7 +368,7 @@ class Settings():
         __fill_in_config_tree('os_repos', Constant.OS_REPOS)
         __fill_in_config_tree('version_os_repo_mapping', Constant.VERSION_OS_REPO_MAPPING)
         __fill_in_config_tree('image_paths', Constant.IMAGE_PATHS)
-        __fill_in_config_tree('version_default_roles', Constant.VERSION_DEFAULT_ROLES)
+        __fill_in_config_tree('version_default_roles', Constant.ROLES_DEFAULT_BY_VERSION)
         return config_tree
 
 
