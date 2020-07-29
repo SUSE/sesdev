@@ -1093,3 +1093,77 @@ function nfs_maybe_mount_export_and_touch_file {
     echo "WWWW: nfs_maybe_mount_export_and_touch_file: $result"
     echo
 }
+
+function _prometheus_wait_for {
+    local node="$1"
+    set -e
+    set +x
+    echo "Waiting for Prometheus on $node to start listening on its port"
+    minutes_to_wait="20"
+    local minute
+    local i
+    local success
+    set +H
+    echo -en "" > /tmp/wfp.sh
+    echo -en "#!/bin/bash\n" >> /tmp/wfp.sh
+    echo -en "ss -ntulw | grep '\*\:9095'\n" >> /tmp/wfp.sh
+    scp "/tmp/wfp.sh" "$node:/home/vagrant/is_prometheus_listening.sh"
+    echo "Waiting up to $minutes_to_wait minutes for Prometheus on $node to start listening on its port"
+    for minute in $(seq 1 "$minutes_to_wait") ; do
+        for i in $(seq 1 60) ; do
+            echo "Pinging prometheus on $node... ($i)"
+            if ssh "$node" "bash" "/home/vagrant/is_prometheus_listening.sh" ; then
+                break 2
+            fi
+            sleep 1
+        done
+        echo "Trying for another minute!"
+    done
+}
+
+function prometheus_smoke_test {
+# assert that Prometheus is alive on the node where it is expected to be
+    echo
+    echo "WWWW: maybe_prometheus_smoke_test"
+    local run_the_test="yes"
+    [ -z "$PROMETHEUS_NODE_LIST" ] && run_the_test=""
+    [ "$VERSION_ID" = "12.3" ]     && run_the_test=""
+    if [ "$run_the_test" ] ; then
+        _zypper_ref_on_master
+        _zypper_install_on_master curl
+        local prometheus_nodes_arr
+        local prometheus_node_count
+        prometheus_node_count="0"
+        local prometheus_node_under_test
+        local IFS
+        local curl_exit_status
+        IFS=","
+        read -r -a prometheus_nodes_arr <<<"$PROMETHEUS_NODE_LIST"
+        for (( n=0; n < ${#prometheus_nodes_arr[*]}; n++ )) ; do
+            prometheus_node_under_test="${prometheus_nodes_arr[n]}"
+            prometheus_node_under_test="${prometheus_node_under_test//[$'\t\r\n']}"
+            _prometheus_wait_for "$prometheus_node_under_test"
+            set -x
+            set +e
+            curl --silent "http://${prometheus_node_under_test}:9095"
+            curl_exit_status="$?"
+            set +x
+            set -e
+            if [ "$curl_exit_status" = "0" ] ; then
+                prometheus_node_count="$((prometheus_node_count + 1))"
+            fi
+        done
+        echo "Prometheus nodes expected/tested: $prometheus_node_count/${#prometheus_nodes_arr[*]}"
+        if [ "$prometheus_node_count" = "${#prometheus_nodes_arr[*]}" ] ; then
+            echo "WWWW: maybe_prometheus_smoke_test: OK"
+            echo
+        else
+            echo "WWWW: maybe_prometheus_smoke_test: FAIL"
+            echo
+            false
+        fi
+    else
+        echo "WWWW: maybe_prometheus_smoke_test: SKIPPED"
+        echo
+    fi
+}
