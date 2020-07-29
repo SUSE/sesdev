@@ -38,8 +38,11 @@ sleep 2
 {% endif %}
 
 {% if stop_before_ceph_salt_config %}
+set +x
+echo "Stopping the deployment now because --stop-before-ceph-salt-config option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# stop_before_ceph_salt_config #}
 
 echo "PATH is $PATH"
 type ceph-salt
@@ -83,6 +86,9 @@ zypper info cephadm | grep -E '(^Repo|^Version)'
 ceph-salt --version
 
 {% if stop_before_ceph_salt_apply %}
+set +x
+echo "Stopping the deployment now because --stop-before-ceph-salt-apply option was given."
+set -x
 exit 0
 {% endif %} {# stop_before_ceph_salt_apply #}
 
@@ -91,6 +97,13 @@ salt -G 'ceph-salt:member' state.apply ceph-salt
 {% else %}
 stdbuf -o0 ceph-salt -ldebug apply --non-interactive
 {% endif %}
+
+{% if stop_before_ceph_orch_apply %}
+set +x
+echo "Stopping the deployment now because --stop-before-ceph-orch-apply option was given."
+set -x
+exit 0
+{% endif %} {# stop_before_ceph_orch_apply #}
 
 {% set service_spec_core = "/root/service_spec_core.yml" %}
 rm -f {{ service_spec_core }}
