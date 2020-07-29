@@ -34,8 +34,11 @@ sleep 5
 {% endif %}
 
 {% if stop_before_stage == 0 %}
+set +x
+echo "Stopping the deployment now because --stop-before-deepsea-stage=0 option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# stop_before_stage == 0 #}
 
 echo "PATH is $PATH"
 {% if use_salt %}
@@ -56,8 +59,11 @@ sleep 5
 {% include "salt/deepsea/" + version + "_pre_stage_1.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 1 %}
+set +x
+echo "Stopping the deployment now because --stop-before-deepsea-stage=1 option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# stop_before_stage == 1 #}
 
 echo ""
 echo "***** RUNNING stage.1 *******"
@@ -71,8 +77,11 @@ sleep 5
 {% include "salt/deepsea/" + version + "_pre_stage_2.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 2 %}
+set +x
+echo "Stopping the deployment now because --stop-before-deepsea-stage=2 option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# stop_before_stage == 2 #}
 
 echo ""
 echo "***** RUNNING stage.2 *******"
@@ -86,8 +95,11 @@ sleep 5
 {% include "salt/deepsea/" + version + "_pre_stage_3.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 3 %}
+set +x
+echo "Stopping the deployment now because --stop-before-deepsea-stage=3 option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# stop_before_stage == 3 #}
 
 {% if version != 'ses5' %}
 {% set drive_groups_yml = "/srv/salt/ceph/configuration/files/drive_groups.yml" %}
@@ -131,8 +143,11 @@ ceph config set global mon_max_pg_per_osd 500
 {% include "salt/deepsea/" + version + "_pre_stage_4.sh.j2" ignore missing %}
 
 {% if stop_before_stage == 4 %}
+set +x
+echo "Stopping the deployment now because --stop-before-deepsea-stage=4 option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# stop_before_stage == 4 #}
 
 {% if deepsea_need_stage_4 %}
 

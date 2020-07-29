@@ -30,20 +30,31 @@ su - {{ makecheck_username }}
 EOF
 
 {% if makecheck_stop_before_git_clone %}
+set +x
+echo "Stopping the deployment now because --stop-before-git-clone option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# makecheck_stop_before_git_clone #}
+
 {% if os == "sles-12-sp3" %}
 su {{ makecheck_username }} -c 'git config --global http.sslVerify false'
 {% endif %}
 su {{ makecheck_username }} -c 'git clone --branch {{ makecheck_ceph_branch }} --progress {{ makecheck_ceph_repo }} /home/{{ makecheck_username }}/ceph'
 
 {% if makecheck_stop_before_install_deps %}
+set +x
+echo "Stopping the deployment now because --stop-before-install-deps option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# makecheck_stop_before_install_deps #}
 
 su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; sed -i -e "s/^set -e$/set -ex/" install-deps.sh ; FOR_MAKE_CHECK=true ./install-deps.sh'
 
 {% if makecheck_stop_before_run_make_check %}
+set +x
+echo "Stopping the deployment now because --stop-before-run-make-check option was given."
+set -x
 exit 0
-{% endif %}
+{% endif %} {# makecheck_stop_before_run_make_check #}
+
 su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; sed -i -e "s/^set -e$/set -ex/" run-make-check.sh ; ./run-make-check.sh'
