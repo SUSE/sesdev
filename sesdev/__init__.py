@@ -466,11 +466,11 @@ def _gen_settings_dict(
     elif single_node:
         roles_string = ""
         if version in ['ses7', 'octopus', 'pacific']:
-            roles_string = Constant.ROLES_SINGLE_NODE_OCTOPUS
+            roles_string = Constant.ROLES_SINGLE_NODE['octopus']
         elif version in ['ses6', 'nautilus']:
-            roles_string = Constant.ROLES_SINGLE_NODE_NAUTILUS
+            roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
         elif version in ['ses5']:
-            roles_string = Constant.ROLES_SINGLE_NODE_LUMINOUS
+            roles_string = Constant.ROLES_SINGLE_NODE['luminous']
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)

@@ -82,7 +82,7 @@ class Deployment():
         self.node_counts = {}
         self.nodes_with_role = {}
         self.roles_of_nodes = {}
-        for role in Constant.KNOWN_ROLES:
+        for role in Constant.ROLES_KNOWN:
             self.node_counts[role] = 0
             self.nodes_with_role[role] = []
         Log.debug("Deployment ctor: node_counts: {}".format(self.node_counts))
@@ -114,7 +114,7 @@ class Deployment():
 
         if self.settings.version == 'makecheck':
             self.settings.override('single_node', True)
-            self.settings.override('roles', Constant.VERSION_DEFAULT_ROLES['makecheck'])
+            self.settings.override('roles', Constant.ROLES_DEFAULT_BY_VERSION['makecheck'])
             if not self.settings.explicit_num_disks:
                 self.settings.override('num_disks', 0)
                 self.settings.override('explicit_num_disks', True)
@@ -191,9 +191,9 @@ class Deployment():
                   .format(self.settings.roles))
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             for role in node_roles:
-                if role not in Constant.KNOWN_ROLES:
+                if role not in Constant.ROLES_KNOWN:
                     raise RoleNotKnown(role)
-            for role_type in Constant.KNOWN_ROLES:
+            for role_type in Constant.ROLES_KNOWN:
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
 
@@ -844,7 +844,7 @@ deployment might not be completely destroyed.
                 raise RoleNotSupported('loadbalancer', self.settings.version)
         # no node may have more than one of any role
         for node in self.settings.roles:
-            for role in Constant.KNOWN_ROLES:
+            for role in Constant.ROLES_KNOWN:
                 if node.count(role) > 1:
                     raise DuplicateRolesNotSupported(role)
 
