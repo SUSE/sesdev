@@ -1321,7 +1321,3 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
                        dep.dep_id)
                    )
     dep.start_port_forwarding(service, node, remote_port, local_port, local_address)
-
-
-if __name__ == '__main__':
-    sys.exit(sesdev_main())
