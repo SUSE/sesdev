@@ -205,6 +205,7 @@ if [ -e "$HOME/.sesdev/config.yaml" ] ; then
 fi
 
 set -x
+touch $HOME/.sesdev/config.yaml
 
 if [ "$SES5" ] ; then
     sesdev --verbose box remove --non-interactive sles-12-sp3
@@ -333,5 +334,7 @@ if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
     echo "(One or more deployments created by this script were not destroyed)"
     exit 1
 fi
+
+rm $HOME/.sesdev/config.yaml
 
 final_report
