@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_sync(command, cwd=None):
-    Log.debug("Running command in directory {}: {}".format(
+    Log.info("Running command in directory {}: {}".format(
         cwd if cwd else ".",
         command))
     with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd) as proc:

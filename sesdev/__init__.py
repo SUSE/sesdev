@@ -1,13 +1,14 @@
 import fnmatch
 import json
 import logging
+from os import environ, path
 import re
 import sys
-from os.path import isabs, exists, isdir
+
+from prettytable import PrettyTable
 
 import click
 import pkg_resources
-from prettytable import PrettyTable
 
 from seslib.box import Box
 from seslib.constant import Constant
@@ -24,7 +25,7 @@ from seslib.exceptions import \
                               VersionNotKnown
 from seslib.log import Log
 from seslib.settings import Settings
-from seslib.tools import gen_random_string
+from seslib import tools
 from seslib.zypper import ZypperRepo
 
 
@@ -644,12 +645,12 @@ def _gen_settings_dict(
     for folder in synced_folder:
         try:
             src, dst = folder.split(':')
-            if not all([isabs(x) for x in [src, dst]]):
+            if not all([path.isabs(x) for x in [src, dst]]):
                 raise OptionValueError('--synced-folder',
                                        "Please provide absolute paths for "
                                        "synced folder paths",
                                        folder)
-            if not exists(src):
+            if not path.exists(src):
                 raise OptionValueError('--synced-folder',
                                        "Path to the source synced folder must exist",
                                        src)
@@ -958,7 +959,7 @@ def add_repo(deployment_id, **kwargs):
     custom_repo = None
     if kwargs['custom_repo']:
         custom_repo = ZypperRepo(
-            name='custom_repo_{}'.format(gen_random_string(6)),
+            name='custom_repo_{}'.format(tools.gen_random_string(6)),
             url=kwargs['custom_repo'],
             priority=Constant.ZYPPER_PRIO_ELEVATED if kwargs['repo_priority'] else None
             )
@@ -1320,7 +1321,3 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
                        dep.dep_id)
                    )
     dep.start_port_forwarding(service, node, remote_port, local_port, local_address)
-
-
-if __name__ == '__main__':
-    sys.exit(sesdev_main())

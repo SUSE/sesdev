@@ -70,6 +70,7 @@ def _vet_dep_id(dep_id):
 
 
 class Deployment():
+
     def __init__(self, dep_id, settings, existing=False):
         Log.info("Instantiating deployment {}".format(dep_id))
         if existing:
