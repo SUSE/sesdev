@@ -42,6 +42,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
    * [Create/deploy a Ceph cluster](#createdeploy-a-ceph-cluster)
+      * [Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
       * [Without the devel repo](#without-the-devel-repo)
@@ -380,6 +381,25 @@ gateway, an NFS (Ganesha) gateway, and an RGW gateway.
 $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, mds], \
   [storage, mon, mgr, mds], [igw, nfs, rgw]"
 ```
+
+#### Rook and CaaSP based Ceph cluster
+
+To create CaaSP k8s cluster that has loadbalancer, 2 worker nodes and master:
+
+```
+$ sesdev create caasp4
+```
+
+By default it just creates and configures CaaSP cluster and workers don't have any disks.
+
+To create workers with disks and without loadbalancer role:
+
+```
+$ sesdev create caasp4 --roles="[master], [worker], [worker]" --disk-size 6 --num-disks 2
+```
+
+To deploy Rook on that cluster use `--deploy-ses` option, also be aware about minimum requirement for the disk sizes (>5G).
+
 
 #### On a remote libvirt server via SSH
 
