@@ -7,6 +7,17 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.6.1] - 2020-08-11
+
+### Fixed
+- ceph_salt_deployment: implement "--stop-before-ceph-orch-apply" (PR #415)
+- settings: rename straggler version_os_repo_mappings (PR #419)
+- setup.cfg: fix "options.package_data" file list (PR #424)
+
+### Changed
+- sesdev: non-create, non-box functions in alphabetical order (PR #414)
+- Unify naming of role-related constants (PR #416)
+
 ## [1.6.0] - 2020-07-26
 
 ### Added
@@ -473,7 +484,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.6.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/SUSE/sesdev/releases/tag/v1.6.1
 [1.6.0]: https://github.com/SUSE/sesdev/releases/tag/v1.6.0
 [1.5.0]: https://github.com/SUSE/sesdev/releases/tag/v1.5.0
 [1.4.0]: https://github.com/SUSE/sesdev/releases/tag/v1.4.0
