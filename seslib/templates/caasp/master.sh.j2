@@ -43,7 +43,12 @@ ssh-add ~/.ssh/id_rsa
 mkdir -p ~/cluster
 cd ~/cluster
 
+{% if node_manager.get_one_by_role('loadbalancer') %}
 skuba -v ${SKUBA_VERBOSITY} cluster init --control-plane {{ node_manager.get_one_by_role('loadbalancer').name }} caasp4-cluster
+{% else %}
+skuba -v ${SKUBA_VERBOSITY} cluster init --control-plane {{ node_manager.get_one_by_role('master').name }} caasp4-cluster
+{% endif %}
+
 chmod g+rx caasp4-cluster
 cd caasp4-cluster
 skuba -v ${SKUBA_VERBOSITY} node bootstrap --user sles --sudo --target {{ node.name }} {{ node.name }}
