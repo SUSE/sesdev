@@ -17,6 +17,7 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 ### Changed
 - sesdev: non-create, non-box functions in alphabetical order (PR #414)
 - Unify naming of role-related constants (PR #416)
+- CaaSP: remove hard dependency on loadbalancer (PR #422)
 
 ## [1.6.0] - 2020-07-26
 
