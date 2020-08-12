@@ -306,7 +306,7 @@ class Deployment():
                         node.cpus = 2
                     if self.settings.ram < 2:
                         node.ram = 2 * 2**10
-                if 'worker' in node_roles:
+                if 'worker' in node_roles or self.settings.single_node:
                     for _ in range(self.settings.num_disks):
                         node.storage_disks.append(Disk(self.settings.disk_size))
             else:
@@ -475,6 +475,7 @@ class Deployment():
             'makecheck_stop_before_install_deps': self.settings.makecheck_stop_before_install_deps,
             'makecheck_stop_before_run_make_check':
                 self.settings.makecheck_stop_before_run_make_check,
+            'single_node': self.settings.single_node,
         }
 
         scripts = {}

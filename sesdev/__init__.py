@@ -472,6 +472,8 @@ def _gen_settings_dict(
             roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
         elif version in ['ses5']:
             roles_string = Constant.ROLES_SINGLE_NODE['luminous']
+        elif version == 'caasp4':
+            roles_string = "[ master ]"
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
