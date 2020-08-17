@@ -327,6 +327,8 @@ if [ "$CAASP4" ] ; then
     run_cmd sesdev --verbose destroy --non-interactive caasp4-default
     run_cmd sesdev --verbose create caasp4 --non-interactive --deploy-ses caasp4-with-rook
     run_cmd sesdev --verbose destroy --non-interactive caasp4-with-rook
+    run_cmd sesdev --verbose create caasp4 --non-interactive --single-node --deploy-ses
+    run_cmd sesdev --verbose destroy --non-interactive caasp4-mini
 fi
 
 if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
