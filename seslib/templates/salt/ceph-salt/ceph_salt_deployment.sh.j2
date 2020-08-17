@@ -135,6 +135,8 @@ while true ; do
 done
 set -x
 
+ceph status
+
 {% set service_spec_core = "/root/service_spec_core.yml" %}
 rm -f {{ service_spec_core }}
 touch {{ service_spec_core }}
