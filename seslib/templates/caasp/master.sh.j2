@@ -4,21 +4,47 @@ zypper --non-interactive install --type pattern SUSE-CaaSP-Management
 {% if node.name == 'master' %}
 
 function wait_for_master_ready {
-    printf "Waiting for master to be ready"
-    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "master\s+Ready") -eq 1 ]]; do
-         sleep 5
-		 printf "."
+    set +ex
+    echo "Waiting for master to be ready"
+    timeout_seconds="900"
+    remaining_seconds="$timeout_seconds"
+    interval_seconds="10"
+    while true ; do
+        set -x
+        ACTUAL_NUMBER_OF_MASTERS="$(kubectl get nodes 2>/dev/null | egrep -c "master\s+Ready")"
+        set +x
+        echo "masters in cluster (actual/expected): $ACTUAL_NUMBER_OF_MASTERS/1 (${remaining_seconds} seconds to timeout)"
+        remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+        [ "$ACTUAL_NUMBER_OF_MASTERS" = "1" ] && break
+        if [ "$remaining_seconds" -le "0" ] ; then
+            echo "It seems unlikely that a master will ever appear. Bailing out!"
+            exit 1
+        fi  
+        sleep "$interval_seconds"
     done
-	printf "\n"
+    set -ex
 }
 
 function wait_for_workers_ready {
-    printf "Waiting for workers to be ready"
-    until [[ $(kubectl get nodes 2>/dev/null | egrep -c "worker[0-9]\s+Ready") -eq {{node_manager.get_by_role('worker') | length}} ]]; do
-         sleep 5
-         printf "."
+    set +ex
+    echo "Waiting for {{ worker_nodes }} workers to be ready"
+    timeout_seconds="900"
+    remaining_seconds="$timeout_seconds"
+    interval_seconds="10"
+    while true ; do
+        set -x
+        ACTUAL_NUMBER_OF_WORKERS="$(kubectl get nodes 2>/dev/null | egrep -c "worker[0-9]\s+Ready")"
+        set +x
+        echo "workers in cluster (actual/expected): $ACTUAL_NUMBER_OF_WORKERS/{{ worker_nodes }} (${remaining_seconds} seconds to timeout)"
+        remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+        [ "$ACTUAL_NUMBER_OF_WORKERS" = "{{ worker_nodes }}" ] && break
+        if [ "$remaining_seconds" -le "0" ] ; then
+            echo "It seems unlikely that {{ worker_nodes }} workers will ever appear. Bailing out!"
+            exit 1
+        fi  
+        sleep "$interval_seconds"
     done
-    printf "\n"
+    set -ex
 }
 
 zypper --non-interactive install skuba skuba-update
@@ -78,7 +104,7 @@ wait_for_workers_ready
 skuba -v ${SKUBA_VERBOSITY} cluster status
 kubectl get nodes -o wide
 
-{% if single_node %}
+{% if nodes|length == 1 %}
 
 kubectl taint nodes --all node-role.kubernetes.io/master-
 
@@ -165,13 +191,13 @@ rm ${MLBCONFIG}
 zypper --non-interactive install rook-k8s-yaml
 cd /usr/share/k8s-yaml/rook/ceph/
 
-{% if node_manager.get_by_role('worker') | length <3 %}
+{% if node_manager.get_by_role('worker') | length < 3 %}
 
 sed -i 's/allowMultiplePerNode: false/allowMultiplePerNode: true/' /usr/share/k8s-yaml/rook/ceph/cluster.yaml
 
-{% endif %}
+{% endif %} {# node_manager.get_by_role('worker') | length < 3 #}
 
-{% if single_node %}
+{% if nodes|length == 1 %}
 
 sed -i 's/count: .*/count: 1/' /usr/share/k8s-yaml/rook/ceph/cluster.yaml
 
@@ -182,7 +208,7 @@ sleep 15
 kubectl apply -f cluster.yaml -f toolbox.yaml
 echo "Verify the installation by running 'kubectl get pods -n rook-ceph'"
 
-{% endif %}
+{% endif %} {# caasp_deploy_ses #}
 
 {% else %}
 

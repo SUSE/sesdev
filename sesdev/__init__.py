@@ -420,6 +420,7 @@ def _gen_settings_dict(
         cpus=None,
         deepsea_branch=None,
         deepsea_repo=None,
+        deploy_ses=None,
         devel=None,
         disk_size=None,
         dry_run=None,
@@ -473,7 +474,7 @@ def _gen_settings_dict(
         elif version in ['ses5']:
             roles_string = Constant.ROLES_SINGLE_NODE['luminous']
         elif version == 'caasp4':
-            roles_string = "[ master ]"
+            roles_string = Constant.ROLES_SINGLE_NODE['caasp4']
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
@@ -643,6 +644,9 @@ def _gen_settings_dict(
 
     if stop_before_run_make_check is not None:
         settings_dict['makecheck_stop_before_run_make_check'] = stop_before_run_make_check
+
+    if deploy_ses:
+        settings_dict['caasp_deploy_ses'] = True
 
     for folder in synced_folder:
         try:
@@ -869,17 +873,13 @@ def pacific(deployment_id, deploy, **kwargs):
 @libvirt_options
 @click.option("--deploy-ses", is_flag=True, default=False,
               help="Deploy SES using rook in CaasP")
-def caasp4(deployment_id, deploy, deploy_ses, **kwargs):
+def caasp4(deployment_id, deploy, **kwargs):
     """
     Creates a CaaSP cluster using SLES 15 SP1
     """
     _prep_kwargs(kwargs)
-    if kwargs['num_disks'] is None:
-        kwargs['num_disks'] = 2 if deploy_ses else 0
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
     deployment_id = _maybe_gen_dep_id('caasp4', deployment_id, settings_dict)
-    if deploy_ses:
-        settings_dict['caasp_deploy_ses'] = True
     _create_command(deployment_id, deploy, settings_dict)
 
 
