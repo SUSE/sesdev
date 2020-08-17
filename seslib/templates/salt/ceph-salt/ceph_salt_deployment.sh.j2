@@ -53,10 +53,8 @@ ceph-salt config /ceph_cluster/minions add {{ node.fqdn }}
 ceph-salt config /ceph_cluster/roles/cephadm add {{ node.fqdn }}
 ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
 {% endif %}
-{% if node.has_role('bootstrap') %}
-ceph-salt config /ceph_cluster/roles/bootstrap set {{ node.fqdn }}
-{% endif %}
 {% endfor %}
+ceph-salt config /ceph_cluster/roles/bootstrap set {{ cephadm_bootstrap_node.fqdn }}
 
 ceph-salt config /system_update/packages disable
 ceph-salt config /system_update/reboot disable
@@ -104,6 +102,38 @@ echo "Stopping the deployment now because --stop-before-ceph-orch-apply option w
 set -x
 exit 0
 {% endif %} {# stop_before_ceph_orch_apply #}
+
+# Wait for the bootstrap MON+MGR to appear
+
+function number_of_foos_in_bootstrap_cephadm_ls {
+    local foo="$1"
+    set -x
+    ssh {{ cephadm_bootstrap_node.fqdn }} cephadm ls | jq "[ .[].name | select(startswith(\"$foo\")) ] | length"
+    set +x
+}
+
+set +x
+timeout_seconds="3600"
+remaining_seconds="$timeout_seconds"
+interval_seconds="30"
+while true ; do
+    ACTUAL_NUMBER_OF_MONS="$(number_of_foos_in_bootstrap_cephadm_ls mon)"
+    ACTUAL_NUMBER_OF_MGRS="$(number_of_foos_in_bootstrap_cephadm_ls mgr)"
+    echo "MONs in cluster (actual/expected): $ACTUAL_NUMBER_OF_MONS/1 (${remaining_seconds} seconds to timeout)"
+    echo "MGRs in cluster (actual/expected): $ACTUAL_NUMBER_OF_MGRS/1 (${remaining_seconds} seconds to timeout)"
+    remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+    [ "$ACTUAL_NUMBER_OF_MONS" = "1" ] && [ "$ACTUAL_NUMBER_OF_MGRS" = "1" ] && break
+    if [ "$remaining_seconds" -le "0" ] ; then
+        set -x
+        ceph status
+        set +x
+        echo "It seems unlikely that the bootstrap MON and MGR will ever appear. Bailing out!"
+        exit 1
+    fi  
+    echo "..."
+    sleep "$interval_seconds"
+done
+set -x
 
 {% set service_spec_core = "/root/service_spec_core.yml" %}
 rm -f {{ service_spec_core }}
