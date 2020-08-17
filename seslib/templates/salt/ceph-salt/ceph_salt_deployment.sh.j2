@@ -183,9 +183,9 @@ function number_of_osds_in_ceph_osd_tree {
 EXPECTED_NUMBER_OF_OSDS="{{ total_osds }}"
 
 set +x
-timeout_seconds="900"
+timeout_seconds="3600"
 remaining_seconds="$timeout_seconds"
-interval_seconds="10"
+interval_seconds="30"
 while true ; do
     ACTUAL_NUMBER_OF_OSDS="$(number_of_osds_in_ceph_osd_tree)"
     echo "OSDs in cluster (actual/expected): $ACTUAL_NUMBER_OF_OSDS/$EXPECTED_NUMBER_OF_OSDS (${remaining_seconds} seconds to timeout)"
