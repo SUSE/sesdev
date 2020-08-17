@@ -76,6 +76,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [sesdev destroy reported an error](#sesdev-destroy-reported-an-error)
    * ["Failed to connect socket" error when attempting to use remote libvirt server](#failed-to-connect-socket-error-when-attempting-to-use-remote-libvirt-server)
    * [mount.nfs: Unknown error 521](#mountnfs-unknown-error-521)
+   * [Problems accessing dashboard on remote sesdev](#problems-accessing-dashboard-on-remote-sesdev)
 * [Contributing](#contributing)
 
 
@@ -1052,6 +1053,86 @@ If this doesn't report back with `active`, please consider running:
 # systemctl restart nfs-server
 # systemctl enable nfs-server
 ```
+
+### Problems accessing dashboard on remote sesdev
+
+#### Symptom
+
+I'm running sesdev on a remote machine and I want to access the dashboard of
+a cluster deployed by sesdev on that machine. Since the machine is remote, I
+can't just fire up a browser on it. I would like to point a browser that I have
+running locally (e.g. on a laptop) at the dashboard deployed by sesdev on the
+remote machine. I've tried a bunch of stuff, but I just can't seem to make it
+work.
+
+#### Analysis
+
+There are two possible pitfalls you could be hitting. First: if you do
+
+```
+sesdev tunnel DEP_ID dashboard
+```
+
+sesdev will choose an IP address essentially at random. Your remote sesdev
+machine very likely has multiple IP addresses and sesdev, in accordance with
+Murphy's Law, sesdev is choosing an IP address which is not accessible from
+the machine where the browser is running.
+
+However, even when specifying `--local-address CORRECT_IP_ADDRESS`, it still
+might not work if there are other dashboard instances (sesdev or bare metal)
+running on the remote machine and already listening on the port where the newly
+deployed dashboard is listening. In other words, there might be other dashboards
+running on the machine that you're not aware of.
+
+Things are further confused by the nomenclature of the `sesdev tunnel` command.
+What sesdev refers to as "local address/port" is actually the address/port on
+the remote machine (remote to you, but local to sesdev itself). What it refers
+to as "remote port" is the port that is being tunneled (the one inside the VM,
+on which the dashboard is listening).
+
+#### Resolution
+
+First, you have to be really sure that the "local IP address" you feed into the
+`sesdev tunnel` command is (1) a valid IP address of the sesdev machine that (2)
+is accessible from the browser running on your local machine.
+
+Once you are sure of the correct IP address, use `sesdev ssh DEP_ID` to enter
+the cluster and run
+
+```
+ceph mgr services
+```
+
+This will tell you the node where the dashboard is running, and the port that
+it's listening on, and the protocol to use (http or https). Carefully write down
+of all three pieces of information. Now, do:
+
+```
+sesdev tunnel DEP_ID \
+    --node NODE_WHERE_DASHBOARD_IS_RUNNING \
+    --remote-port PORT_WHERE_DASHBOARD_IS_LISTENING \
+    --local-address CORRECT_IP_ADDRESS \
+    --local-port ANY_ARBITRARY_HIGH_NUMBERED_PORT
+```
+
+The output of this command will say
+
+```
+You can now access the service in: CORRECT_IP_ADDRESS:ANY_ARBITRARY_HIGH_NUMBERED_PORT
+```
+
+Now, you probably can't just paste that URL into your browser, because the
+dashboard is likely using SSL (the default). Instead, refer to your notes to
+determine the protocol the dashboard is using (probably "https", but might be
+"http" if SSL is disabled), and then fashion a fully-qualified URL like so:
+
+```
+PROTOCOL://CORRECT_IP_ADDRESS:ANY_ARBITRARY_HIGH_NUMBERED_PORT
+```
+
+One final note: it's a good practice to use a different
+`ANY_ARBITRARY_HIGH_NUMBERED_PORT` every time you run `sesdev tunnel`. This is
+because of ``https://github.com/SUSE/sesdev/issues/276``.
 
 ## Contributing
 
