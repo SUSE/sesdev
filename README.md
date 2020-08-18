@@ -392,25 +392,30 @@ $ sesdev create caasp4
 
 By default it just creates and configures CaaSP cluster and workers don't have any disks if there is no `--deploy-ses` option.
 
-To create workers with disks and without loadbalancer role:
+To create workers with disks and without a `loadbalancer` role:
 
 ```
 $ sesdev create caasp4 --roles="[master], [worker], [worker]" --disk-size 6 --num-disks 2
 ```
 
-To deploy Rook on that cluster use `--deploy-ses` option, default disk size would be 8G, num of disks per node 2:
+To deploy Rook on that cluster use `--deploy-ses` option, default disk size
+would be 8G, number of worker nodes 2, number of disks per worker node 3:
 
 ```
 $ sesdev create caasp4 --deploy-ses
 ```
 
-To create single node cluster use `--single-node` option, for example this creates 1 node with 2 disks (8G) and deploy Rook:
+To create a single-node cluster use `--single-node` option, for example this
+creates a CaaSP cluster on 1 node with 4 disks (8G) and also deploys SES/Ceph on
+it, using Rook:
 
 ```
 $ sesdev create caasp4 --single-node --deploy-ses
 ```
 
-resulting single node cluster would have `-mini` postfix to the cluster name, so resulting cluster from example above would be `caasp4-mini`.
+Since passing `--single-node` without an explicit deployment name causes the
+name to be set to `DEPLOYMENT_VERSION-mini`, the resulting cluster from the
+example above would be called `caasp4-mini`.
 
 #### On a remote libvirt server via SSH
 

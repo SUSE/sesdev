@@ -198,6 +198,8 @@ class Deployment():
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
 
+        single_node = self.settings.single_node or len(self.settings.roles) == 1
+
         if self.settings.version in Constant.CORE_VERSIONS:
             if self.node_counts['master'] == 0:
                 self.settings.roles[0].append('master')
@@ -211,6 +213,12 @@ class Deployment():
                         break
 
         storage_nodes = self.node_counts["storage"]
+        if self.settings.version in ['caasp4'] and self.settings.caasp_deploy_ses:
+            if single_node:
+                storage_nodes = 1
+            else:
+                storage_nodes = self.node_counts["worker"]
+        Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
         if not self.settings.explicit_num_disks:
             if storage_nodes:
                 if storage_nodes == 1:
@@ -220,7 +228,6 @@ class Deployment():
                 else:
                     # go with the default
                     pass
-        Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
 
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             if self.settings.version == 'caasp4':
@@ -306,7 +313,7 @@ class Deployment():
                         node.cpus = 2
                     if self.settings.ram < 2:
                         node.ram = 2 * 2**10
-                if 'worker' in node_roles or self.settings.single_node:
+                if 'worker' in node_roles or single_node:
                     for _ in range(self.settings.num_disks):
                         node.storage_disks.append(Disk(self.settings.disk_size))
             else:
@@ -453,6 +460,7 @@ class Deployment():
             'rgw_node_list': ','.join(self.nodes_with_role["rgw"]),
             'storage_nodes': self.node_counts["storage"],
             'storage_node_list': ','.join(self.nodes_with_role["storage"]),
+            'worker_nodes': self.node_counts["worker"],
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
                                          or self.node_counts["mds"] or self.node_counts["rgw"]
                                          or self.node_counts["openattic"]),
@@ -480,7 +488,6 @@ class Deployment():
             'makecheck_stop_before_install_deps': self.settings.makecheck_stop_before_install_deps,
             'makecheck_stop_before_run_make_check':
                 self.settings.makecheck_stop_before_run_make_check,
-            'single_node': self.settings.single_node,
         }
 
         scripts = {}

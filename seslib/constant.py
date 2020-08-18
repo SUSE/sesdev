@@ -191,6 +191,7 @@ class Constant():
     ]
 
     ROLES_SINGLE_NODE = {
+        "caasp4":  "[ master ]",
         "luminous": "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]",
         "nautilus": "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
                     "nfs ]",
