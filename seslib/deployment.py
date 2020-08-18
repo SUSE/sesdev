@@ -400,6 +400,10 @@ class Deployment():
                      )
             ceph_salt_fetch_github_pr_merges = True
 
+        cephadm_bootstrap_node = None
+        if self.nodes_with_role["bootstrap"]:
+            cephadm_bootstrap_node = self.nodes[self.nodes_with_role["bootstrap"][0]]
+
         context = {
             'ssh_key_name': Constant.SSH_KEY_NAME,
             'sesdev_path_to_qa': Constant.PATH_TO_QA,
@@ -434,6 +438,7 @@ class Deployment():
             'core_version': self.settings.version in Constant.CORE_VERSIONS,
             'qa_test': self.settings.qa_test,
             'node_list': self.node_list,
+            'cephadm_bootstrap_node': cephadm_bootstrap_node,
             'nfs_nodes': self.node_counts["nfs"],
             'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],
