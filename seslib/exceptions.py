@@ -87,6 +87,15 @@ class ExplicitAdminRoleNotAllowed(SesDevException):
             "(TL;DR remove the \"admin\" role and try again!)")
 
 
+class MultipleRolesPerMachineNotAllowedInCaaSP(SesDevException):
+    def __init__(self):
+        super(MultipleRolesPerMachineNotAllowedInCaaSP, self).__init__(
+            "Multiple roles per machine detected. This is not allowed in CaaSP "
+            "clusters. For a single-node cluster, use the --single-node option "
+            "or --roles=\"[master]\" (in this special case, the master node "
+            "will function also as a worker node)")
+
+
 class NodeDoesNotExist(SesDevException):
     def __init__(self, node):
         super(NodeDoesNotExist, self).__init__(

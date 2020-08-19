@@ -33,7 +33,7 @@ function wait_for_workers_ready {
     interval_seconds="10"
     while true ; do
         set -x
-        ACTUAL_NUMBER_OF_WORKERS="$(kubectl get nodes 2>/dev/null | egrep -c "worker[0-9]\s+Ready")"
+        ACTUAL_NUMBER_OF_WORKERS="$(kubectl get nodes 2>/dev/null | egrep -c "worker[0-9]+\s+Ready")"
         set +x
         echo "workers in cluster (actual/expected): $ACTUAL_NUMBER_OF_WORKERS/{{ worker_nodes }} (${remaining_seconds} seconds to timeout)"
         remaining_seconds="$(( remaining_seconds - interval_seconds ))"

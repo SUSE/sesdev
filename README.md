@@ -391,7 +391,9 @@ To create CaaSP k8s cluster that has loadbalancer, 2 worker nodes and master:
 $ sesdev create caasp4
 ```
 
-By default it just creates and configures CaaSP cluster and workers don't have any disks if there is no `--deploy-ses` option.
+By default it just creates and configures a CaaSP cluster, and workers don't
+have any disks unless the `--deploy-ses` (see below) or `--num-disks` options
+are given.
 
 To create workers with disks and without a `loadbalancer` role:
 
@@ -399,12 +401,18 @@ To create workers with disks and without a `loadbalancer` role:
 $ sesdev create caasp4 --roles="[master], [worker], [worker]" --disk-size 6 --num-disks 2
 ```
 
-To deploy Rook on that cluster use `--deploy-ses` option, default disk size
-would be 8G, number of worker nodes 2, number of disks per worker node 3:
+To have sesdev deploy Rook on the CaaSP cluster, give the `--deploy-ses` option.
+The default disk size is 8G, number of worker nodes 2, number of disks per
+worker node 3:
 
 ```
 $ sesdev create caasp4 --deploy-ses
 ```
+
+Note: sesdev does not support sharing of roles on a single `caasp4` node. Each
+node must have one and only one role. However, it is still possible to deploy
+a single-node cluster. In this case the master node will also function as
+a worker node even though the `worker` role is not explicitly given.
 
 To create a single-node cluster use `--single-node` option, for example this
 creates a CaaSP cluster on 1 node with 4 disks (8G) and also deploys SES/Ceph on
