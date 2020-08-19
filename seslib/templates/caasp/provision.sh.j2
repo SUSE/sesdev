@@ -9,9 +9,8 @@ echo "sles ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/sles
 cp -r /root/.ssh/ /home/sles/
 chown -R sles:users /home/sles/.ssh/
 
-zypper --non-interactive install cri-o-kubeadm-criconfig kubernetes-kubeadm kubernetes-kubelet kubernetes-client podman SUSEConnect nfs-client
+zypper --non-interactive install SUSEConnect nfs-client
 
-zypper --non-interactive install --type pattern SUSE-CaaSP-Node
 
 {% if node.has_role('master') %}
 {% include "caasp/master.sh.j2" %}

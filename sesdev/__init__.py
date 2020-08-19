@@ -875,7 +875,7 @@ def pacific(deployment_id, deploy, **kwargs):
               help="Deploy SES using rook in CaasP")
 def caasp4(deployment_id, deploy, **kwargs):
     """
-    Creates a CaaSP cluster using SLES 15 SP1
+    Creates a CaaSP cluster using SLES 15 SP2
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
