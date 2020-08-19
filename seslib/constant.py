@@ -255,12 +255,20 @@ class Constant():
             ],
         },
         'caasp4': {
-            'sles-15-sp1': [
-                'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40:/Update/'
+            'sles-15-sp2': [
+                'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/x86_64/'
+                'product/',
+                'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/15-SP2/x86_64/'
+                'update/',
+                'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Public-Cloud/15-SP2/x86_64/'
+                'product/',
+                'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP2/x86_64/'
+                'update/',
+                'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP1/x86_64/'
+                'update/',
+                'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/CaaSP:/4.5/'
                 'standard/',
-                'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/',
-                'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/'
-                'product/'
+                'http://download.suse.de/ibs/SUSE/Updates/SUSE-CAASP/4.5/x86_64/update/'
             ],
         },
         'makecheck': {
@@ -306,7 +314,7 @@ class Constant():
         'nautilus': 'leap-15.1',
         'octopus': 'leap-15.2',
         'pacific': 'leap-15.2',
-        'caasp4': 'sles-15-sp1',
+        'caasp4': 'sles-15-sp2',
         'makecheck': 'tumbleweed',
     }
 
