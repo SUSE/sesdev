@@ -314,9 +314,10 @@ class Deployment():
                         node.cpus = 2
                     if self.settings.ram < 2:
                         node.ram = 2 * 2**10
-                if 'worker' in node_roles or single_node:
-                    for _ in range(self.settings.num_disks):
-                        node.storage_disks.append(Disk(self.settings.disk_size))
+                if self.settings.caasp_deploy_ses or self.settings.explicit_num_disks:
+                    if 'worker' in node_roles or single_node:
+                        for _ in range(self.settings.num_disks):
+                            node.storage_disks.append(Disk(self.settings.disk_size))
             else:
                 if 'suma' in node_roles:
                     self.suma = node
