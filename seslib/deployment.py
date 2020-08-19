@@ -318,13 +318,17 @@ class Deployment():
                     if 'worker' in node_roles or single_node:
                         for _ in range(self.settings.num_disks):
                             node.storage_disks.append(Disk(self.settings.disk_size))
-            else:
+
+            if self.settings.version in Constant.CORE_VERSIONS:
                 if 'suma' in node_roles:
                     self.suma = node
                 if 'storage' in node_roles:
                     if self.settings.cluster_network:
                         node.cluster_address = '{}{}'.format(self.settings.cluster_network,
                                                              200 + node_id)
+                    for _ in range(self.settings.num_disks):
+                        node.storage_disks.append(Disk(self.settings.disk_size))
+                elif self.settings.explicit_num_disks and not node.has_exclusive_role('master'):
                     for _ in range(self.settings.num_disks):
                         node.storage_disks.append(Disk(self.settings.disk_size))
 
