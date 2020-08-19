@@ -20,6 +20,7 @@ from .exceptions import \
                         DuplicateRolesNotSupported, \
                         ExclusiveRoles, \
                         ExplicitAdminRoleNotAllowed, \
+                        MultipleRolesPerMachineNotAllowedInCaaSP, \
                         NodeDoesNotExist, \
                         NoPrometheusGrafanaInSES5, \
                         NoSourcePortForPortForwarding, \
@@ -850,8 +851,18 @@ deployment might not be completely destroyed.
         # --product makes sense only with SES
         if not self.settings.devel_repo and not self.settings.version.startswith('ses'):
             raise ProductOptionOnlyOnSES(self.settings.version)
-        # worker and loadbalancer only in caasp4
-        if self.settings.version not in ['caasp4']:
+        # caasp4 is special
+        if self.settings.version in ['caasp4']:
+            each_machine_has_one_and_only_one_role = True
+            for node_roles in self.settings.roles:
+                if len(node_roles) > 1:
+                    each_machine_has_one_and_only_one_role = False
+            if each_machine_has_one_and_only_one_role:
+                Log.debug('caasp4 cluster: each machine has one and only one role. Good.')
+            else:
+                raise MultipleRolesPerMachineNotAllowedInCaaSP()
+        else:
+            # worker and loadbalancer only in caasp4
             if self.node_counts['worker'] > 0:
                 raise RoleNotSupported('worker', self.settings.version)
             if self.node_counts['loadbalancer'] > 0:
