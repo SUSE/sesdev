@@ -23,6 +23,8 @@ function _first_x_node {
     local role=$1
     if [ "$role" = "igw" ] ; then
         echo "${IGW_NODE_LIST%%,*}"
+    elif [ "$role" = "bootstrap" ] ; then
+        echo "${BOOTSTRAP_NODE}"
     elif [ "$role" = "mds" ] ; then
         echo "${MDS_NODE_LIST%%,*}"
     elif [ "$role" = "mgr" ] ; then
