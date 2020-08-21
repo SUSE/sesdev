@@ -91,7 +91,21 @@ class Deployment():
         self.master = None
         self.suma = None
         self.box = Box(settings)
+        self._populate_roles()
+        self._count_roles()
+        self._populate_os()
+        self._populate_deployment_tool()
+        self._populate_image_path()
+        if not self.settings.libvirt_networks and not existing:
+            self._generate_static_networks()
+        if self.settings.version in ['makecheck']:
+            self._set_up_make_check()
+        self._maybe_tweak_roles()
+        self._maybe_adjust_num_disks()
+        self._generate_nodes()
+        self.node_list = ','.join(self.nodes.keys())
 
+    def _populate_roles(self):
         if self.settings.roles:
             pass
         else:
@@ -99,42 +113,81 @@ class Deployment():
                                    self.settings.version_default_roles[self.settings.version]
                                    )
 
+    def _count_roles(self):
+        for node_roles in self.settings.roles:  # loop once for every node in cluster
+            for role in node_roles:
+                if role not in Constant.ROLES_KNOWN:
+                    raise RoleNotKnown(role)
+            for role_type in Constant.ROLES_KNOWN:
+                if role_type in node_roles:
+                    self.node_counts[role_type] += 1
+
+    def _populate_os(self):
         if not self.settings.os:
             self.settings.os = Constant.VERSION_PREFERRED_OS[self.settings.version]
 
+    def _populate_deployment_tool(self):
         if not self.settings.deployment_tool \
                 and self.settings.version not in ['caasp4', 'makecheck']:
             self.settings.deployment_tool = \
                 Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
+    def _populate_image_path(self):
         if self.settings.deployment_tool == 'cephadm':
             if not self.settings.image_path:
                 self.settings.image_path = self.settings.image_paths[self.settings.version]
 
-        if not self.settings.libvirt_networks and not existing:
-            self._generate_static_networks()
+    def _set_up_make_check(self):
+        self.settings.override('single_node', True)
+        self.settings.override('roles', Constant.ROLES_DEFAULT_BY_VERSION['makecheck'])
+        if not self.settings.explicit_num_disks:
+            self.settings.override('num_disks', 0)
+            self.settings.override('explicit_num_disks', True)
+        if not self.settings.explicit_ram:
+            self.settings.override('ram', Constant.MAKECHECK_DEFAULT_RAM)
+            self.settings.override('explicit_ram', True)
+        if not self.settings.makecheck_ceph_repo:
+            self.settings.override(
+                'makecheck_ceph_repo',
+                Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
+                )
+        if not self.settings.makecheck_ceph_branch:
+            self.settings.override(
+                'makecheck_ceph_branch',
+                Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
+                )
 
-        if self.settings.version == 'makecheck':
-            self.settings.override('single_node', True)
-            self.settings.override('roles', Constant.ROLES_DEFAULT_BY_VERSION['makecheck'])
-            if not self.settings.explicit_num_disks:
-                self.settings.override('num_disks', 0)
-                self.settings.override('explicit_num_disks', True)
-            if not self.settings.explicit_ram:
-                self.settings.override('ram', Constant.MAKECHECK_DEFAULT_RAM)
-                self.settings.override('explicit_ram', True)
-            if not self.settings.makecheck_ceph_repo:
-                self.settings.override(
-                    'makecheck_ceph_repo',
-                    Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
-                    )
-            if not self.settings.makecheck_ceph_branch:
-                self.settings.override(
-                    'makecheck_ceph_branch',
-                    Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
-                    )
+    def _maybe_tweak_roles(self):
+        if self.settings.version in Constant.CORE_VERSIONS:
+            if self.node_counts['master'] == 0:
+                self.settings.roles[0].append('master')
+                self.node_counts['master'] = 1
+        if self.settings.version in ['ses7', 'octopus', 'pacific']:
+            if self.node_counts['bootstrap'] == 0:
+                for node_roles in self.settings.roles:
+                    if 'mon' in node_roles and 'mgr' in node_roles:
+                        node_roles.append('bootstrap')
+                        self.node_counts['bootstrap'] = 1
+                        break
 
-        self._generate_nodes()
+    def _maybe_adjust_num_disks(self):
+        single_node = self.settings.single_node or len(self.settings.roles) == 1
+        storage_nodes = self.node_counts["storage"]
+        if self.settings.version in ['caasp4'] and self.settings.caasp_deploy_ses:
+            if single_node:
+                storage_nodes = 1
+            else:
+                storage_nodes = self.node_counts["worker"]
+        Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
+        if not self.settings.explicit_num_disks:
+            if storage_nodes:
+                if storage_nodes == 1:
+                    self.settings.override('num_disks', 4)
+                elif storage_nodes == 2:
+                    self.settings.override('num_disks', 3)
+                else:
+                    # go with the default
+                    pass
 
     @property
     def _dep_dir(self):
@@ -191,44 +244,6 @@ class Deployment():
         nfs_id = 0
         Log.debug("_generate_nodes: about to process cluster roles: {}"
                   .format(self.settings.roles))
-        for node_roles in self.settings.roles:  # loop once for every node in cluster
-            for role in node_roles:
-                if role not in Constant.ROLES_KNOWN:
-                    raise RoleNotKnown(role)
-            for role_type in Constant.ROLES_KNOWN:
-                if role_type in node_roles:
-                    self.node_counts[role_type] += 1
-
-        single_node = self.settings.single_node or len(self.settings.roles) == 1
-
-        if self.settings.version in Constant.CORE_VERSIONS:
-            if self.node_counts['master'] == 0:
-                self.settings.roles[0].append('master')
-                self.node_counts['master'] = 1
-        if self.settings.version in ['ses7', 'octopus', 'pacific']:
-            if self.node_counts['bootstrap'] == 0:
-                for node_roles in self.settings.roles:
-                    if 'mon' in node_roles and 'mgr' in node_roles:
-                        node_roles.append('bootstrap')
-                        self.node_counts['bootstrap'] = 1
-                        break
-
-        storage_nodes = self.node_counts["storage"]
-        if self.settings.version in ['caasp4'] and self.settings.caasp_deploy_ses:
-            if single_node:
-                storage_nodes = 1
-            else:
-                storage_nodes = self.node_counts["worker"]
-        Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
-        if not self.settings.explicit_num_disks:
-            if storage_nodes:
-                if storage_nodes == 1:
-                    self.settings.override('num_disks', 4)
-                elif storage_nodes == 2:
-                    self.settings.override('num_disks', 3)
-                else:
-                    # go with the default
-                    pass
 
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             if self.settings.version == 'caasp4':
@@ -309,6 +324,7 @@ class Deployment():
                 self.master = node
 
             if self.settings.version == 'caasp4':
+                single_node = self.settings.single_node or len(self.settings.roles) == 1
                 if 'master' in node_roles or 'worker' in node_roles:
                     if node.cpus < 2:
                         node.cpus = 2
@@ -361,7 +377,6 @@ class Deployment():
                 node.add_custom_repo(repo_obj)
 
             self.nodes[node.name] = node
-        self.node_list = ','.join(self.nodes.keys())
 
     def _generate_vagrantfile(self):
         vagrant_box = self.settings.os
