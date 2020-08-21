@@ -22,6 +22,7 @@ from .exceptions import \
                         ExplicitAdminRoleNotAllowed, \
                         MultipleRolesPerMachineNotAllowedInCaaSP, \
                         NodeDoesNotExist, \
+                        NoGaneshaRolePostNautilus, \
                         NoPrometheusGrafanaInSES5, \
                         NoSourcePortForPortForwarding, \
                         NoStorageRolesDeepsea, \
@@ -852,6 +853,10 @@ deployment might not be completely destroyed.
                     raise NoStorageRolesCephadm('nfs')
                 if self.node_counts['mds'] > 0:
                     raise NoStorageRolesCephadm('mds')
+        # ganesha role only allowed pre-octopus
+        if self.settings.version in ['octopus', 'ses7', 'pacific']:
+            if self.node_counts["ganesha"] > 0:
+                raise NoGaneshaRolePostNautilus()
         # there must not be more than one suma role:
         if self.node_counts['suma'] > 1:
             raise UniqueRoleViolation('suma', self.node_counts['suma'])

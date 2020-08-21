@@ -102,6 +102,15 @@ class NodeDoesNotExist(SesDevException):
             "Node '{}' does not exist in this deployment".format(node))
 
 
+class NoGaneshaRolePostNautilus(SesDevException):
+    def __init__(self):
+        super(NoGaneshaRolePostNautilus, self).__init__(
+            "You specified a \"ganesha\" role. In cephadm, NFS-Ganesha daemons "
+            "are referred to as \"nfs\" daemons, so in sesdev the role has been "
+            "renamed to \"nfs\". Please change all instances of \"ganesha\" to "
+            "\"nfs\" in your roles string and try again")
+
+
 class NoExplicitRolesWithSingleNode(SesDevException):
     def __init__(self):
         super(NoExplicitRolesWithSingleNode, self).__init__(

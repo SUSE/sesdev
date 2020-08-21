@@ -26,13 +26,10 @@ role-rgw/cluster/{{ node.name }}*.sls
 {% if node.has_role('igw') %}
 role-igw/cluster/{{ node.name }}*.sls
 {% endif %}
-{% if node.has_role('nfs') %}
+{% if node.has_role('nfs') or node.has_role('ganesha') %}
 role-ganesha/cluster/{{ node.name }}*.sls
 {% endif %}
 {% if node.has_role('openattic') %}
 role-openattic/cluster/{{ node.name }}*.sls
-{% endif %}
-{% if node.has_role('ganesha') %}
-role-ganesha/cluster/{{ node.name }}*.sls
 {% endif %}
 {% endfor %}
