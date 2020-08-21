@@ -42,7 +42,11 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [Running the unit tests](#running-the-unit-tests)
 * [Usage](#usage)
    * [Create/deploy a Ceph cluster](#createdeploy-a-ceph-cluster)
-      * [Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster)
+      * [Bare bone cluster](#bare-bone-cluster)
+      * [CaaSP (with or without Rook/Ceph/SES)](#caasp-with-or-without-rookcephses)
+         * [CaaSP k8s cluster](#caasp-k8s-cluster)
+         * [CaaSP with Rook/Ceph/SES](#caasp-with-rookcephses)
+         * [CaaSP on just one node](#caasp-on-just-one-node)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
       * [Without the devel repo](#without-the-devel-repo)
@@ -357,20 +361,18 @@ The following roles can be assigned:
 [1] CAVEAT: sesdev applies the `admin` role to all nodes, regardless of whether
 or not the user specified it explicitly on the command line or in `config.yaml`.
 
-[2] The `nfs` role may also be used when deploying a CaaSP cluster. In that
-case we get a node acting as an NFS server as well as a pod running in the k8s
-cluster and acting as an NFS client, providing a persistent store for other
-(containerized) applications.
+[2] The `nfs` role may also be used -- by itself on a dedicated VM -- when
+deploying a CaaSP cluster. See [Rook and CaaSP based Ceph
+cluster](#rook-and-caasp-based-ceph-cluster) for more information.
 
 [3] CAVEAT: Do not specify `prometheus`/`grafana` roles for ses5 deployments.
 The DeepSea version shipped with SES5 always deploys Prometheus and Grafana
 instances on the master node, but does not recognize `prometheus`/`grafana`
 roles in `policy.cfg`.
 
-[4] Please note that we do not need the `storage` role when we plan to deploy
-Rook/Ceph over CaaSP. By default, Rook creates OSD pods which take over any
-spare block devices in worker nodes, i.e., all block devices but the first
-(OS disk) of any given worker.
+[4] Do not use the `storage` role when deploying Rook/Ceph over CaaSP. See
+[Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster) for more
+information.
 
 The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that
@@ -383,9 +385,51 @@ $ sesdev create nautilus --roles="[master, mon], [bootstrap, storage, mon, mgr, 
   [storage, mon, mgr, mds], [igw, nfs, rgw]"
 ```
 
-#### Rook and CaaSP based Ceph cluster
+#### Bare bone cluster
 
-To create CaaSP k8s cluster that has loadbalancer, 2 worker nodes and master:
+An important use case of sesdev is to create "bare bone" clusters: i.e.,
+clusters with almost nothing running on them, but ready for manual testing of
+deployment procedures, or just playing around.
+
+Some caveats apply:
+
+1. These caveats apply only to core (Ceph) deployment versions. Rook/CaaSP is
+   different: see [Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster)
+   for details.
+2. For `ses5`, `nautilus`, and `ses6`, the only role required is `master` and
+   you can use `--stop-before-deepsea-stage` to control how many DeepSea stages
+   are run.
+3. For `octopus`, `ses7`, and `pacific`, the only roles required are `master`
+   and `bootstrap`. While it is possible to stop the deployment script at
+   various stages (see `sesdev create octopus --help` for details), in general
+   the deployment script will try to "do the right thing" according to the roles
+   given.
+4. You can specify a node with no roles like so: `[]`
+5. Ordinarily, a node gets extra disks ("OSD disks") only when the `storage`
+   role is specified. However, to facilitate deployment of "bare bone" clusters,
+   sesdev will also create and attach disks if the user explicitly gives the
+   `--num-disks` option.
+6. Disks will not be created/attached to nodes that have only the `master`
+   role and no other roles.
+
+Example:
+
+```
+sesdev create octopus --roles="[master],[mon,mgr,bootstrap],[],[]" --num-disks 3
+```
+
+This will bootstrap an octopus cluster with:
+
+1. an "admin node" (`[master]`)
+2. a bootstrap node (`[mon,mgr,bootstrap]`)
+3. two empty nodes (`[]`) ready for "Day 2" operations
+
+#### CaaSP (with or without Rook/Ceph/SES)
+
+##### CaaSP k8s cluster
+
+To create CaaSP k8s cluster that has a `loadbalancer` node, 2 `worker` nodes and
+a `master` node:
 
 ```
 $ sesdev create caasp4
@@ -401,6 +445,19 @@ To create workers with disks and without a `loadbalancer` role:
 $ sesdev create caasp4 --roles="[master], [worker], [worker]" --disk-size 6 --num-disks 2
 ```
 
+Note: sesdev does not support sharing of roles on a single `caasp4` node. Each
+node must have one and only one role. However, it is still possible to deploy
+a single-node cluster (see below). In this case the master node will also
+function as a worker node even though the `worker` role is not explicitly given.
+
+For persistent storage, there are two options: either deploy SES with Rook (see
+below), or specify an `nfs` role -- always by itself on a dedicated node. In the
+latter case, sesdev will create a node acting as an NFS server as well as an NFS
+client pod in the CaaSP cluster, providing a persistent store for other
+(containerized) applications.
+
+##### CaaSP with Rook/Ceph/SES
+
 To have sesdev deploy Rook on the CaaSP cluster, give the `--deploy-ses` option.
 The default disk size is 8G, number of worker nodes 2, number of disks per
 worker node 3:
@@ -411,19 +468,29 @@ $ sesdev create caasp4 --deploy-ses
 
 Note: sesdev does not support sharing of roles on a single `caasp4` node. Each
 node must have one and only one role. However, it is still possible to deploy
-a single-node cluster. In this case the master node will also function as
-a worker node even though the `worker` role is not explicitly given.
+a single-node cluster (see below). In this case the master node will also
+function as a worker node even though the `worker` role is not explicitly given.
 
-To create a single-node cluster use `--single-node` option, for example this
-creates a CaaSP cluster on 1 node with 4 disks (8G) and also deploys SES/Ceph on
-it, using Rook:
+Note: the `storage` role should never be given in a `caasp4` cluster. By
+default, Rook will will look for any spare block devices on worker nodes (i.e.,
+all block devices but the first (OS disk) of any given worker) and create OSD
+pods for them. Just be aware that sesdev will not create these "spare block
+devices" unless you explicitly pass either the `--num-disks` or the
+`--deploy-ses` option (or both).
+
+##### CaaSP on just one node
+
+To create a single-node CaaSP cluster, use `--single-node` option. This may be
+given in combination with `--deploy-ses`, or by itself. For example, the
+following command creates a CaaSP cluster on one node with four disks (8G) and
+also deploy SES/Ceph on it, using Rook:
 
 ```
 $ sesdev create caasp4 --single-node --deploy-ses
 ```
 
-Since passing `--single-node` without an explicit deployment name causes the
-name to be set to `DEPLOYMENT_VERSION-mini`, the resulting cluster from the
+Note: since passing `--single-node` without an explicit deployment name causes
+the name to be set to `DEPLOYMENT_VERSION-mini`, the resulting cluster from the
 example above would be called `caasp4-mini`.
 
 #### On a remote libvirt server via SSH
