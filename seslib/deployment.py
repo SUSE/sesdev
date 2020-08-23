@@ -386,8 +386,8 @@ class Deployment():
             version = self.settings.version
             os_setting = self.settings.os
             version_repos = self.settings.version_devel_repos[version][os_setting]
-        except KeyError:
-            raise VersionOSNotSupported(self.settings.version, self.settings.os)
+        except KeyError as exc:
+            raise VersionOSNotSupported(self.settings.version, self.settings.os) from exc
 
         # version_repos might contain URLs with a "magic priority prefix" -- see
         # https://github.com/SUSE/sesdev/issues/162

@@ -661,8 +661,8 @@ def _gen_settings_dict(
                                        "Path to the source synced folder must exist",
                                        src)
 
-        except ValueError:
-            raise OptionFormatError('--synced-folder', "src:dst", folder)
+        except ValueError as exc:
+            raise OptionFormatError('--synced-folder', "src:dst", folder) from exc
     settings_dict['synced_folder'] = [folder.split(':') for folder in synced_folder]
 
     return settings_dict
