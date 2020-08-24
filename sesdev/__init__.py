@@ -226,7 +226,7 @@ def cli(
         vagrant_debug=None,
         verbose=None,
         work_path=None,
-        ):
+):
     """
     Welcome to the sesdev tool.
 
@@ -455,7 +455,7 @@ def _gen_settings_dict(
         synced_folder=None,
         username=None,
         vagrant_box=None,
-        ):
+):
 
     settings_dict = {}
 
@@ -594,7 +594,7 @@ def _gen_settings_dict(
             Log.info(
                 "User explicitly specified only --ceph-salt-repo; assuming --ceph-salt-branch {}"
                 .format(Constant.CEPH_SALT_BRANCH)
-                )
+            )
             ceph_salt_branch = Constant.CEPH_SALT_BRANCH
 
     if ceph_salt_branch is not None:
@@ -602,7 +602,7 @@ def _gen_settings_dict(
             Log.info(
                 "User explicitly specified only --ceph-salt-branch; assuming --ceph-salt-repo {}"
                 .format(Constant.CEPH_SALT_REPO)
-                )
+            )
             ceph_salt_repo = Constant.CEPH_SALT_REPO
 
     if ceph_salt_repo:
@@ -661,8 +661,8 @@ def _gen_settings_dict(
                                        "Path to the source synced folder must exist",
                                        src)
 
-        except ValueError:
-            raise OptionFormatError('--synced-folder', "src:dst", folder)
+        except ValueError as exc:
+            raise OptionFormatError('--synced-folder', "src:dst", folder) from exc
     settings_dict['synced_folder'] = [folder.split(':') for folder in synced_folder]
 
     return settings_dict
@@ -693,13 +693,13 @@ def _create_command(deployment_id, deploy, settings_dict):
                          'd=show details again) ?'),
                         type=str,
                         default="y",
-                        )
+                    )
                 else:
                     really_want_to = click.prompt(
                         'Proceed with deployment (y=yes, n=no, d=show details) ?',
                         type=str,
                         default="y",
-                        )
+                    )
                 really_want_to = really_want_to.lower()[0]
                 # pylint: disable=consider-using-in
                 if really_want_to == 'y' or not really_want_to:
@@ -712,13 +712,13 @@ def _create_command(deployment_id, deploy, settings_dict):
                     click.echo(dep.configuration_report(
                         show_deployment_wide_params=True,
                         show_individual_vms=False,
-                        ))
+                    ))
                 if really_want_to == 'd':
                     details_already_shown = True
                     click.echo(dep.configuration_report(
                         show_deployment_wide_params=False,
                         show_individual_vms=True,
-                        ))
+                    ))
         try:
             if really_want_to:
                 dep.vet_configuration()
@@ -964,7 +964,7 @@ def add_repo(deployment_id, **kwargs):
             name='custom_repo_{}'.format(tools.gen_random_string(6)),
             url=kwargs['custom_repo'],
             priority=Constant.ZYPPER_PRIO_ELEVATED if kwargs['repo_priority'] else None
-            )
+        )
     dep.add_repo_subcommand(custom_repo, kwargs['update'], _print_log)
 
 
@@ -991,7 +991,7 @@ def destroy(deployment_id, **kwargs):
         really_want_to = click.confirm(
             'Do you really want to destroy {} {}'.format(len(matching_deployments), cluster_word),
             default=True,
-            )
+        )
         if not really_want_to:
             raise click.Abort()
     for dep in matching_deployments:
@@ -1057,7 +1057,7 @@ def list_deps(format_opt):
                 "version": version,
                 "status": status,
                 "nodes": list(nodes),
-                })
+            })
         else:
             p_table.add_row([dep.dep_id, version, status, node_names])
     if format_opt in ['json']:
@@ -1101,7 +1101,7 @@ def redeploy(deployment_id, **kwargs):
             really_want_to = click.confirm(
                 'Do you want to continue with the deployment?',
                 default=True,
-                )
+            )
         if not really_want_to:
             raise click.Abort()
     dep = Deployment.load(deployment_id)
@@ -1236,7 +1236,7 @@ def start(deployment_id, node=None):
     click.echo("Starting {} {}".format(
         len(matching_deployments),
         _cluster_singular_or_plural(matching_deployments),
-        ))
+    ))
     if len(matching_deployments) > 1 and node:
         click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
         node = None
@@ -1257,7 +1257,7 @@ def stop(deployment_id, node=None):
     click.echo("Stopping {} {}".format(
         len(matching_deployments),
         _cluster_singular_or_plural(matching_deployments),
-        ))
+    ))
     if len(matching_deployments) > 1 and node:
         click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
         node = None

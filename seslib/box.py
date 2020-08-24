@@ -36,7 +36,7 @@ class Box():
                         os.path.expanduser('~'),
                         '.ssh',
                         self.libvirt_private_key_file
-                        )
+                    )
                 uri += '?keyfile={}'.format(self.libvirt_private_key_file)
         else:
             uri = 'qemu:///system'

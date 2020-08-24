@@ -92,8 +92,10 @@ exit 0
 
 {% if use_salt %}
 salt -G 'ceph-salt:member' state.apply ceph-salt
+echo "\"salt state.apply\" exit code: $?"
 {% else %}
 stdbuf -o0 ceph-salt -ldebug apply --non-interactive
+echo "\"ceph-salt apply\" exit code: $?"
 {% endif %}
 
 {% if stop_before_ceph_orch_apply %}
@@ -136,6 +138,7 @@ done
 set -x
 
 ceph status
+echo "\"ceph status\" exit code: $?"
 
 {% set service_spec_core = "/root/service_spec_core.yml" %}
 rm -f {{ service_spec_core }}

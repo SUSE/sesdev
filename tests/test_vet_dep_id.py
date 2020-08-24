@@ -3,6 +3,7 @@ import pytest
 from seslib.deployment import _vet_dep_id
 from seslib.exceptions import DepIDWrongLength, DepIDIllegalChars
 
+
 def test_vet_dep_id():
     assert _vet_dep_id("hooholopar") == "hooholopar"
     assert _vet_dep_id("oron1anio0") == "oron1anio0"
@@ -15,7 +16,7 @@ def test_vet_dep_id():
             "hooholoparhooholoparhooholoparhooholoparhooh"
             "hooholoparhooholoparhooholoparhooholoparhooh"
             "hooholoparhooholoparhooholoparhooholoparhooh"
-            )
+        )
         _vet_dep_id(long_string)
     with pytest.raises(DepIDIllegalChars):
         _vet_dep_id("hooholopar;")

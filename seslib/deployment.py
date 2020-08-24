@@ -151,12 +151,12 @@ class Deployment():
             self.settings.override(
                 'makecheck_ceph_repo',
                 Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['repo']
-                )
+            )
         if not self.settings.makecheck_ceph_branch:
             self.settings.override(
                 'makecheck_ceph_branch',
                 Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
-                )
+            )
 
     def _maybe_tweak_roles(self):
         if self.settings.version in Constant.CORE_VERSIONS:
@@ -354,7 +354,7 @@ class Deployment():
                     name='suma_client_tools',
                     url='https://download.opensuse.org/repositories/systemsmanagement:/'
                         'Uyuni:/Master:/openSUSE_Leap_15-Uyuni-Client-Tools/openSUSE_Leap_15.0/'
-                    ))
+                ))
 
             # from https://www.uyuni-project.org/uyuni-docs/uyuni/installation/install-vm.html
             if 'suma' in node_roles:
@@ -372,7 +372,7 @@ class Deployment():
                     url='https://download.opensuse.org/repositories/systemsmanagement:/'
                         'Uyuni:/Master/images-openSUSE_Leap_15.1/repo/'
                         'Uyuni-Server-POOL-x86_64-Media1/'
-                    ))
+                ))
 
             for repo_obj in self.settings.custom_repos:
                 node.add_custom_repo(repo_obj)
@@ -386,8 +386,8 @@ class Deployment():
             version = self.settings.version
             os_setting = self.settings.os
             version_repos = self.settings.version_devel_repos[version][os_setting]
-        except KeyError:
-            raise VersionOSNotSupported(self.settings.version, self.settings.os)
+        except KeyError as exc:
+            raise VersionOSNotSupported(self.settings.version, self.settings.os) from exc
 
         # version_repos might contain URLs with a "magic priority prefix" -- see
         # https://github.com/SUSE/sesdev/issues/162
@@ -448,8 +448,8 @@ class Deployment():
             'nodes': list(self.nodes.values()),
             'cluster_json': json.dumps({
                 "num_disks": self.settings.num_disks,
-                "roles_of_nodes": self.roles_of_nodes
-                }, sort_keys=True, indent=4),
+                "roles_of_nodes": self.roles_of_nodes,
+            }, sort_keys=True, indent=4),
             'master': self.master,
             'suma': self.suma,
             'domain': self.settings.domain.format(self.dep_id),
@@ -601,7 +601,7 @@ class Deployment():
                 ["vagrant", "box", "add", "--provider", "libvirt", "--name",
                  self.settings.os, Constant.OS_BOX_MAPPING[self.settings.os]],
                 log_handler
-                )
+            )
 
     def _vagrant_up(self, node, log_handler):
         cmd = ["vagrant", "up"]
@@ -812,7 +812,7 @@ deployment might not be completely destroyed.
                         result += (
                             "                         (CAVEAT: the 'admin' role is assumed"
                             " even though not explicitly given!)\n"
-                            )
+                        )
                 result += "     - fqdn:             {}\n".format(v.fqdn)
                 if v.public_address:
                     result += "     - public_address:   {}\n".format(v.public_address)
@@ -910,9 +910,9 @@ deployment might not be completely destroyed.
         for line in out.split('\n'):
             line = line.strip()
             if line.startswith('HostName'):
-                address = line[len('HostName')+1:]
+                address = line[len('HostName') + 1:]
             elif line.startswith('ProxyCommand'):
-                proxycmd = line[len('ProxyCommand')+1:]
+                proxycmd = line[len('ProxyCommand') + 1:]
 
         if address is None:
             raise VagrantSshConfigNoHostName(name)
@@ -962,14 +962,14 @@ deployment might not be completely destroyed.
                 " -o 'StrictHostKeyChecking no'"
                 " -o 'UserKnownHostsFile /dev/null'"
                 " -o 'PasswordAuthentication no'"
-                )
+            )
         else:
             retval = [
                 "-o", "IdentitiesOnly yes",
                 "-o", "StrictHostKeyChecking no",
                 "-o", "UserKnownHostsFile /dev/null",
                 "-o", "PasswordAuthentication no",
-                ]
+            ]
         return retval
 
     def _ssh_cmd(self, name, command=None):
@@ -978,7 +978,7 @@ deployment might not be completely destroyed.
             "ssh",
             "root@{}".format(address),
             "-i", dep_private_key
-            ]
+        ]
         _cmd.extend(self.__boilerplate_ssh_options())
         if proxycmd is not None:
             _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
@@ -1037,7 +1037,7 @@ deployment might not be completely destroyed.
             dep_private_key,
             self.__boilerplate_ssh_options(string=True),
             proxycmd_opt
-            )])
+        )])
         if host_is_source:
             _cmd.extend([source_path, 'root@{}:{}'.format(address, destination_path)])
         elif host_is_destination:
@@ -1058,7 +1058,7 @@ deployment might not be completely destroyed.
         log_handler("=> Running supportconfig on deployment ID: {} (OS: {})\n".format(
             self.dep_id,
             self.settings.os
-            ))
+        ))
         ssh_cmd = ('timeout', '1h', 'supportconfig',)
         self.ssh(name, ssh_cmd)
         log_handler("=> Grabbing the resulting tarball from the cluster node\n")
@@ -1085,7 +1085,7 @@ deployment might not be completely destroyed.
             ["vagrant", "provision", "--provision-with", "qa-test"],
             log_handler,
             self._dep_dir
-            )
+        )
 
     def add_repo_subcommand(self, custom_repo, update, log_handler):
         if self.settings.version in Constant.CORE_VERSIONS:
@@ -1099,16 +1099,18 @@ deployment might not be completely destroyed.
                     priority_opt = "--priority={} ".format(custom_repo.priority)
                 self.ssh(
                     node_name,
-                    ("zypper --non-interactive addrepo --no-gpgcheck --refresh {}{} {}"
-                     .format(priority_opt, custom_repo.url, custom_repo.name)).split()
-                    )
+                    (
+                        "zypper --non-interactive addrepo --no-gpgcheck --refresh {}{} {}"
+                        .format(priority_opt, custom_repo.url, custom_repo.name)
+                    ).split()
+                )
         else:  # no repo given explicitly: use "devel" repo
             provision_target = "add-devel-repo-and-update" if update else "add-devel-repo"
             tools.run_async(
                 ["vagrant", "provision", "--provision-with", provision_target],
                 log_handler,
                 self._dep_dir
-                )
+            )
 
     def _find_service_node(self, service):
         if service in ['prometheus', 'grafana'] and self.settings.version == 'ses5':

@@ -191,7 +191,7 @@ class Constant():
     ]
 
     ROLES_SINGLE_NODE = {
-        "caasp4":  "[ master ]",
+        "caasp4": "[ master ]",
         "luminous": "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]",
         "nautilus": "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
                     "nfs ]",
@@ -328,4 +328,4 @@ class Constant():
             cls.PATH_TO_QA = os.path.join(
                 os.path.dirname(full_path_to_sesdev_executable),
                 '../qa/'
-                )
+            )
