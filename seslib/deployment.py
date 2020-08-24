@@ -1320,7 +1320,7 @@ deployment might not be completely destroyed.
             ssh_cmd = self._ssh_cmd(master_node)
             ssh_cmd.append(
                 "cd ~/ && \
-                zypper -n in python2-pip python3-pip && \
+                zypper -n in python3-pip && \
                 pip install nodeenv && \
                 nodeenv env --node={} --force && \
                 . ~/env/bin/activate && \
