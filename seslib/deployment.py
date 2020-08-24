@@ -1375,13 +1375,6 @@ deployment might not be completely destroyed.
             # Copy mgr modules
             if self.settings.version in ['nautilus', 'ses6']:
                 print("Copying mgr modules to node {}".format(node))
-                self.rsync(
-                    '{}:{}/mgr'.format(master_node, master_path),
-                    "{}:/usr/share/ceph/".format(node),
-                    excludes=['.git', '.tox', '.idea', 'venv', 'build',
-                              'node_modules', 'cypress'],
-                    recurse=True)
-
                 ssh_cmd = self._ssh_cmd(master_node)
                 ssh_cmd.append("scp -r {}/mgr/ {}:/usr/share/ceph/"
                                .format(master_path, node))
