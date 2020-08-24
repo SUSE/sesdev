@@ -448,8 +448,8 @@ class Deployment():
             'nodes': list(self.nodes.values()),
             'cluster_json': json.dumps({
                 "num_disks": self.settings.num_disks,
-                "roles_of_nodes": self.roles_of_nodes
-                }, sort_keys=True, indent=4),
+                "roles_of_nodes": self.roles_of_nodes,
+            }, sort_keys=True, indent=4),
             'master': self.master,
             'suma': self.suma,
             'domain': self.settings.domain.format(self.dep_id),
