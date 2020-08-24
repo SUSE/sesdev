@@ -2,6 +2,7 @@ import pytest
 
 from sesdev import _is_a_glob
 
+
 def test_pytest_is_a_glob():
     assert _is_a_glob("*"), "test failed"
     assert _is_a_glob("foo*"), "test failed"
