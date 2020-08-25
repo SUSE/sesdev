@@ -276,12 +276,7 @@ class Deployment():
                     fqdn = 'node{}.{}'.format(node_id,
                                               self.settings.domain.format(self.dep_id))
             else:
-                admin_node_processed = False
-                if self.existing and 'admin' in node_roles and not admin_node_processed:
-                    admin_node_processed = True  # only do this once, for backwards compatibility
-                    name = 'admin'
-                    fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
-                elif 'master' in node_roles or 'suma' in node_roles or 'makecheck' in node_roles:
+                if 'master' in node_roles or 'suma' in node_roles or 'makecheck' in node_roles:
                     name = 'master'
                     fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
                 else:
