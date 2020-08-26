@@ -19,9 +19,9 @@ from .exceptions import \
                         DepIDIllegalChars, \
                         DuplicateRolesNotSupported, \
                         ExclusiveRoles, \
-                        ExplicitAdminRoleNotAllowed, \
                         MultipleRolesPerMachineNotAllowedInCaaSP, \
                         NodeDoesNotExist, \
+                        NodeMustBeAdminAsWell, \
                         NoGaneshaRolePostNautilus, \
                         NoPrometheusGrafanaInSES5, \
                         NoSourcePortForPortForwarding, \
@@ -276,12 +276,7 @@ class Deployment():
                     fqdn = 'node{}.{}'.format(node_id,
                                               self.settings.domain.format(self.dep_id))
             else:
-                admin_node_processed = False
-                if self.existing and 'admin' in node_roles and not admin_node_processed:
-                    admin_node_processed = True  # only do this once, for backwards compatibility
-                    name = 'admin'
-                    fqdn = 'admin.{}'.format(self.settings.domain.format(self.dep_id))
-                elif 'master' in node_roles or 'suma' in node_roles or 'makecheck' in node_roles:
+                if 'master' in node_roles or 'suma' in node_roles or 'makecheck' in node_roles:
                     name = 'master'
                     fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
                 else:
@@ -449,7 +444,9 @@ class Deployment():
             'cluster_json': json.dumps({
                 "num_disks": self.settings.num_disks,
                 "roles_of_nodes": self.roles_of_nodes,
-            }, sort_keys=True, indent=4),
+                "cephadm_bootstrap_node": (cephadm_bootstrap_node.name if
+                                           cephadm_bootstrap_node else ''),
+                }, sort_keys=True, indent=4),
             'master': self.master,
             'suma': self.suma,
             'domain': self.settings.domain.format(self.dep_id),
@@ -822,10 +819,6 @@ deployment might not be completely destroyed.
         return result
 
     def vet_configuration(self):
-        # "admin" role exists for backwards compatibility with existing
-        # deployments only, and should not be used for new deployments
-        if self.node_counts['admin'] != 0:
-            raise ExplicitAdminRoleNotAllowed()
         # all deployment versions except "makecheck" require one, and only one, master role
         if self.settings.version == 'makecheck':
             if len(self.nodes) == 1 and self.node_counts['makecheck'] == 1:
@@ -836,9 +829,23 @@ deployment might not be completely destroyed.
             if self.node_counts['master'] != 1:
                 raise UniqueRoleViolation('master', self.node_counts['master'])
         # octopus and beyond require one, and only one, bootstrap role
+        # and bootstrap must have admin role as well (unless this is
+        # merely a partial deployment - then we don't care)
         if self.settings.version in ['ses7', 'octopus', 'pacific']:
-            if self.node_counts['bootstrap'] != 1:
-                raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
+            if (not self.settings.stop_before_ceph_salt_config and
+                not self.settings.stop_before_ceph_salt_apply
+            ):
+                if self.node_counts['bootstrap'] != 1:
+                    raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
+                for node_roles in self.settings.roles:
+                    if 'bootstrap' in node_roles and 'admin' not in node_roles:
+                        raise NodeMustBeAdminAsWell('bootstrap')
+                if (not self.settings.stop_before_ceph_salt_apply and
+                    not self.settings.stop_before_ceph_orch_apply
+                ):
+                    for node_roles in self.settings.roles:
+                        if 'master' in node_roles and 'admin' not in node_roles:
+                            raise NodeMustBeAdminAsWell('master')
         # clusters with no OSDs can be deployed only in certain circumstances
         if self.settings.version in ['ses5', 'nautilus', 'ses6']:
             if self.node_counts['storage'] == 0:

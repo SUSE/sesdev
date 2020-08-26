@@ -32,9 +32,7 @@ function usage {
     echo "for use in SUSE Enterprise Storage testing"
     echo
     echo "Usage:"
-    echo "  $SCRIPTNAME [-h,--help] [--igw=X] [--mds=X] [--mgr=X]"
-    echo "  [--mon=X] [--nfs=X] [--strict-versions] [--rgw=X]"
-    echo "  [--total-nodes=X]"
+    echo "  $SCRIPTNAME [-h,--help] [options as shown below]"
     echo
     echo "Options:"
     echo "    --help               Display this usage message"

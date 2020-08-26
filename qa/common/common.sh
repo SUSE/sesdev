@@ -166,11 +166,11 @@ function make_salt_master_an_admin_node_test {
     echo
     echo "WWWW: make_salt_master_an_admin_node_test"
     _zypper_install_on_master ceph-common
+    set -x
     mkdir -p "/etc/ceph"
     if [ -f "$ADMIN_KEYRING" ] || [ -f "$CEPH_CONF" ] ; then
         true
     else
-        set -x
         arbitrary_mon_node="$(_first_x_node mon)"
         if [ ! -f "$ADMIN_KEYRING" ] ; then
             _copy_file_from_minion_to_master "$arbitrary_mon_node" "$ADMIN_KEYRING"
@@ -179,9 +179,7 @@ function make_salt_master_an_admin_node_test {
         if [ ! -f "$CEPH_CONF" ] ; then
             _copy_file_from_minion_to_master "$arbitrary_mon_node" "$CEPH_CONF"
         fi
-        set +x
     fi
-    set -x
     test -f "$ADMIN_KEYRING"
     test -f "$CEPH_CONF"
     set +x

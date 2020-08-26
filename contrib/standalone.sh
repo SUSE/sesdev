@@ -282,7 +282,7 @@ fi
 if [ "$SES7" ] ; then
     sesdev --verbose box remove --non-interactive sles-15-sp2
     run_cmd sesdev --verbose create ses7 --dry-run
-    run_cmd sesdev --verbose create ses7 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses7-mini
+    run_cmd sesdev --verbose create ses7 --non-interactive --roles "[admin,master,bootstrap,storage,mon,mgr]" --qa-test ses7-mini
     run_cmd sesdev --verbose destroy --non-interactive ses7-mini
     run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
     run_cmd sesdev --verbose destroy --non-interactive ses7-1node

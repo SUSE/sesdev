@@ -111,6 +111,17 @@ class NodeDoesNotExist(SesDevException):
         )
 
 
+class NodeMustBeAdminAsWell(SesDevException):
+    def __init__(self, role):
+        super().__init__(
+            "Detected node with \"{role}\" role but no \"admin\" role. "
+            "The {role} node must have the \"admin\" role -- otherwise "
+            "\"ceph-salt apply\" will fail. Please make sure the node with "
+            "the \"{role}\" role has the \"admin\" role as well"
+            .format(role=role)
+            )
+
+
 class NoGaneshaRolePostNautilus(SesDevException):
     def __init__(self):
         super().__init__(
