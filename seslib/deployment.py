@@ -1242,6 +1242,10 @@ deployment might not be completely destroyed.
         ssh_cmd.append("salt '*' saltutil.sync_all")
         tools.run_sync(ssh_cmd)
 
+        ssh_cmd = self._ssh_cmd(master_node)
+        ssh_cmd.append("salt-run saltutil.sync_runners")
+        tools.run_sync(ssh_cmd)
+
     def replace_mgr_modules(self, local=None, pr=None, branch=None, repo=None, langs=None):
         if self.settings.version in ['nautilus', 'ses6', 'octopus', 'ses7', 'pacific']:
             pass  # replace-mgr-modules is expected to work with these
