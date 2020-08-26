@@ -56,8 +56,6 @@ ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
 {% endfor %}
 ceph-salt config /ceph_cluster/roles/bootstrap set {{ cephadm_bootstrap_node.fqdn }}
 
-ceph-salt config /system_update/packages disable
-ceph-salt config /system_update/reboot disable
 ceph-salt config /ssh/ generate
 {% if image_path %}
 ceph-salt config /containers/images/ceph set {{ image_path }}
