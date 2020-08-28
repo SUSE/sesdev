@@ -507,6 +507,7 @@ class Deployment():
             'makecheck_stop_before_install_deps': self.settings.makecheck_stop_before_install_deps,
             'makecheck_stop_before_run_make_check':
                 self.settings.makecheck_stop_before_run_make_check,
+            'ssd': self.settings.ssd,
         }
 
         scripts = {}

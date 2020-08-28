@@ -235,6 +235,11 @@ SETTINGS = {
         'help': 'Whether --single-node was given on the command line',
         'default': False,
     },
+    'ssd': {
+        'type': bool,
+        'help': 'Makes one of the additional disks be non-rotational',
+        'default': False,
+    },
     'stop_before_ceph_orch_apply': {
         'type': bool,
         'help': 'Stops deployment before ceph orch apply',
