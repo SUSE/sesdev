@@ -144,7 +144,9 @@ def common_create_options(func):
         click.option('--synced-folder', type=str, default=None, multiple=True,
                      help='Set synced-folder to be mounted on the master node. <str:dest>'),
         click.option('--dry-run/--no-dry-run', is_flag=True, default=False,
-                     help='Dry run (do not create any VMs)')
+                     help='Dry run (do not create any VMs)'),
+        click.option('--ssd', is_flag=True, default=False,
+                     help='On VMS with additional disks, make one disk non-rotational')
     ]
     return _decorator_composer(click_options, func)
 
@@ -445,6 +447,7 @@ def _gen_settings_dict(
         scc_pass=None,
         scc_user=None,
         single_node=None,
+        ssd=None,
         stop_before_ceph_orch_apply=None,
         stop_before_ceph_salt_apply=None,
         stop_before_ceph_salt_config=None,
@@ -585,6 +588,9 @@ def _gen_settings_dict(
         settings_dict['dry_run'] = dry_run
         if dry_run:
             settings_dict['non_interactive'] = True
+
+    if ssd is not None:
+        settings_dict['ssd'] = ssd
 
     if encrypted_osds is not None:
         settings_dict['encrypted_osds'] = encrypted_osds

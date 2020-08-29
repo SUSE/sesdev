@@ -180,15 +180,18 @@ class Deployment():
             else:
                 storage_nodes = self.node_counts["worker"]
         Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
-        if not self.settings.explicit_num_disks:
-            if storage_nodes:
-                if storage_nodes == 1:
-                    self.settings.override('num_disks', 4)
-                elif storage_nodes == 2:
-                    self.settings.override('num_disks', 3)
-                else:
-                    # go with the default
-                    pass
+        if not self.settings.explicit_num_disks and storage_nodes:
+            new_num_disks = None
+            if storage_nodes == 1:
+                new_num_disks = 4
+            elif storage_nodes == 2:
+                new_num_disks = 3
+            else:
+                new_num_disks = self.settings.num_disks  # go with the default
+            if self.settings.ssd and new_num_disks:
+                new_num_disks += 1
+            if new_num_disks:
+                self.settings.override('num_disks', new_num_disks)
 
     @property
     def _dep_dir(self):
@@ -507,6 +510,7 @@ class Deployment():
             'makecheck_stop_before_install_deps': self.settings.makecheck_stop_before_install_deps,
             'makecheck_stop_before_run_make_check':
                 self.settings.makecheck_stop_before_run_make_check,
+            'ssd': self.settings.ssd,
         }
 
         scripts = {}
