@@ -124,7 +124,7 @@ while true ; do
     echo "MONs in cluster (actual/expected): $ACTUAL_NUMBER_OF_MONS/1 (${remaining_seconds} seconds to timeout)"
     echo "MGRs in cluster (actual/expected): $ACTUAL_NUMBER_OF_MGRS/1 (${remaining_seconds} seconds to timeout)"
     remaining_seconds="$(( remaining_seconds - interval_seconds ))"
-    [ "$ACTUAL_NUMBER_OF_MONS" = "1" ] && [ "$ACTUAL_NUMBER_OF_MGRS" = "1" ] && break
+    [ "$ACTUAL_NUMBER_OF_MONS" -ge "1" ] && [ "$ACTUAL_NUMBER_OF_MGRS" -ge "1" ] && break
     if [ "$remaining_seconds" -le "0" ] ; then
         set -x
         ceph status
@@ -135,6 +135,20 @@ while true ; do
     echo "..."
     sleep "$interval_seconds"
 done
+if [ "$ACTUAL_NUMBER_OF_MONS" -gt "1" ] ; then
+    echo
+    echo
+    echo "WARNING: \"cephadm bootstrap\" deployed more MONs than expected!"
+    echo
+    echo
+fi
+if [ "$ACTUAL_NUMBER_OF_MGRS" -gt "1" ] ; then
+    echo
+    echo
+    echo "WARNING: \"cephadm bootstrap\" deployed more MGRs than expected!"
+    echo
+    echo
+fi
 set -x
 
 ceph status
