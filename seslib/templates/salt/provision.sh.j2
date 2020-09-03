@@ -47,7 +47,7 @@ while true ; do
   set +x
   if [ "$count" -gt "$max_count_we_tolerate" ] ; then
       echo "Looped too many times. Something is wrong. Bailing out!"
-      exit 1
+      false
   fi
 done
 set -x

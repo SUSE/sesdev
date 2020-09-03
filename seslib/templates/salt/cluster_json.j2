@@ -18,8 +18,7 @@ echo "Running $0 on $NAME $VERSION ($PRETTY_NAME)"
 if [ "$VERSION_ID" = "15.2" ] && [ -z "$FSID" ] ; then
     echo "You must provide a Ceph Cluster FSID as an option to this script."
     echo "Bailing out!"
-    echo
-    exit 1
+    false
 fi
 NUM_DISKS="$(cat /home/vagrant/cluster.json | jq -r '.num_disks')"
 ROLES_OF_NODES="$(cat /home/vagrant/cluster.json | jq -r '.roles_of_nodes')"

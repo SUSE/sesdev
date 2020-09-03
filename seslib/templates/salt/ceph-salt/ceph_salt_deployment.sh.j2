@@ -130,7 +130,7 @@ while true ; do
         ceph status
         set +x
         echo "It seems unlikely that the bootstrap MON and MGR will ever appear. Bailing out!"
-        exit 1
+        false
     fi  
     echo "..."
     sleep "$interval_seconds"
@@ -249,7 +249,7 @@ while true ; do
         ceph status
         set +x
         echo "It seems unlikely that this cluster will ever reach the expected number of OSDs. Bailing out!"
-        exit 1
+        false
     fi  
     sleep "$interval_seconds"
 done

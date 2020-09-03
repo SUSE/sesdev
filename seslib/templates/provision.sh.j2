@@ -1,6 +1,19 @@
-{% include "engine/" + vm_engine + "/vagrant.provision.sh.j2" ignore missing %}
-
 set -ex
+
+DEPLOYMENT_SCRIPT="$0"
+
+function err_report {
+    local line_number="$1"
+    echo "Error in sesdev deployment script trapped!"
+    echo "=> hostname: $(hostname)"
+    echo "=> script: $DEPLOYMENT_SCRIPT"
+    echo "=> line number: $line_number"
+    echo "Bailing out!"
+    exit 0
+}
+
+# ensure Vagrant doesn't destroy the master node when the script fails
+trap 'err_report $LINENO' ERR
 
 ls -lR /home/vagrant
 

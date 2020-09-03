@@ -18,7 +18,8 @@ function wait_for_master_ready {
         [ "$ACTUAL_NUMBER_OF_MASTERS" = "1" ] && break
         if [ "$remaining_seconds" -le "0" ] ; then
             echo "It seems unlikely that a master will ever appear. Bailing out!"
-            exit 1
+            set -e
+            false
         fi  
         sleep "$interval_seconds"
     done
@@ -40,7 +41,8 @@ function wait_for_workers_ready {
         [ "$ACTUAL_NUMBER_OF_WORKERS" = "{{ worker_nodes }}" ] && break
         if [ "$remaining_seconds" -le "0" ] ; then
             echo "It seems unlikely that {{ worker_nodes }} workers will ever appear. Bailing out!"
-            exit 1
+            set -e
+            false
         fi  
         sleep "$interval_seconds"
     done
