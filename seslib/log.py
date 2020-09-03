@@ -21,11 +21,8 @@ class Log():
         logger.info(log_msg)
         if Constant.VERBOSE:
             print("INFO: {}".format(log_msg))
-            # presence of logfile would otherwise prevent logging of message to the screen
 
     @staticmethod
     def warning(log_msg):
         logger.warning(log_msg)
-        if Constant.VERBOSE:
-            print("WARNING: {}".format(log_msg))
-            # presence of logfile would otherwise prevent logging of message to the screen
+        print("WARNING: {}".format(log_msg))
