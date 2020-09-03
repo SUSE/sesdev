@@ -22,6 +22,7 @@ from seslib.exceptions import \
                               OptionFormatError, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
+                              RemoveBoxNeedsBoxNameOrAllOption, \
                               VersionNotKnown
 from seslib.log import Log
 from seslib.settings import Settings
@@ -302,26 +303,21 @@ def list_boxes(**kwargs):
     """
     List all Vagrant Boxes installed in the system.
     """
-    click.echo("List of all Vagrant Boxes installed in the system")
-    click.echo("-------------------------------------------------")
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
     box_names = box_obj.list()
+    if box_names:
+        click.echo("List of all Vagrant Boxes installed in the system")
+        click.echo("-------------------------------------------------")
     for box_name in box_names:
         click.echo(box_name)
 
 
 @box.command(name='remove')
-@click.argument('box_name')
+@click.argument('box_name', required=False)
 @libvirt_options
-@click.option('--non-interactive', '-n', '--force', '-f',
-              is_flag=True,
-              callback=_abort_if_false,
-              expose_value=False,
-              help='Allow to remove Vagrant Box without user confirmation',
-              prompt='Are you sure you want to remove the Vagrant Box?',
-              )
+@click.option('--all-boxes', '--all', is_flag=True, help='Remove all Vagrant Boxes in the system')
 def remove_box(box_name, **kwargs):
     """
     Remove a Vagrant Box installed in the system by sesdev.
@@ -331,46 +327,74 @@ def remove_box(box_name, **kwargs):
     """
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
-    #
-    # existing deployments might be using this box
-    deps = Deployment.list(True)
-    existing_deployments = []
-    for dep in deps:
-        if box_name == dep.settings.os:
-            existing_deployments.append(dep.dep_id)
-    if existing_deployments:
-        if len(existing_deployments) == 1:
-            click.echo("The following deployment is already using box ->{}<-:"
-                       .format(box_name))
-        else:
-            click.echo("The following deployments are already using box ->{}<-:"
-                       .format(box_name))
-        for dep_id in existing_deployments:
-            click.echo("        {}".format(dep_id))
-        click.echo()
-        if len(existing_deployments) == 1:
-            click.echo("It must be destroyed first!")
-        else:
-            click.echo("These must be destroyed first!")
-        sys.exit(-1)
-
     box_obj = Box(settings)
-
-    if box_obj.exists(box_name):
-        click.echo("Proceeding to remove Vagrant Box ->{}<-".format(box_name))
+    #
+    # determine which box(es) are to be removed
+    remove_all_boxes = kwargs.get('all_boxes', False)
+    boxes_to_remove = None
+    if remove_all_boxes:
+        boxes_to_remove = box_obj.list()
     else:
-        click.echo("There is no Vagrant Box called ->{}<-".format(box_name))
-        sys.exit(-1)
-
-    image_to_remove = box_obj.get_image_by_box(box_name)
-    if image_to_remove:
-        click.echo("Found related image ->{}<- in libvirt storage pool"
-                   .format(image_to_remove))
-        box_obj.remove_image(image_to_remove)
-        click.echo("Libvirt image removed.")
-
-    box_obj.remove_box(box_name)
-    click.echo("Vagrant Box removed.")
+        if box_name:
+            boxes_to_remove = [box_name]
+        else:
+            raise RemoveBoxNeedsBoxNameOrAllOption
+    #
+    # remove the boxes
+    deps = Deployment.list(True)
+    problems_encountered = False
+    boxes_removed_count = 0
+    for box_being_removed in boxes_to_remove:
+        click.echo("Attempting to remove Vagrant Box ->{}<- ...".format(box_being_removed))
+        if not box_obj.exists(box_being_removed):
+            click.echo("WARNING: There is no Vagrant Box called ->{}<-"
+                       .format(box_being_removed)
+                       )
+            problems_encountered = True
+            continue
+        #
+        # existing deployments might be using this box
+        existing_deployments = []
+        for dep in deps:
+            if box_being_removed == dep.settings.os:
+                existing_deployments.append(dep.dep_id)
+        if existing_deployments:
+            if len(existing_deployments) == 1:
+                click.echo("WARNING: The following deployment is already using "
+                           "Vagrant Box ->{}<-:"
+                           .format(box_being_removed)
+                           )
+            else:
+                click.echo("WARNING: The following deployments are already using "
+                           "Vagrant Box ->{}<-:"
+                           .format(box_being_removed)
+                           )
+            for dep_id in existing_deployments:
+                click.echo("        {}".format(dep_id))
+            click.echo()
+            if len(existing_deployments) == 1:
+                click.echo("It must be destroyed first!")
+            else:
+                click.echo("These must be destroyed first!")
+            problems_encountered = True
+            continue
+        image_to_remove = box_obj.get_image_by_box(box_being_removed)
+        if image_to_remove:
+            click.echo("Found related image ->{}<- in libvirt storage pool"
+                       .format(image_to_remove))
+            box_obj.remove_image(image_to_remove)
+            click.echo("Libvirt image removed.")
+        box_obj.remove_box(box_being_removed)
+        click.echo("Vagrant Box ->{}<- removed.".format(box_being_removed))
+        boxes_removed_count += 1
+    if boxes_removed_count != 1:
+        click.echo("{} Vagrant Boxes were removed".format(boxes_removed_count))
+    if problems_encountered:
+        click.echo("WARNING: sesdev tried to remove {} Vagrant Box(es), but "
+                   "problems were encountered."
+                   .format(len(boxes_to_remove))
+                   )
+        click.echo("Use \"sesdev box list\" to check current state")
 
 
 @cli.group()
@@ -393,8 +417,13 @@ def _gen_box_settings_dict(libvirt_host,
                            libvirt_user,
                            libvirt_private_key_file,
                            libvirt_storage_pool,
-                           libvirt_networks):
+                           libvirt_networks,
+                           all_boxes=None,
+                           ):
     settings_dict = {}
+
+    if all_boxes:
+        pass
 
     if libvirt_host:
         settings_dict['libvirt_host'] = libvirt_host
