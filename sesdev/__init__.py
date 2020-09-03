@@ -347,9 +347,7 @@ def remove_box(box_name, **kwargs):
     for box_being_removed in boxes_to_remove:
         click.echo("Attempting to remove Vagrant Box ->{}<- ...".format(box_being_removed))
         if not box_obj.exists(box_being_removed):
-            click.echo("WARNING: There is no Vagrant Box called ->{}<-"
-                       .format(box_being_removed)
-                       )
+            Log.warning("There is no Vagrant Box called ->{}<-".format(box_being_removed))
             problems_encountered = True
             continue
         #
@@ -360,40 +358,38 @@ def remove_box(box_name, **kwargs):
                 existing_deployments.append(dep.dep_id)
         if existing_deployments:
             if len(existing_deployments) == 1:
-                click.echo("WARNING: The following deployment is already using "
-                           "Vagrant Box ->{}<-:"
-                           .format(box_being_removed)
-                           )
+                Log.warning("The following deployment is already using Vagrant Box ->{}<-:"
+                            .format(box_being_removed)
+                            )
             else:
-                click.echo("WARNING: The following deployments are already using "
-                           "Vagrant Box ->{}<-:"
-                           .format(box_being_removed)
-                           )
+                Log.warning("The following deployments are already using Vagrant Box ->{}<-:"
+                            .format(box_being_removed)
+                            )
             for dep_id in existing_deployments:
-                click.echo("        {}".format(dep_id))
+                Log.warning("        {}".format(dep_id))
             click.echo()
             if len(existing_deployments) == 1:
-                click.echo("It must be destroyed first!")
+                Log.warning("It must be destroyed first!")
             else:
-                click.echo("These must be destroyed first!")
+                Log.warning("These must be destroyed first!")
             problems_encountered = True
             continue
         image_to_remove = box_obj.get_image_by_box(box_being_removed)
         if image_to_remove:
-            click.echo("Found related image ->{}<- in libvirt storage pool"
-                       .format(image_to_remove))
+            Log.info("Found related image ->{}<- in libvirt storage pool"
+                     .format(image_to_remove))
             box_obj.remove_image(image_to_remove)
-            click.echo("Libvirt image removed.")
+            Log.info("Libvirt image removed.")
         box_obj.remove_box(box_being_removed)
-        click.echo("Vagrant Box ->{}<- removed.".format(box_being_removed))
+        Log.info("Vagrant Box ->{}<- removed.".format(box_being_removed))
         boxes_removed_count += 1
     if boxes_removed_count != 1:
         click.echo("{} Vagrant Boxes were removed".format(boxes_removed_count))
     if problems_encountered:
-        click.echo("WARNING: sesdev tried to remove {} Vagrant Box(es), but "
-                   "problems were encountered."
-                   .format(len(boxes_to_remove))
-                   )
+        Log.warning("sesdev tried to remove {} Vagrant Box(es), but "
+                    "problems were encountered."
+                    .format(len(boxes_to_remove))
+                    )
         click.echo("Use \"sesdev box list\" to check current state")
 
 
