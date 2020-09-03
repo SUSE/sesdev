@@ -16,6 +16,7 @@ from seslib.deployment import Deployment
 from seslib.exceptions import \
                               SesDevException, \
                               AddRepoNoUpdateWithExplicitRepo, \
+                              BoxDoesNotExist, \
                               CmdException, \
                               DebugWithoutLogFileDoesNothing, \
                               NoExplicitRolesWithSingleNode, \
@@ -317,6 +318,10 @@ def list_boxes(**kwargs):
 @box.command(name='remove')
 @click.argument('box_name', required=False)
 @libvirt_options
+@click.option('--non-interactive', '-n', '--force', '-f',
+              is_flag=True,
+              help='Allow to remove Vagrant Box(es) without user confirmation',
+              )
 @click.option('--all-boxes', '--all', is_flag=True, help='Remove all Vagrant Boxes in the system')
 def remove_box(box_name, **kwargs):
     """
@@ -326,6 +331,7 @@ def remove_box(box_name, **kwargs):
     storage pool, and then running 'vagrant box remove' on it.
     """
     settings_dict = _gen_box_settings_dict(**kwargs)
+    interactive = not settings_dict.get('non_interactive', False)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
     #
@@ -336,20 +342,36 @@ def remove_box(box_name, **kwargs):
         boxes_to_remove = box_obj.list()
     else:
         if box_name:
+            if not box_obj.exists(box_name):
+                raise BoxDoesNotExist(box_name)
             boxes_to_remove = [box_name]
         else:
             raise RemoveBoxNeedsBoxNameOrAllOption
+    box_word = None
+    if boxes_to_remove:
+        box_word = _box_singular_or_plural(boxes_to_remove)
+    else:
+        return None
+    if interactive:
+        if boxes_to_remove:
+            click.echo("You have asked to remove the following Vagrant Boxes")
+            click.echo("----------------------------------------------------")
+            for box_to_remove in boxes_to_remove:
+                click.echo(box_to_remove)
+            click.echo()
+        really_want_to = click.confirm(
+            'Do you really want to remove {} {}'.format(len(boxes_to_remove), box_word),
+            default=True,
+        )
+        if not really_want_to:
+            raise click.Abort()
     #
     # remove the boxes
     deps = Deployment.list(True)
     problems_encountered = False
     boxes_removed_count = 0
     for box_being_removed in boxes_to_remove:
-        click.echo("Attempting to remove Vagrant Box ->{}<- ...".format(box_being_removed))
-        if not box_obj.exists(box_being_removed):
-            Log.warning("There is no Vagrant Box called ->{}<-".format(box_being_removed))
-            problems_encountered = True
-            continue
+        Log.info("Attempting to remove Vagrant Box ->{}<- ...".format(box_being_removed))
         #
         # existing deployments might be using this box
         existing_deployments = []
@@ -391,6 +413,7 @@ def remove_box(box_name, **kwargs):
                     .format(len(boxes_to_remove))
                     )
         click.echo("Use \"sesdev box list\" to check current state")
+    return None
 
 
 @cli.group()
@@ -415,11 +438,16 @@ def _gen_box_settings_dict(libvirt_host,
                            libvirt_storage_pool,
                            libvirt_networks,
                            all_boxes=None,
+                           non_interactive=None,
+                           force=None,
                            ):
     settings_dict = {}
 
     if all_boxes:
         pass
+
+    if non_interactive or force:
+        settings_dict['non_interactive'] = True
 
     if libvirt_host:
         settings_dict['libvirt_host'] = libvirt_host
@@ -966,6 +994,12 @@ def _maybe_glob_deps(deployment_id):
     else:
         matching_deployments = [Deployment.load(deployment_id)]
     return matching_deployments
+
+
+def _box_singular_or_plural(an_iterable):
+    if len(an_iterable) == 1:
+        return "Vagrant Box"
+    return "Vagrant Boxes"
 
 
 def _cluster_singular_or_plural(an_iterable):

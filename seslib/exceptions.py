@@ -18,6 +18,13 @@ class BadMakeCheckRolesNodes(SesDevException):
         )
 
 
+class BoxDoesNotExist(SesDevException):
+    def __init__(self, box_name):
+        super().__init__(
+            "There is no Vagrant Box called \"{}\"".format(box_name)
+        )
+
+
 class CmdException(SesDevException):
     def __init__(self, command, retcode, stderr):
         super().__init__(
