@@ -122,8 +122,7 @@ class Box():
         return list(networks)
 
     def list(self):
-        for box in self.boxes:
-            print(box)
+        return self.boxes
 
     def open_libvirt_connection(self):
         if self.libvirt_conn:
