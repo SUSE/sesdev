@@ -307,7 +307,9 @@ def list_boxes(**kwargs):
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
-    box_obj.list()
+    box_names = box_obj.list()
+    for box_name in box_names:
+        click.echo(box_name)
 
 
 @box.command(name='remove')
