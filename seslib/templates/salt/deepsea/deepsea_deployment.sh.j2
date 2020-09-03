@@ -105,7 +105,7 @@ exit 0
 {% set drive_groups_yml = "/srv/salt/ceph/configuration/files/drive_groups.yml" %}
 if [ ! -e "{{ drive_groups_yml }}" ] ; then
     echo "FATAL: {{ drive_groups_yml }} unexpectedly missing!"
-    exit 1
+    false
 fi
 {% if filestore_osds %}
 echo "  format: filestore" >> {{ drive_groups_yml }}

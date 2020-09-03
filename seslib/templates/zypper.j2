@@ -69,7 +69,7 @@ if bash -e "{{ devel_repo_script }}" ; then
     true
 else
     echo "{{ devel_repo_script }} failed! Bailing out."
-    exit 1
+    false
 fi
 {% endif %}
 

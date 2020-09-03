@@ -1,19 +1,20 @@
 
 # make sure all minions are responding
-set +ex
+set +x
 LOOP_COUNT="0"
 while true ; do
   if [ "$LOOP_COUNT" -ge "30" ] ; then
-    echo "ERROR: minion(s) not responding to ping?"
-    exit 1
+    echo "ERROR: minion(s) failed to respond to ping. Bailling out!"
+    set -e
+    false
   fi
   LOOP_COUNT="$((LOOP_COUNT + 1))"
   echo "Pinging {{ nodes | length }} minions..."
-  MINIONS_RESPONDING="$(salt '*' test.ping 2> /dev/null | grep --count True)"
+  MINIONS_RESPONDING="$(salt '*' test.ping 2> /dev/null | grep --count True || true)"
   echo "${MINIONS_RESPONDING} of {{ nodes | length }} minions responded to ping."
   [ "$MINIONS_RESPONDING" = "{{ nodes|length }}" ] && break
   set -x
   sleep 3
   set +x
 done
-set -ex
+set -x
