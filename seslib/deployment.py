@@ -80,6 +80,7 @@ class Deployment():
         else:
             self.dep_id = _vet_dep_id(dep_id)
         self.settings = settings
+        self.domain = self.settings.domain.format(self.dep_id)
         self.existing = existing  # True: we are loading, False: we are creating
         self.nodes = {}
         self.node_counts = {}
@@ -254,39 +255,34 @@ class Deployment():
                 if 'master' in node_roles:
                     node_id += 1
                     name = 'master'
-                    fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
+                    fqdn = 'master.{}'.format(self.domain)
                 elif 'worker' in node_roles:
                     worker_id += 1
                     node_id += 1
                     name = 'worker{}'.format(worker_id)
-                    fqdn = 'worker{}.{}'.format(worker_id,
-                                                self.settings.domain.format(self.dep_id))
+                    fqdn = 'worker{}.{}'.format(worker_id, self.domain)
                 elif 'loadbalancer' in node_roles:
                     loadbl_id += 1
                     node_id += 1
                     name = 'loadbl{}'.format(loadbl_id)
-                    fqdn = 'loadbl{}.{}'.format(loadbl_id,
-                                                self.settings.domain.format(self.dep_id))
+                    fqdn = 'loadbl{}.{}'.format(loadbl_id, self.domain)
                 elif 'nfs' in node_roles and self.settings.version == 'caasp4':
                     nfs_id += 1
                     node_id += 1
                     name = 'nfs{}'.format(nfs_id)
-                    fqdn = 'nfs{}.{}'.format(nfs_id,
-                                             self.settings.domain.format(self.dep_id))
+                    fqdn = 'nfs{}.{}'.format(nfs_id, self.domain)
                 else:
                     node_id += 1
                     name = 'node{}'.format(node_id)
-                    fqdn = 'node{}.{}'.format(node_id,
-                                              self.settings.domain.format(self.dep_id))
+                    fqdn = 'node{}.{}'.format(node_id, self.domain)
             else:
                 if 'master' in node_roles or 'suma' in node_roles or 'makecheck' in node_roles:
                     name = 'master'
-                    fqdn = 'master.{}'.format(self.settings.domain.format(self.dep_id))
+                    fqdn = 'master.{}'.format(self.domain)
                 else:
                     node_id += 1
                     name = 'node{}'.format(node_id)
-                    fqdn = 'node{}.{}'.format(node_id,
-                                              self.settings.domain.format(self.dep_id))
+                    fqdn = 'node{}.{}'.format(node_id, self.domain)
 
             networks = ''
             public_address = None
@@ -452,7 +448,7 @@ class Deployment():
                 }, sort_keys=True, indent=4),
             'master': self.master,
             'suma': self.suma,
-            'domain': self.settings.domain.format(self.dep_id),
+            'domain': self.domain,
             'deepsea_git_repo': self.settings.deepsea_git_repo,
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
