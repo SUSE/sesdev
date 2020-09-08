@@ -3,6 +3,7 @@ set -ex
 DEPLOYMENT_SCRIPT="$0"
 
 function err_report {
+    set +x
     local line_number="$1"
     echo "Error in sesdev deployment script trapped!"
     echo "=> hostname: $(hostname)"
