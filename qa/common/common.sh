@@ -111,6 +111,8 @@ function support_cop_out_test {
     echo "WWWW: support_cop_out_test"
     echo "Detected operating system $NAME $VERSION_ID"
     case "$ID" in
+        opensuse-tumbleweed)
+            echo "$supported" ;;
         opensuse*|suse|sles)
             case "$VERSION_ID" in
                 12.3) echo "$supported" ;;
@@ -377,7 +379,7 @@ function maybe_wait_for_rgws_test {
 function _wait_for {
     # this function uses json_ses7_orch_{ls,ps}, which only work in
     # {octopus,ses7,pacific}
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local what="$1"
         local expected="$2"
         local orch_ps
@@ -414,7 +416,7 @@ function _wait_for {
 }
 
 function maybe_wait_for_nfss_test {
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local expected_nfss="$1"
         echo
         echo "WWWW: maybe_wait_for_nfss_test"
@@ -431,7 +433,7 @@ function maybe_wait_for_nfss_test {
 }
 
 function maybe_wait_for_igws_test {
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local expected_igws="$1"
         echo
         echo "WWWW: maybe_wait_for_igws_test"
@@ -513,7 +515,7 @@ function number_of_daemons_expected_vs_metadata_test {
 function number_of_services_expected_vs_orch_ls_test {
     echo
     echo "WWWW: number_of_services_expected_vs_orch_ls_test"
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local orch_ls_mgrs
         orch_ls_mgrs="$(json_ses7_orch_ls mgr)"
         local orch_ls_mons
@@ -647,7 +649,7 @@ function _orch_ps_test {
 function number_of_services_expected_vs_orch_ps_test {
     echo
     echo "WWWW: number_of_services_expected_vs_orch_ps_test"
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local minutes_to_wait
         minutes_to_wait="5"
         local minute
@@ -865,7 +867,7 @@ function systemctl_list_units_test {
     local node_under_test
     local n
     local fsid
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         fsid="$(_fsid)"
     fi
     local IFS
@@ -930,7 +932,7 @@ function osd_objectstore_test {
 function dashboard_branding_not_completely_absent_test {
     echo "WWWW: dashboard_branding_not_completely_absent_test"
     local the_test_is_on
-    if [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         if [[ "$(ceph --version)" =~ "ceph version 16" ]] ; then
             # ceph version 16 (pacific) is not expected to have downstream
             # branding
@@ -973,7 +975,7 @@ function nfs_maybe_list_objects_in_recovery_pool_test {
     tmpfile="$(mktemp)"
     echo "WWWW: nfs_maybe_list_objects_in_recovery_pool_test"
     echo
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
             # NFS Recovery Pool expected to exist
             skipped=""
@@ -1005,7 +1007,7 @@ function nfs_maybe_create_export {
     local length
     echo "WWWW: nfs_maybe_create_export"
     echo
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
             skipped=""
             set -x
@@ -1048,7 +1050,7 @@ function nfs_maybe_mount_export_and_touch_file {
     mount_point="/mnt/nfs"
     echo "WWWW: nfs_maybe_mount_export_and_touch_file"
     echo
-    if [ "$VERSION_ID" = "15.2" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
             skipped=""
             _zypper_ref_on_master
