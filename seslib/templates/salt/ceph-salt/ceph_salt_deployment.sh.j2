@@ -256,17 +256,14 @@ while true ; do
 done
 set -x
 
-MDS_NODES_COMMA_SEPARATED_LIST=""
 NFS_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
 {% if node.has_role('mds') %}
-MDS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 {% endif %}
 {% if node.has_role('nfs') %}
 NFS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
 {% endif %}
 {% endfor %}
-MDS_NODES_COMMA_SEPARATED_LIST="${MDS_NODES_COMMA_SEPARATED_LIST%,*}"
 NFS_NODES_COMMA_SEPARATED_LIST="${NFS_NODES_COMMA_SEPARATED_LIST%,*}"
 
 {% endif %} {# mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 #}
@@ -288,7 +285,7 @@ placement:
 {% endfor %}
 EOF
 ceph orch apply -i {{ service_spec_mds }}
-ceph fs volume create {{ fs_volume }} "$MDS_NODES_COMMA_SEPARATED_LIST"
+ceph fs volume create {{ fs_volume }}
 sleep 10
 ceph fs status
 sleep 5
