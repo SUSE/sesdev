@@ -46,6 +46,7 @@ exit 0
 
 echo "PATH is $PATH"
 type ceph-salt
+ceph-salt --version
 
 {% for node in nodes %}
 {% if not node.has_exclusive_role('client') %}
