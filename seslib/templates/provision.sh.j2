@@ -27,6 +27,12 @@ ln -s /root/.ssh/{{ ssh_key_name }} /root/.ssh/id_rsa
 ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
 cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
 
+# disable host checking when SSHing within the cluster
+cat >> /root/.ssh/config << 'EOF'
+Host *
+   StrictHostKeyChecking no
+EOF
+
 # set hostname
 hostnamectl set-hostname {{ node.name }}
 
