@@ -20,6 +20,8 @@ class Box():
         self.libvirt_conn = None
         self.libvirt_uri = None
         self.pool = None
+        self.all_possible_boxes = list(Constant.OS_BOX_MAPPING.keys()) + \
+            list(Constant.OS_ALIASED_BOXES.keys())
         self._populate_box_list()
 
     def _build_libvirt_uri(self):
@@ -43,7 +45,6 @@ class Box():
         self.libvirt_uri = uri
 
     def _populate_box_list(self):
-        self.all_possible_boxes = Constant.OS_BOX_MAPPING.keys()
         self.boxes = []
         cmd = ["vagrant", "box", "list"]
         output = tools.run_sync(cmd)
@@ -121,8 +122,11 @@ class Box():
                 networks.add(name)
         return list(networks)
 
-    def list(self):
-        return self.boxes
+    @staticmethod
+    def humanize_box_name(box_name):
+        if box_name in Constant.OS_ALIASED_BOXES:
+            return Constant.OS_ALIASED_BOXES[box_name]
+        return box_name
 
     def open_libvirt_connection(self):
         if self.libvirt_conn:
@@ -131,6 +135,17 @@ class Box():
         # print("Opening libvirt connection to ->{}<-".format(self.libvirt_uri))
         self.libvirt_conn = libvirt.open(self.libvirt_uri)
         return None
+
+    def printable_list(self):
+        box_list = []
+        for box in self.boxes:
+            alias = ''
+            if box in Constant.OS_ALIASED_BOXES:
+                alias = '(alias: {})'.format(self.humanize_box_name(box))
+                box_list.append('{} {}'.format(box, alias))
+            else:
+                box_list.append('{}'.format(self.humanize_box_name(box)))
+        return box_list
 
     def remove_image(self, image_name):
         image = self.pool.storageVolLookupByName(image_name)
