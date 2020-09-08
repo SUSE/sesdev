@@ -273,7 +273,21 @@ NFS_NODES_COMMA_SEPARATED_LIST="${NFS_NODES_COMMA_SEPARATED_LIST%,*}"
 
 {% if mds_nodes > 0 %}
 
+{% set service_spec_mds = "/root/service_spec_mds.yml" %}
 {% set fs_volume = "sesdev_fs" %}
+cat >> {{ service_spec_mds }} << 'EOF'
+---
+service_type: mds
+service_id: {{ fs_volume }}
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('mds') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+ceph orch apply -i {{ service_spec_mds }}
 ceph fs volume create {{ fs_volume }} "$MDS_NODES_COMMA_SEPARATED_LIST"
 sleep 10
 ceph fs status
