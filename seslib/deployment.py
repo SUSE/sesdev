@@ -837,9 +837,6 @@ deployment might not be completely destroyed.
             ):
                 if self.node_counts['bootstrap'] != 1:
                     raise UniqueRoleViolation('bootstrap', self.node_counts['bootstrap'])
-                for node_roles in self.settings.roles:
-                    if 'bootstrap' in node_roles and 'admin' not in node_roles:
-                        raise NodeMustBeAdminAsWell('bootstrap')
                 if (not self.settings.stop_before_ceph_salt_apply and
                     not self.settings.stop_before_ceph_orch_apply
                 ):
