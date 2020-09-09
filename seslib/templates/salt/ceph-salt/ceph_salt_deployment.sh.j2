@@ -213,7 +213,6 @@ encrypted: true
 objectstore: filestore
 {% endif %}
 EOF
-ceph orch device ls --refresh
 {% endif %} {# storage_nodes > 0 #}
 
 {% if ceph_orch_apply_needed %}
@@ -222,6 +221,7 @@ echo "Allowing one-minute grace period to expire before initiating \"ceph orch a
 sleep 60
 set -x
 cat {{ service_spec_core }}
+ceph orch apply -i {{ service_spec_core }} --dry-run
 ceph orch apply -i {{ service_spec_core }}
 {% endif %} {# ceph_orch_apply_needed #}
 
