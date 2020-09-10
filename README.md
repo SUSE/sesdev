@@ -33,6 +33,9 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt)
       * [Add user to libvirt group](#add-user-to-libvirt-group)
       * [Install Vagrant](#install-vagrant)
+         * [Install Vagrant on openSUSE Leap 15.2, SLE-15-SP2 or Tumbleweed](#install-vagrant-on-opensuse-leap-152-sle-15-sp2-or-tumbleweed)
+         * [Install Vagrant on openSUSE Leap 15.1, SLE-15-SP1](#install-vagrant-on-opensuse-leap-151-sle-15-sp1)
+         * [Vagrant RPM from Hashicorp website](#vagrant-rpm-from-hashicorp-website)
       * [Install sesdev from package](#install-sesdev-from-package)
    * [Install sesdev on Fedora Linux](#install-sesdev-on-fedora-linux)
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt-1)
@@ -123,8 +126,20 @@ group.
 
 #### Install Vagrant
 
-sesdev needs Vagrant to work. To install Vagrant, run the following commands as
-root:
+sesdev needs Vagrant to work. Vagrant can be installed in a number of ways,
+depending on your environment:
+
+##### Install Vagrant on openSUSE Leap 15.2, SLE-15-SP2 or Tumbleweed
+
+On very new OSes like these, Vagrant is included in the operating system's base
+repos. Just install the ``vagrant`` and ``vagrant-libvirt`` packages.
+
+For SLE-15-SP2, the packages are available via the
+[SUSE Package Hub](https://packagehub.suse.com/).
+
+##### Install Vagrant on openSUSE Leap 15.1, SLE-15-SP1
+
+To install Vagrant on these systems, run the following commands as root:
 
 ```
 # zypper ar https://download.opensuse.org/repositories/Virtualization:/vagrant/<repo> vagrant_repo
@@ -134,6 +149,30 @@ root:
 
 Where `<repo>` can be any of the openSUSE build targets currently enabled for
 the [Virtualization:vagrant/vagrant package in the openSUSE Build Service](https://build.opensuse.org/package/show/Virtualization:vagrant/vagrant).
+
+Be aware that ``Virtualization:vagrant`` is a development project where updates
+to the latest official openSUSE vagrant packages are prepared. That means the
+vagrant packages in this repo will tend to be new and, sometimes, even broken.
+In that case, read on to the next section.
+
+##### Vagrant RPM from Hashicorp website
+
+If you find that, for whatever reason, you cannot get a working vagrant package
+from OBS, it is possible to install vagrant from the official RPMs published on
+[the Hashicorp website](https://www.vagrantup.com/downloads.html).
+
+To install vagrant and its libvirt plugin from Hashicorp, the following
+procedure has been known to work (run the commands as root):
+
+1. download vagrant RPM from https://releases.hashicorp.com/vagrant/
+2. install make (``zypper install make``)
+3. install vagrant (``rpm -i <the RPM you just downloaded>``)
+4. delete file that causes libvirt plugin compilation to fail
+   (``rm /opt/vagrant/embedded/lib/libreadline.so.7``)
+
+Finally, run the following command as the user you run sesdev with:
+
+    vagrant plugin install vagrant-libvirt
 
 #### Install sesdev from package
 
