@@ -1041,50 +1041,50 @@ function nfs_maybe_mount_export_and_touch_file {
     first_nfs_node="$(_first_x_node "nfs")"
     local count
     local max_count_we_can_tolerate
-    if [ "$first_nfs_node" ] ; then
-        true
-    else
-        echo "BADNESS: NO NFS NODES IN CLUSTER, YET AM RUNNING NFS-RELATED TEST"
-    fi
     local mount_point
     mount_point="/mnt/nfs"
     echo "WWWW: nfs_maybe_mount_export_and_touch_file"
     echo
     if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
-            skipped=""
-            _zypper_ref_on_master
-            _zypper_install_on_master "nfs-client"
-            set -x
-            rm -rf "$mount_point"
-            mkdir -p "$mount_point"
-            mount -t nfs4 "$first_nfs_node:/sesdev_nfs" "$mount_point"
-            set +x
-            echo "Wait for grace period to expire..."
-            count="0"
-            max_count_we_can_tolerate="30"
-            while true ; do
-                count="$(( count + 1 ))"
-                if touch "$mount_point/bubba" ; then
-                    break
-                fi
-                if [ "$count" -gt "$max_count_we_can_tolerate" ] ; then
-                    echo "Unable to touch a file in the NFS export even after waiting for the grace period to expire"
-                    echo "WWWW: nfs_maybe_mount_export_and_touch_file: FAIL"
-                    echo
-                    false
-                fi
-                sleep 5
-                echo "$count times 5 seconds"
-            done
-            echo "Grace period expired!"
-            set -x
-            echo "hubba" > "$mount_point/bubba"
-            test -s "$mount_point/bubba"
-            test "$(cat "$mount_point/bubba")" = "hubba"
-            umount "$mount_point"
-            set +x
-            result="OK"
+            if [ "$first_nfs_node" ] ; then
+                skipped=""
+                _zypper_ref_on_master
+                _zypper_install_on_master "nfs-client"
+                set -x
+                rm -rf "$mount_point"
+                mkdir -p "$mount_point"
+                mount -t nfs4 "$first_nfs_node:/sesdev_nfs" "$mount_point"
+                set +x
+                echo "Wait for grace period to expire..."
+                count="0"
+                max_count_we_can_tolerate="30"
+                while true ; do
+                    count="$(( count + 1 ))"
+                    if touch "$mount_point/bubba" ; then
+                        break
+                    fi
+                    if [ "$count" -gt "$max_count_we_can_tolerate" ] ; then
+                        echo "Unable to touch a file in the NFS export even after waiting for the grace period to expire"
+                        echo "WWWW: nfs_maybe_mount_export_and_touch_file: FAIL"
+                        echo
+                        false
+                    fi
+                    sleep 5
+                    echo "$count times 5 seconds"
+                done
+                echo "Grace period expired!"
+                set -x
+                echo "hubba" > "$mount_point/bubba"
+                test -s "$mount_point/bubba"
+                test "$(cat "$mount_point/bubba")" = "hubba"
+                umount "$mount_point"
+                set +x
+                result="OK"
+            else
+                echo "BADNESS: NO NFS NODES IN CLUSTER, YET I AM SUPPOSED TO RUN AN NFS-RELATED TEST???"
+                exit 1
+            fi
         fi
     fi
     if [ "$skipped" ] ; then
