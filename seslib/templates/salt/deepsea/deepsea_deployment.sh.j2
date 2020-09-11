@@ -29,16 +29,16 @@ sleep 2
 salt '*' grains.set deepsea True
 sleep 5
 
-{% if pre_stage_0_script %}
-{{ pre_stage_0_script }}
-{% endif %}
-
 {% if stop_before_stage == 0 %}
 set +x
 echo "Stopping the deployment now because --stop-before-deepsea-stage=0 option was given."
 set -x
 exit 0
 {% endif %} {# stop_before_stage == 0 #}
+
+{% if pre_stage_0_script %}
+{{ pre_stage_0_script }}
+{% endif %}
 
 echo "PATH is $PATH"
 {% if use_salt %}
