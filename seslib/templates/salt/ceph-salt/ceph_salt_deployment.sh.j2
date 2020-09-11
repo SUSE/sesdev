@@ -60,12 +60,13 @@ ceph-salt config /ceph_cluster/roles/admin add {{ node.fqdn }}
 ceph-salt config /ceph_cluster/roles/bootstrap set {{ cephadm_bootstrap_node.fqdn }}
 
 ceph-salt config /ssh/ generate
-{% if image_path %}
-ceph-salt config /containers/images/ceph set {{ image_path }}
-{% endif %}
 ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
 {% set external_timeserver = "pool.ntp.org" %}
 ceph-salt config /time_server/external_servers add {{ external_timeserver }}
+
+{% if image_path %}
+ceph-salt config /cephadm_bootstrap/ceph_image_path set {{ image_path }}
+{% endif %}
 
 {% if storage_nodes < 3 %}
 ceph-salt config /cephadm_bootstrap/ceph_conf add global
