@@ -23,12 +23,14 @@
 SCRIPTNAME="$(basename "${0}")"
 FINAL_REPORT="$(mktemp)"
 TEMP_FILE="$(mktemp)"
+CMD_OUTPUT="$(mktemp)"
 
 function final_report {
     echo -en "\n=====================================================================\n" >> "$FINAL_REPORT"
     cat "$FINAL_REPORT"
     rm "$FINAL_REPORT"
     rm "$TEMP_FILE"
+    rm "$CMD_OUTPUT"
     exit 0
 }
 
@@ -70,16 +72,20 @@ function run_cmd {
     {
         echo -en "\n${timestamp%+00:00}\n" ;
         echo -en "=====================================================================\n" ;
-        echo -en "Command:\n\n    $*\n" 
+        echo -en "Command:\n\n    $*\n"
     } >> "$FINAL_REPORT"
-    "$@"
-    exit_status="$?"
-    if [ "$exit_status" = "0" ] ; then
-        echo -en "\nExit status: 0 (PASS)\n" >> "$FINAL_REPORT"
-    else
+    true > "$CMD_OUTPUT"
+    "$@" | tee "$CMD_OUTPUT"
+    exit_status="${PIPESTATUS[0]}"
+    if [ "$exit_status" != "0" ] ; then
         echo -en "\nExit status: $exit_status (FAIL)\n" >> "$FINAL_REPORT"
         [ "$STOP_ON_FAILURE" ] && final_report
-    fi  
+    elif grep "Bailing out" "$CMD_OUTPUT" ; then
+        echo -en "\nExit status: 0, but bail-out detected (FAIL)\n" >> "$FINAL_REPORT"
+        [ "$STOP_ON_FAILURE" ] && final_report
+    else
+        echo -en "\nExit status: 0 (PASS)\n" >> "$FINAL_REPORT"
+    fi
 }
 
 function test_tunnel {
@@ -95,6 +101,7 @@ function test_tunnel {
     [ -z "$search_string" ] && search_string="SUSE Enterprise Storage"
     timeout 40s sesdev tunnel "$dep_id" "$service" &
     sleep 30
+    true > "$TEMP_FILE"
     curl --silent --insecure "$protocol://127.0.0.1:$port" | tee "$TEMP_FILE"
     grep "$search_string" "$TEMP_FILE"
     exit_status="$?"
@@ -205,7 +212,7 @@ if [ -e "$HOME/.sesdev/config.yaml" ] ; then
 fi
 
 set -x
-touch $HOME/.sesdev/config.yaml
+touch "$HOME/.sesdev/config.yaml"
 
 if [ "$SES5" ] ; then
     sesdev --verbose box remove --non-interactive sles-12-sp3
@@ -220,11 +227,14 @@ if [ "$SES5" ] ; then
     read -r a
     test "$a"
     set -x
-    run_cmd sesdev --verbose create ses5 --roles "[master,storage,mon,mgr]" --qa-test ses5-mini
+    run_cmd sesdev --verbose create ses5 --roles "[master,storage,mon,mgr]" ses5-mini
+    run_cmd sesdev --verbose qa-test ses5-mini
     run_cmd sesdev --verbose destroy --non-interactive ses5-mini
-    run_cmd sesdev --verbose create ses5 --dry-run
+    # dry run
+    run_cmd sesdev create ses5 --dry-run
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
-    run_cmd sesdev --verbose create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" --qa-test ses5-1node
+    run_cmd sesdev --verbose create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" ses5-1node
+    run_cmd sesdev --verbose qa-test ses5-1node
     run_cmd sesdev --verbose add-repo --update ses5-1node
     run_cmd sesdev --verbose destroy --non-interactive ses5-1node
     run_cmd sesdev --verbose create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
@@ -241,8 +251,10 @@ fi
 
 if [ "$NAUTILUS" ] ; then
     sesdev --verbose box remove --non-interactive leap-15.1
-    run_cmd sesdev --verbose create nautilus --dry-run
-    run_cmd sesdev --verbose create nautilus --non-interactive --single-node --filestore --qa-test nautilus-1node
+    # dry run
+    run_cmd sesdev create nautilus --dry-run
+    run_cmd sesdev --verbose create nautilus --non-interactive --single-node --filestore nautilus-1node
+    run_cmd sesdev --verbose qa-test nautilus-1node
     run_cmd sesdev --verbose destroy --non-interactive nautilus-1node
     run_cmd sesdev --verbose create nautilus --non-interactive nautilus-4node
     run_cmd sesdev --verbose qa-test nautilus-4node
@@ -251,10 +263,13 @@ fi
 
 if [ "$SES6" ] ; then
     sesdev --verbose box remove --non-interactive sles-15-sp1
-    run_cmd sesdev --verbose create ses6 --dry-run
-    run_cmd sesdev --verbose create ses6 --non-interactive --roles "[master,storage,mon,mgr]" --qa-test ses6-mini
+    # dry run
+    run_cmd sesdev create ses6 --dry-run
+    run_cmd sesdev --verbose create ses6 --non-interactive --roles "[master,storage,mon,mgr]" ses6-mini
+    run_cmd sesdev --verbose qa-test ses6-mini
     run_cmd sesdev --verbose destroy --non-interactive ses6-mini
-    run_cmd sesdev --verbose create ses6 --product --non-interactive --single-node --qa-test ses6-1node
+    run_cmd sesdev --verbose create ses6 --product --non-interactive --single-node ses6-1node
+    run_cmd sesdev --verbose qa-test ses6-1node
     run_cmd sesdev --verbose add-repo --update ses6-1node
     run_cmd sesdev --verbose destroy --non-interactive ses6-1node
     run_cmd sesdev --verbose create ses6 --non-interactive ses6-4node
@@ -271,8 +286,10 @@ fi
 
 if [ "$OCTOPUS" ] ; then
     sesdev --verbose box remove --non-interactive leap-15.2
-    run_cmd sesdev --verbose create octopus --dry-run
-    run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test octopus-1node
+    # dry run
+    run_cmd sesdev create octopus --dry-run
+    run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node octopus-1node
+    run_cmd sesdev --verbose qa-test octopus-1node
     run_cmd sesdev --verbose destroy --non-interactive octopus-1node
     run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
     run_cmd sesdev --verbose qa-test octopus-4node
@@ -281,10 +298,13 @@ fi
 
 if [ "$SES7" ] ; then
     sesdev --verbose box remove --non-interactive sles-15-sp2
-    run_cmd sesdev --verbose create ses7 --dry-run
-    run_cmd sesdev --verbose create ses7 --non-interactive --roles "[admin,master,bootstrap,storage,mon,mgr]" --qa-test ses7-mini
+    # dry run
+    run_cmd sesdev create ses7 --dry-run
+    run_cmd sesdev --verbose create ses7 --non-interactive --roles "[admin,master,bootstrap,storage,mon,mgr]" ses7-mini
+    run_cmd sesdev --verbose qa-test ses7-mini
     run_cmd sesdev --verbose destroy --non-interactive ses7-mini
-    run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test ses7-1node
+    run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node ses7-1node
+    run_cmd sesdev --verbose qa-test ses7-1node
     run_cmd sesdev --verbose destroy --non-interactive ses7-1node
     run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" ses7-4node
     run_cmd sesdev --verbose qa-test ses7-4node
@@ -301,8 +321,10 @@ fi
 
 if [ "$PACIFIC" ] ; then
     sesdev --verbose box remove --non-interactive leap-15.2
-    run_cmd sesdev --verbose create pacific --dry-run
-    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --qa-test pacific-1node
+    # dry run
+    run_cmd sesdev create pacific --dry-run
+    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node pacific-1node
+    run_cmd sesdev --verbose qa-test pacific-1node
     run_cmd sesdev --verbose destroy --non-interactive pacific-1node
     run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
     run_cmd sesdev --verbose qa-test pacific-4node
@@ -310,7 +332,8 @@ if [ "$PACIFIC" ] ; then
 fi
 
 if [ "$MAKECHECK" ] ; then
-    run_cmd sesdev --verbose create makecheck --dry-run
+    # dry run
+    run_cmd sesdev create makecheck --dry-run
     run_cmd sesdev --verbose create makecheck --non-interactive --stop-before-run-make-check --ram 4
     run_cmd sesdev --verbose destroy --non-interactive makecheck-tumbleweed
     run_cmd sesdev --verbose create makecheck --non-interactive --os sles-12-sp3 --stop-before-run-make-check --ram 4
@@ -322,7 +345,8 @@ if [ "$MAKECHECK" ] ; then
 fi
 
 if [ "$CAASP4" ] ; then
-    run_cmd sesdev --verbose create caasp4 --dry-run
+    # dry run
+    run_cmd sesdev create caasp4 --dry-run
     run_cmd sesdev --verbose create caasp4 --non-interactive caasp4-default
     run_cmd sesdev --verbose destroy --non-interactive caasp4-default
     run_cmd sesdev --verbose create caasp4 --non-interactive --deploy-ses caasp4-with-rook
@@ -337,6 +361,6 @@ if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
     exit 1
 fi
 
-rm $HOME/.sesdev/config.yaml
+rm "$HOME/.sesdev/config.yaml"
 
 final_report
