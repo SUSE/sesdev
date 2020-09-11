@@ -225,9 +225,7 @@ ceph orch apply -i {{ service_spec_core }} --dry-run
 ceph orch apply -i {{ service_spec_core }}
 {% endif %} {# ceph_orch_apply_needed #}
 
-{% if storage_nodes > 0 %}
-
-{% if mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 %}
+{% if total_osds > 0 %}
 
 # Wait for OSDs to appear
 function number_of_osds_in_ceph_osd_tree {
@@ -255,6 +253,12 @@ while true ; do
     sleep "$interval_seconds"
 done
 set -x
+
+{% endif %} {# if total_osds > 0 #}
+
+{% if storage_nodes > 0 %}
+
+{% if mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 %}
 
 NFS_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
