@@ -507,6 +507,7 @@ class Deployment():
             'makecheck_stop_before_run_make_check':
                 self.settings.makecheck_stop_before_run_make_check,
             'ssd': self.settings.ssd,
+            'reasonable_timeout_in_seconds': Constant.REASONABLE_TIMEOUT_IN_SECONDS,
         }
 
         scripts = {}
