@@ -138,6 +138,8 @@ class Constant():
         },
     }
 
+    REASONABLE_TIMEOUT_IN_SECONDS = 1800
+
     ROLES_DEFAULT = {
         "caasp4": [["master"], ["worker"], ["worker"], ["loadbalancer"]],
         "luminous": [["master", "client", "openattic"],

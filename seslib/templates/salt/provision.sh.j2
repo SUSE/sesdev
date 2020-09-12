@@ -76,6 +76,7 @@ salt-key -Ay
 {% if deployment_tool == "deepsea" %}
 {% if node == master %}
 {% include "salt/deepsea/deepsea_deployment.sh.j2" %}
+{% include "salt/qa_test.j2" %}
 {% endif %} {# node == master #}
 {% endif %} {# deployment_tool == "deepsea" #}
 
@@ -86,7 +87,11 @@ salt-key -Ay
 
 # deploy ceph cluster via ceph-salt and cephadm
 {% if deployment_tool == "cephadm" %}
-{% include "salt/ceph-salt/ceph_salt_deployment.sh.j2" %}
+{% if node == master %}
+{% include "salt/ceph-salt/deployment_day_1.sh.j2" %}
+{% include "salt/ceph-salt/deployment_day_2.sh.j2" %}
+{% include "salt/qa_test.j2" %}
+{% endif %} {# node == master #}
 {% endif %} {# deployment_tool == "cephadm" #}
 
 {% endif %} {# node == master or node == suma #}
