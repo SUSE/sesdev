@@ -57,6 +57,7 @@ encrypted: true
 objectstore: filestore
 {% endif %}
 EOF
+ceph orch device ls --refresh
 {% endif %} {# storage_nodes > 0 #}
 
 {% if ceph_orch_apply_needed %}
