@@ -1,6 +1,8 @@
 
 set -ex
 
+REASONABLE_TIMEOUT_IN_SECONDS="1800"
+
 {% if ceph_salt_git_repo and ceph_salt_git_branch %}
 # install ceph-salt
 cd /root
@@ -117,7 +119,7 @@ function number_of_foos_in_bootstrap_cephadm_ls {
 }
 
 set +x
-timeout_seconds="3600"
+timeout_seconds="$REASONABLE_TIMEOUT_IN_SECONDS"
 remaining_seconds="$timeout_seconds"
 interval_seconds="30"
 while true ; do
@@ -236,7 +238,7 @@ function number_of_osds_in_ceph_osd_tree {
 EXPECTED_NUMBER_OF_OSDS="{{ total_osds }}"
 
 set +x
-timeout_seconds="3600"
+timeout_seconds="$((REASONABLE_TIMEOUT_IN_SECONDS * 2))"
 remaining_seconds="$timeout_seconds"
 interval_seconds="30"
 while true ; do
@@ -290,6 +292,45 @@ placement:
 {% endfor %}
 EOF
 ceph orch apply -i {{ service_spec_mds }}
+
+# wait for the MDSs to appear
+
+function number_of_foos_ceph_orch_ls {
+    local service_type="$1"
+    local ceph_orch_ls
+    local running
+    ceph_orch_ls="$(ceph orch ls --service-type "$service_type" --format json)"
+    if echo "$ceph_orch_ls" | jq -r >/dev/null 2>&1 ; then
+        running="$(echo "$ceph_orch_ls" | jq -r '.[] | .status.running')"
+        echo "$running"
+    else
+        echo "0"
+    fi
+}
+
+EXPECTED_NUMBER_OF_MDSS="{{ mds_nodes }}"
+
+set +x
+timeout_seconds="$REASONABLE_TIMEOUT_IN_SECONDS"
+remaining_seconds="$timeout_seconds"
+interval_seconds="30"
+while true ; do
+    ACTUAL_NUMBER_OF_MDSS="$(number_of_foos_ceph_orch_ls mds)"
+    echo "MDSs in cluster (actual/expected): $ACTUAL_NUMBER_OF_MDSS/$EXPECTED_NUMBER_OF_MDSS (${remaining_seconds} seconds to timeout)"
+    remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+    [ "$ACTUAL_NUMBER_OF_MDSS" = "$EXPECTED_NUMBER_OF_MDSS" ] && break
+    if [ "$remaining_seconds" -le "0" ] ; then
+        set -x
+        ceph status
+        set +x
+        echo "It seems unlikely that this cluster will ever reach the expected number of MDSs. Bailing out!"
+        false
+    fi  
+    sleep "$interval_seconds"
+done
+set -x
+
+# create the volume
 ceph fs volume create {{ fs_volume }}
 sleep 10
 ceph fs status
