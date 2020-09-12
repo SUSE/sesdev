@@ -151,7 +151,7 @@ class Constant():
                      ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
         "octopus": [["admin", "master", "client", "prometheus", "grafana", "alertmanager",
                      "node-exporter"],
-                    ["admin", "bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
+                    ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
                     ["storage", "mon", "mgr", "mds", "igw", "nfs", "node-exporter"],
                     ["storage", "mon", "mgr", "mds", "rgw", "nfs", "node-exporter"]]
     }
