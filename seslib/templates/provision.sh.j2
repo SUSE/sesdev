@@ -14,6 +14,7 @@ function err_report {
 }
 
 # ensure Vagrant doesn't destroy the master node when the script fails
+trap 'err_report $LINENO' INT
 trap 'err_report $LINENO' ERR
 
 ls -lR /home/vagrant
