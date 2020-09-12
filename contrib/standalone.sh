@@ -31,6 +31,7 @@ function final_report {
     rm "$FINAL_REPORT"
     rm "$TEMP_FILE"
     rm "$CMD_OUTPUT"
+    rm "$HOME/.sesdev/config.yaml"
     exit 0
 }
 
