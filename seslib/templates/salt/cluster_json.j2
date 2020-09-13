@@ -27,7 +27,7 @@ SUCCESS="yes"
 for role in $ROLES_OF_THIS_NODE ; do
     REGEX=""
     [ "$role" = "storage" ] && role="osd"
-    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ]; then
+    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ] || [ "$role" = "prometheus" ]; then
         if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] ; then
             if [ "$VERSION_ID" = "15.2" ] ; then
                 REGEX="^ceph-$FSID@$role.+loaded active running"
@@ -51,6 +51,14 @@ for role in $ROLES_OF_THIS_NODE ; do
                 REGEX="^ceph-$FSID@iscsi.+loaded active running"
             elif [ "$OS" = "leap-15.1" ] || [ "$OS" = "sles-15-sp1" ] ; then
                 REGEX="^rbd-target-api\.service.+loaded active running"
+            else
+                REGEX=""
+            fi
+        elif [ "$role" = "prometheus" ] ; then
+            if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+                REGEX="^ceph-$FSID@prometheus.+loaded active running"
+            elif [ "$VERSION_ID" = "15.1" ] ; then
+                REGEX="^prometheus\.service.+loaded active running"
             else
                 REGEX=""
             fi

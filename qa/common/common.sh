@@ -533,6 +533,8 @@ function number_of_services_expected_vs_orch_ls_test {
         orch_ls_nfss="$(json_ses7_orch_ls nfs)"
         local orch_ls_igws
         orch_ls_igws="$(json_ses7_orch_ls iscsi)"
+        local orch_ls_prometheuses
+        orch_ls_prometheuses="$(json_ses7_orch_ls prometheus)"
         local success
         success="yes"
         local expected_mgrs
@@ -542,6 +544,7 @@ function number_of_services_expected_vs_orch_ls_test {
         local expected_rgws
         local expected_nfss
         local expected_igws
+        local expected_prometheuses
         [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
         [ "$MON_NODES" ] && expected_mons="$MON_NODES"
         [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -549,6 +552,7 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
         [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
         [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
+        [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
         echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
         if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
             true  # normal success case
@@ -569,6 +573,8 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
         echo "IGW services (orch ls/expected): $orch_ls_igws/$expected_igws"
         [ "$orch_ls_igws" = "$expected_igws" ] || success=""
+        echo "Prometheus services (orch ls/expected): $orch_ls_prometheuses/$expected_prometheuses"
+        [ "$orch_ls_prometheuses" = "$expected_prometheuses" ] || success=""
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
@@ -599,6 +605,8 @@ function _orch_ps_test {
     orch_ps_nfss="$(json_ses7_orch_ps nfs)"
     local orch_ps_igws
     orch_ps_igws="$(json_ses7_orch_ps iscsi)"
+    local orch_ps_prometheuses
+    orch_ps_prometheuses="$(json_ses7_orch_ps prometheus)"
     ## commented-out osds pending resolution of
     ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
     ## - https://github.com/SUSE/sesdev/pull/203
@@ -611,6 +619,7 @@ function _orch_ps_test {
     local expected_rgws
     local expected_nfss
     local expected_igws
+    local expected_prometheuses
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -618,6 +627,7 @@ function _orch_ps_test {
     [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
     [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
     [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
+    [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
     echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
     if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
         true  # normal success case
@@ -638,6 +648,8 @@ function _orch_ps_test {
     [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
     echo "IGW daemons (orch ps/expected): $orch_ps_igws/$expected_igws"
     [ "$orch_ps_igws" = "$expected_igws" ] || success=""
+    echo "Prometheus daemons (orch ps/expected): $orch_ps_prometheuses/$expected_prometheuses"
+    [ "$orch_ps_prometheuses" = "$expected_prometheuses" ] || success=""
     if [ "$success" ] ; then
         return 0
     else
