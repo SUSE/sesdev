@@ -29,7 +29,7 @@ SUCCESS="yes"
 for role in $ROLES_OF_THIS_NODE ; do
     REGEX=""
     [ "$role" = "storage" ] && role="osd"
-    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ] || [ "$role" = "prometheus" ]; then
+    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ] || [ "$role" = "prometheus" ] || [ "$role" = "grafana" ] ; then
         if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] ; then
             if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
                 REGEX="^ceph-$FSID@$role.+loaded active running"
@@ -61,6 +61,14 @@ for role in $ROLES_OF_THIS_NODE ; do
                 REGEX="^ceph-$FSID@prometheus.+loaded active running"
             elif [ "$VERSION_ID" = "15.1" ] ; then
                 REGEX="^prometheus\.service.+loaded active running"
+            else
+                REGEX=""
+            fi
+        elif [ "$role" = "grafana" ] ; then
+            if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+                REGEX="^ceph-$FSID@grafana.+loaded active running"
+            elif [ "$VERSION_ID" = "15.1" ] ; then
+                REGEX="^grafana-server\.service.+loaded active running"
             else
                 REGEX=""
             fi

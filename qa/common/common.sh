@@ -535,6 +535,8 @@ function number_of_services_expected_vs_orch_ls_test {
         orch_ls_igws="$(json_ses7_orch_ls iscsi)"
         local orch_ls_prometheuses
         orch_ls_prometheuses="$(json_ses7_orch_ls prometheus)"
+        local orch_ls_grafanas
+        orch_ls_grafanas="$(json_ses7_orch_ls grafana)"
         local success
         success="yes"
         local expected_mgrs
@@ -545,6 +547,7 @@ function number_of_services_expected_vs_orch_ls_test {
         local expected_nfss
         local expected_igws
         local expected_prometheuses
+        local expected_grafanas
         [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
         [ "$MON_NODES" ] && expected_mons="$MON_NODES"
         [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -553,6 +556,7 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
         [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
         [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
+        [ "$GRAFANA_NODES" ] && expected_grafanas="$GRAFANA_NODES"
         echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
         if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
             true  # normal success case
@@ -575,6 +579,8 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$orch_ls_igws" = "$expected_igws" ] || success=""
         echo "Prometheus services (orch ls/expected): $orch_ls_prometheuses/$expected_prometheuses"
         [ "$orch_ls_prometheuses" = "$expected_prometheuses" ] || success=""
+        echo "Grafana services (orch ls/expected): $orch_ls_grafanas/$expected_grafanas"
+        [ "$orch_ls_grafanas" = "$expected_grafanas" ] || success=""
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
@@ -607,6 +613,8 @@ function _orch_ps_test {
     orch_ps_igws="$(json_ses7_orch_ps iscsi)"
     local orch_ps_prometheuses
     orch_ps_prometheuses="$(json_ses7_orch_ps prometheus)"
+    local orch_ps_grafanas
+    orch_ps_grafanas="$(json_ses7_orch_ps grafana)"
     ## commented-out osds pending resolution of
     ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
     ## - https://github.com/SUSE/sesdev/pull/203
@@ -620,6 +628,7 @@ function _orch_ps_test {
     local expected_nfss
     local expected_igws
     local expected_prometheuses
+    local expected_grafanas
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -628,6 +637,7 @@ function _orch_ps_test {
     [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
     [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
     [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
+    [ "$GRAFANA_NODES" ] && expected_grafanas="$GRAFANA_NODES"
     echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
     if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
         true  # normal success case
@@ -650,6 +660,8 @@ function _orch_ps_test {
     [ "$orch_ps_igws" = "$expected_igws" ] || success=""
     echo "Prometheus daemons (orch ps/expected): $orch_ps_prometheuses/$expected_prometheuses"
     [ "$orch_ps_prometheuses" = "$expected_prometheuses" ] || success=""
+    echo "Grafana daemons (orch ps/expected): $orch_ps_grafanas/$expected_grafanas"
+    [ "$orch_ps_grafanas" = "$expected_grafanas" ] || success=""
     if [ "$success" ] ; then
         return 0
     else
@@ -1106,12 +1118,13 @@ function nfs_maybe_mount_export_and_touch_file {
     echo
 }
 
-function _prometheus_wait_for {
-    local node="$1"
-    local port="$2"
+function _monitoring_wait_for {
+    local what="$1"
+    local node="$2"
+    local port="$3"
     set -e
     set +x
-    echo "Waiting for Prometheus on $node to start listening on its port"
+    echo "Waiting for $what on $node to start listening on its port"
     minutes_to_wait="20"
     local minute
     local i
@@ -1120,12 +1133,12 @@ function _prometheus_wait_for {
     echo -en "" > /tmp/wfp.sh
     echo -en "#!/bin/bash\n" >> /tmp/wfp.sh
     echo -en "ss -ntulw | grep '\*\:$port'\n" >> /tmp/wfp.sh
-    scp "/tmp/wfp.sh" "$node:/home/vagrant/is_prometheus_listening.sh"
-    echo "Waiting up to $minutes_to_wait minutes for Prometheus on $node to start listening on its port $port"
+    scp "/tmp/wfp.sh" "$node:/home/vagrant/is_listening.sh"
+    echo "Waiting up to $minutes_to_wait minutes for $what on $node to start listening on its port $port"
     for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
         for (( i=1; i<=12; i++ )) ; do
-            echo "Pinging prometheus on $node... ($i of 12)"
-            if ssh "$node" "bash" "/home/vagrant/is_prometheus_listening.sh" ; then
+            echo "Pinging $what on $node... ($i of 12)"
+            if ssh "$node" "bash" "/home/vagrant/is_listening.sh" ; then
                 break 2
             fi
             sleep 5
@@ -1134,55 +1147,86 @@ function _prometheus_wait_for {
     done
 }
 
-function prometheus_smoke_test {
-# assert that Prometheus is alive on the node where it is expected to be
+function _monitoring_smoke_test {
+    # assert that monitoring daemon (Prometheus, Grafana, etc.) is alive on the
+    # node where it is expected to be
+    local daemon_type="$1"
+    local ssl="$2"
+    local protocol
+    if [ "$ssl" ] ; then
+        protocol="https"
+    else
+        protocol="http"
+    fi
+    local nodes_list
+    if [ "$daemon_type" = "prometheus" ] ; then
+        nodes_list="$PROMETHEUS_NODE_LIST"
+    else
+        nodes_list="$GRAFANA_NODE_LIST"
+    fi
     echo
-    echo "WWWW: maybe_prometheus_smoke_test"
+    echo "WWWW: ${daemon_type}_smoke_test"
     local run_the_test="yes"
-    [ -z "$PROMETHEUS_NODE_LIST" ] && run_the_test=""
-    [ "$VERSION_ID" = "12.3" ]     && run_the_test=""
+    [ -z "$nodes_list" ]        && run_the_test=""
+    [ "$VERSION_ID" = "12.3" ] && run_the_test=""
     if [ "$run_the_test" ] ; then
         _zypper_ref_on_master
         _zypper_install_on_master curl
-        local prometheus_default_port
-        if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
-            prometheus_default_port="9095"
-        else
-            prometheus_default_port="9090"
+        local default_port
+        if [ "$daemon_type" = "prometheus" ] ; then
+            if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+                default_port="9095"
+            else
+                default_port="9090"
+            fi
+        elif [ "$daemon_type" = "grafana" ] ; then
+            default_port="3000"
         fi
-        local prometheus_nodes_arr
-        local prometheus_node_count
-        prometheus_node_count="0"
-        local prometheus_node_under_test
+        local nodes_arr
+        local node_count
+        node_count="0"
+        local node_under_test
         local IFS
         local curl_exit_status
         IFS=","
-        read -r -a prometheus_nodes_arr <<<"$PROMETHEUS_NODE_LIST"
-        for (( n=0; n<${#prometheus_nodes_arr[*]}; n++ )) ; do
-            prometheus_node_under_test="${prometheus_nodes_arr[n]}"
-            prometheus_node_under_test="${prometheus_node_under_test//[$'\t\r\n']}"
-            _prometheus_wait_for "$prometheus_node_under_test" "$prometheus_default_port"
+        read -r -a nodes_arr <<<"$nodes_list"
+        for (( n=0; n<${#nodes_arr[*]}; n++ )) ; do
+            node_under_test="${nodes_arr[n]}"
+            node_under_test="${node_under_test//[$'\t\r\n']}"
+            _monitoring_wait_for "$daemon_type" "$node_under_test" "$default_port"
             set -x
             set +e
-            curl --silent "http://${prometheus_node_under_test}:$prometheus_default_port"
+            if [ "$protocol" = "http" ] ; then
+                curl --silent "${protocol}://${node_under_test}:$default_port"
+            else
+                curl --silent --insecure "${protocol}://${node_under_test}:$default_port"
+            fi
             curl_exit_status="$?"
             set +x
             set -e
             if [ "$curl_exit_status" = "0" ] ; then
-                prometheus_node_count="$((prometheus_node_count + 1))"
+                node_count="$((node_count + 1))"
             fi
         done
-        echo "Prometheus nodes expected/tested: $prometheus_node_count/${#prometheus_nodes_arr[*]}"
-        if [ "$prometheus_node_count" = "${#prometheus_nodes_arr[*]}" ] ; then
-            echo "WWWW: maybe_prometheus_smoke_test: OK"
+        echo "$daemon_type nodes expected/tested: $node_count/${#nodes_arr[*]}"
+        if [ "$node_count" = "${#nodes_arr[*]}" ] ; then
+            echo "WWWW: ${daemon_type}_smoke_test: OK"
             echo
         else
-            echo "WWWW: maybe_prometheus_smoke_test: FAIL"
+            echo "WWWW: ${daemon_type}_smoke_test: FAIL"
             echo
             false
         fi
     else
-        echo "WWWW: maybe_prometheus_smoke_test: SKIPPED"
+        echo "WWWW: ${daemon_type}_smoke_test: SKIPPED"
         echo
     fi
+}
+
+function prometheus_smoke_test {
+    _monitoring_smoke_test "prometheus"
+}
+
+function grafana_smoke_test {
+    _monitoring_smoke_test "grafana" "ssl"
 }

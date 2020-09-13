@@ -36,6 +36,7 @@ function usage {
     echo
     echo "Options:"
     echo "    --help                 Display this usage message"
+    echo "    --grafana-nodes        expected number of nodes with Grafana"
     echo "    --igw-nodes            expected number of nodes with iSCSI Gateway"
     echo "    --mds-nodes            expected number of nodes with MDS"
     echo "    --mgr-nodes            expected number of nodes with MGR"
@@ -44,14 +45,15 @@ function usage {
     echo "    --osd-nodes            expected number of nodes with OSD"
     echo "    --prometheus-nodes     expected number of nodes with Prometheus"
     echo "    --rgw-nodes            expected number of nodes with RGW"
-    echo "    --node-list            comma-separate list of all nodes in cluster"
+    echo "    --node-list            comma-separated list of all nodes in cluster"
+    echo "    --grafana-node-list    comma-separated list of nodes with Grafana"
     echo "    --igw-node-list        comma-separated list of nodes with iSCSI Gateway"
     echo "    --mds-node-list        comma-separated list of nodes with MDS"
     echo "    --mgr-node-list        comma-separated list of nodes with MGR"
     echo "    --mon-node-list        comma-separated list of nodes with MON"
     echo "    --nfs-node-list        comma-separated list of nodes with NFS"
     echo "    --osd-node-list        comma-separated list of nodes with OSD"
-    echo "    --prometheus-node-list comma-separated list of nodes with OSD"
+    echo "    --prometheus-node-list comma-separated list of nodes with Prometheus"
     echo "    --rgw-node-list        comma-separated list of nodes with RGW"
     echo "    --osds                 expected total number of OSDs in cluster"
     echo "    --filestore-osds       whether there are FileStore OSDs in cluster"
@@ -63,13 +65,15 @@ function usage {
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
+--long "help,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
 # set some global variables
 ADMIN_KEYRING="/etc/ceph/ceph.client.admin.keyring"
 CEPH_CONF="/etc/ceph/ceph.conf"
+GRAFANA_NODES=""
+GRAFANA_NODE_LIST=""
 IGW_NODES=""
 IGW_NODE_LIST=""
 MDS_NODES=""
@@ -95,6 +99,8 @@ NODE_LIST=""
 # process command-line options
 while true ; do
     case "$1" in
+        --grafana-nodes) shift ; GRAFANA_NODES="$1" ; shift ;;
+        --grafana-node-list) shift ; GRAFANA_NODE_LIST="$1" ; shift ;;
         --igw-nodes) shift ; IGW_NODES="$1" ; shift ;;
         --igw-node-list) shift ; IGW_NODE_LIST="$1" ; shift ;;
         --mds-nodes) shift ; MDS_NODES="$1" ; shift ;;
@@ -126,6 +132,7 @@ done
 set +e
 test "$ADMIN_KEYRING"
 test "$CEPH_CONF"
+test "$GRAFANA_NODES"
 test "$IGW_NODES"
 test "$MDS_NODES"
 test "$MGR_NODES"
@@ -134,6 +141,7 @@ test "$NFS_NODES"
 test "$OSD_NODES"
 test "$PROMETHEUS_NODES"
 test "$RGW_NODES"
+test "$GRAFANA_NODE_LIST"
 test "$IGW_NODE_LIST"
 test "$MDS_NODE_LIST"
 test "$MGR_NODE_LIST"
@@ -185,5 +193,6 @@ maybe_rgw_smoke_test
 nfs_maybe_list_objects_in_recovery_pool_test
 nfs_maybe_create_export
 nfs_maybe_mount_export_and_touch_file
-# prometheus smoke test
+# monitoring smoke tests
 prometheus_smoke_test
+grafana_smoke_test

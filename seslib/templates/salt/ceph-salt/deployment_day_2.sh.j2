@@ -194,6 +194,9 @@ ceph nfs cluster ls
 # https://tracker.ceph.com/issues/46606 is fixed
 ceph mgr module enable prometheus
 {% endif %} {# prometheus_nodes > 0 #}
+{% if grafana_nodes > 0 %}
+{% set deploy_monitoring = True %}
+{% endif %} {# grafana_nodes > 0 #}
 
 {% if rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring %}
 
@@ -267,6 +270,21 @@ placement:
 {% endfor %}
 EOF
 {% endif %} {# prometheus_nodes > 0 #}
+
+{% if grafana_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: grafana
+service_id: grafana
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('grafana') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# grafana_nodes > 0 #}
 
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
