@@ -21,6 +21,7 @@
 #
 
 SCRIPTNAME="$(basename "${0}")"
+CONFIG_YAML="$HOME/.sesdev/config.yaml"
 FINAL_REPORT="$(mktemp)"
 TEMP_FILE="$(mktemp)"
 CMD_OUTPUT="$(mktemp)"
@@ -31,7 +32,7 @@ function final_report {
     rm "$FINAL_REPORT"
     rm "$TEMP_FILE"
     rm "$CMD_OUTPUT"
-    rm -f "$HOME/.sesdev/config.yaml"
+    rm -f "$CONFIG_YAML"
     exit 0
 }
 
@@ -206,14 +207,18 @@ if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
     exit 1
 fi
 
-if [ -e "$HOME/.sesdev/config.yaml" ] ; then
-    echo "ERROR: detected $HOME/.sesdev/config.yaml"
+if [ -f "$CONFIG_YAML" ] || [ ! -s "$CONFIG_YAML" ] ; then
+    rm -f "$CONFIG_YAML"
+fi
+
+if [ -e "$CONFIG_YAML" ] ; then
+    echo "ERROR: detected possibly non-empty $CONFIG_YAML"
     echo "(The existence of this file can skew the test results!)"
     exit 1
 fi
 
 set -x
-touch "$HOME/.sesdev/config.yaml"
+touch "$CONFIG_YAML"
 
 if [ "$SES5" ] ; then
     sesdev --verbose box remove --non-interactive sles-12-sp3
@@ -361,7 +366,5 @@ if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
     echo "(One or more deployments created by this script were not destroyed)"
     exit 1
 fi
-
-rm "$HOME/.sesdev/config.yaml"
 
 final_report
