@@ -1181,8 +1181,12 @@ deployment might not be completely destroyed.
                 service_url = 'https://{}:{}'.format(local_address, local_port)
             elif service == 'prometheus':
                 node = self._find_service_node(service)
-                remote_port = 9090
-                local_port = 9090
+                if self.settings.version in ['octopus', 'ses6', 'pacific']:
+                    remote_port = 9095
+                    local_port = 9095
+                else:
+                    remote_port = 9090
+                    local_port = 9090
                 service_url = 'http://{}:{}'.format(local_address, local_port)
             elif service == 'alertmanager':
                 node = self._find_service_node(service)
