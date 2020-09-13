@@ -1108,6 +1108,7 @@ function nfs_maybe_mount_export_and_touch_file {
 
 function _prometheus_wait_for {
     local node="$1"
+    local port="$2"
     set -e
     set +x
     echo "Waiting for Prometheus on $node to start listening on its port"
@@ -1118,9 +1119,9 @@ function _prometheus_wait_for {
     set +H
     echo -en "" > /tmp/wfp.sh
     echo -en "#!/bin/bash\n" >> /tmp/wfp.sh
-    echo -en "ss -ntulw | grep '\*\:9095'\n" >> /tmp/wfp.sh
+    echo -en "ss -ntulw | grep '\*\:$port'\n" >> /tmp/wfp.sh
     scp "/tmp/wfp.sh" "$node:/home/vagrant/is_prometheus_listening.sh"
-    echo "Waiting up to $minutes_to_wait minutes for Prometheus on $node to start listening on its port"
+    echo "Waiting up to $minutes_to_wait minutes for Prometheus on $node to start listening on its port $port"
     for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
         for (( i=1; i<=12; i++ )) ; do
             echo "Pinging prometheus on $node... ($i of 12)"
@@ -1143,6 +1144,12 @@ function prometheus_smoke_test {
     if [ "$run_the_test" ] ; then
         _zypper_ref_on_master
         _zypper_install_on_master curl
+        local prometheus_default_port
+        if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+            prometheus_default_port="9095"
+        else
+            prometheus_default_port="9090"
+        fi
         local prometheus_nodes_arr
         local prometheus_node_count
         prometheus_node_count="0"
@@ -1154,10 +1161,10 @@ function prometheus_smoke_test {
         for (( n=0; n<${#prometheus_nodes_arr[*]}; n++ )) ; do
             prometheus_node_under_test="${prometheus_nodes_arr[n]}"
             prometheus_node_under_test="${prometheus_node_under_test//[$'\t\r\n']}"
-            _prometheus_wait_for "$prometheus_node_under_test"
+            _prometheus_wait_for "$prometheus_node_under_test" "$prometheus_default_port"
             set -x
             set +e
-            curl --silent "http://${prometheus_node_under_test}:9095"
+            curl --silent "http://${prometheus_node_under_test}:$prometheus_default_port"
             curl_exit_status="$?"
             set +x
             set -e
