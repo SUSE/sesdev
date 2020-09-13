@@ -7,6 +7,48 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.7.0] - 2020-09-13
+
+### Added
+- ceph_salt_deployment: do "ceph orch apply --dry-run" (PR #406)
+- single node CaaSP cluster (PR #427)
+- If --ssd option is given, attempt to make first additional disk
+  non-rotational (PR #448)
+- Implement "sesdev box remove --all" feature (PR #451)
+- qa: support openSUSE Tumbleweed (PR #457)
+
+### Removed
+- Drop ceph-salt '/system_update' config (PR #447)
+
+### Fixed
+- replace-mgr-modules: refrain from introducing Python 2 (PR #431)
+- deepsea: add ganesha roles to policy.cfg (PR #437)
+- deepsea: properly recognize deprecated ganesha role (PR #442)
+- ceph_salt_deployment: prevent Vagrant 2.2.10+ from deleting master node (PR #452)
+- provision.sh: disable host checking when SSHing within the cluster (PR #455)
+- ceph_salt_deployment: explicitly create mds service (PR #458)
+- contrib/standalone.sh: adapt to create always returning 0 (PR #460)
+- deepsea_deployment: really stop before Stage 0 (PR #462)
+- ceph-salt: Fix ceph image path config (PR #465)
+- ceph_salt_deployment: always wait for OSDs to appear (PR #466)
+- ceph_salt_deployment: deploy MDSs according to documentation (PR #468)
+
+### Changed
+- ceph_salt_deployment: extend OSD deployment timeout (PR #432)
+- caasp: set num_disks in same way as for ceph deployments (PR #434)
+- vet_configuration: vet caasp4 roles more carefully (PR #435)
+- cephadm: allow preparation of cluster for manual deployment (PR #436)
+- caasp: update to caasp 4.5 (PR #438)
+- deployment: disks even when explicit storage role not given (PR #439)
+- cleanup: move code out of Deployment/_generate_nodes() (PR #441)
+- ceph-salt: enable user to control which nodes get "admin" role (PR #443)
+- cleanup: streamline unit testing and code linting (PR #444)
+- ceph_salt_deployment: tolerate additional bootstrap MONs/MGRs that we didn't
+  ask for (PR #449)
+- ceph_salt_deployment: expose ceph-salt errors early (PR #456)
+- ceph-salt: bootstrap minion no longer required to have admin role (PR #461)
+- Split ceph_salt_deployment.sh into "Day 1" and "Day 2" scripts (PR #471)
+
 ## [1.6.1] - 2020-08-11
 
 ### Fixed
@@ -485,7 +527,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.6.1...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/SUSE/sesdev/releases/tag/v1.7.0
 [1.6.1]: https://github.com/SUSE/sesdev/releases/tag/v1.6.1
 [1.6.0]: https://github.com/SUSE/sesdev/releases/tag/v1.6.0
 [1.5.0]: https://github.com/SUSE/sesdev/releases/tag/v1.5.0
