@@ -23,7 +23,7 @@ function try_wait {
     local cmd="$1"
     local tries="$2"
     local sleep_secs="$3"
-    for i in $(seq 1 "$tries") ; do
+    for (( i="1"; i<="$tries"; i++ )) ; do
         set -x
         $cmd
         set +x
@@ -88,7 +88,7 @@ function try_wait {
     local cmd="$*"
     local success=""
     set +x
-    for i in $(seq 1 "$tries") ; do
+    for (( i="1"; i<="$tries"; i++ )) ; do
         set -x
         $cmd
         SAVED_STATUS="$?"

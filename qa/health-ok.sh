@@ -35,33 +35,35 @@ function usage {
     echo "  $SCRIPTNAME [-h,--help] [options as shown below]"
     echo
     echo "Options:"
-    echo "    --help               Display this usage message"
-    echo "    --igw-nodes          expected number of nodes with iSCSI Gateway"
-    echo "    --mds-nodes          expected number of nodes with MDS"
-    echo "    --mgr-nodes          expected number of nodes with MGR"
-    echo "    --mon-nodes          expected number of nodes with MON"
-    echo "    --nfs-nodes          expected number of nodes with NFS"
-    echo "    --osd-nodes          expected number of nodes with OSD"
-    echo "    --rgw-nodes          expected number of nodes with RGW"
-    echo "    --node-list          comma-separate list of all nodes in cluster"
-    echo "    --igw-node-list      comma-separated list of nodes with iSCSI Gateway"
-    echo "    --mds-node-list      comma-separated list of nodes with MDS"
-    echo "    --mgr-node-list      comma-separated list of nodes with MGR"
-    echo "    --mon-node-list      comma-separated list of nodes with MON"
-    echo "    --nfs-node-list      comma-separated list of nodes with NFS"
-    echo "    --osd-node-list      comma-separated list of nodes with OSD"
-    echo "    --rgw-node-list      comma-separated list of nodes with RGW"
-    echo "    --osds               expected total number of OSDs in cluster"
-    echo "    --filestore-osds     whether there are FileStore OSDs in cluster"
-    echo "    --strict-versions    Insist that daemon versions match \"ceph --version\""
-    echo "    --total-nodes        expected total number of nodes in cluster"
+    echo "    --help                 Display this usage message"
+    echo "    --igw-nodes            expected number of nodes with iSCSI Gateway"
+    echo "    --mds-nodes            expected number of nodes with MDS"
+    echo "    --mgr-nodes            expected number of nodes with MGR"
+    echo "    --mon-nodes            expected number of nodes with MON"
+    echo "    --nfs-nodes            expected number of nodes with NFS"
+    echo "    --osd-nodes            expected number of nodes with OSD"
+    echo "    --prometheus-nodes     expected number of nodes with Prometheus"
+    echo "    --rgw-nodes            expected number of nodes with RGW"
+    echo "    --node-list            comma-separate list of all nodes in cluster"
+    echo "    --igw-node-list        comma-separated list of nodes with iSCSI Gateway"
+    echo "    --mds-node-list        comma-separated list of nodes with MDS"
+    echo "    --mgr-node-list        comma-separated list of nodes with MGR"
+    echo "    --mon-node-list        comma-separated list of nodes with MON"
+    echo "    --nfs-node-list        comma-separated list of nodes with NFS"
+    echo "    --osd-node-list        comma-separated list of nodes with OSD"
+    echo "    --prometheus-node-list comma-separated list of nodes with OSD"
+    echo "    --rgw-node-list        comma-separated list of nodes with RGW"
+    echo "    --osds                 expected total number of OSDs in cluster"
+    echo "    --filestore-osds       whether there are FileStore OSDs in cluster"
+    echo "    --strict-versions      Insist that daemon versions match \"ceph --version\""
+    echo "    --total-nodes          expected total number of nodes in cluster"
     exit 1
 }
 
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
+--long "help,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -80,6 +82,8 @@ NFS_NODES=""
 NFS_NODE_LIST=""
 OSD_NODES=""
 OSD_NODE_LIST=""
+PROMETHEUS_NODES=""
+PROMETHEUS_NODE_LIST=""
 RGW_NODES=""
 RGW_NODE_LIST=""
 OSDS=""
@@ -103,6 +107,8 @@ while true ; do
         --nfs-node-list) shift ; NFS_NODE_LIST="$1" ; shift ;;
         --osd-nodes) shift ; OSD_NODES="$1" ; shift ;;
         --osd-node-list) shift ; OSD_NODE_LIST="$1" ; shift ;;
+        --prometheus-nodes) shift ; PROMETHEUS_NODES="$1" ; shift ;;
+        --prometheus-node-list) shift ; PROMETHEUS_NODE_LIST="$1" ; shift ;;
         --rgw-nodes) shift ; RGW_NODES="$1" ; shift ;;
         --rgw-node-list) shift ; RGW_NODE_LIST="$1" ; shift ;;
         --osds) shift ; OSDS="$1" ; shift ;;
@@ -126,6 +132,7 @@ test "$MGR_NODES"
 test "$MON_NODES"
 test "$NFS_NODES"
 test "$OSD_NODES"
+test "$PROMETHEUS_NODES"
 test "$RGW_NODES"
 test "$IGW_NODE_LIST"
 test "$MDS_NODE_LIST"
@@ -133,6 +140,7 @@ test "$MGR_NODE_LIST"
 test "$MON_NODE_LIST"
 test "$NFS_NODE_LIST"
 test "$OSD_NODE_LIST"
+test "$PROMETHEUS_NODE_LIST"
 test "$RGW_NODE_LIST"
 test "$OSDS"
 test "$FILESTORE_OSDS"
@@ -177,3 +185,5 @@ maybe_rgw_smoke_test
 nfs_maybe_list_objects_in_recovery_pool_test
 nfs_maybe_create_export
 nfs_maybe_mount_export_and_touch_file
+# prometheus smoke test
+prometheus_smoke_test

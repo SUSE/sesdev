@@ -187,7 +187,15 @@ ceph nfs cluster ls
 
 {% endif %} {# mds_nodes > 0 #}
 
-{% if rgw_nodes > 0 or igw_nodes > 0 %}
+{% set deploy_monitoring = False %}
+{% if prometheus_nodes > 0 %}
+{% set deploy_monitoring = True %}
+# manually enabling prometheus module will no longer be required once
+# https://tracker.ceph.com/issues/46606 is fixed
+ceph mgr module enable prometheus
+{% endif %} {# prometheus_nodes > 0 #}
+
+{% if rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring %}
 
 {% set service_spec_gw = "/root/service_spec_gw.yml" %}
 rm -f {{ service_spec_gw }}
@@ -245,9 +253,24 @@ spec:
 EOF
 {% endif %} {# igw_nodes > 0 #}
 
+{% if prometheus_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: prometheus
+service_id: prometheus
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('prometheus') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# prometheus_nodes > 0 #}
+
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
 
-{% endif %} {# rgw_nodes > 0 or igw_nodes > 0 #}
+{% endif %} {# rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring #}
 
 {% endif %} {# storage_nodes > 0 #}

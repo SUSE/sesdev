@@ -260,8 +260,8 @@ function maybe_wait_for_osd_nodes_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_osd_nodes OSD node(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 actual_osd_nodes="$(json_osd_nodes)"
                 set +x
@@ -269,7 +269,7 @@ function maybe_wait_for_osd_nodes_test {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "$i"
+                    _grace_period 15 "($i of 4)"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -303,8 +303,8 @@ function maybe_wait_for_mdss_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_mdss MDS daemon(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 metadata_mdss="$(json_metadata_mdss)"
                 actual_mdss="$(json_total_mdss)"
@@ -346,8 +346,8 @@ function maybe_wait_for_rgws_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_rgws RGW daemon(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 actual_rgws="$(json_total_rgws)"
                 set +x
@@ -390,8 +390,8 @@ function _wait_for {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected $what daemon(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 orch_ls="$(json_ses7_orch_ls "$what")"
                 orch_ps="$(json_ses7_orch_ps "$what")"
@@ -533,6 +533,8 @@ function number_of_services_expected_vs_orch_ls_test {
         orch_ls_nfss="$(json_ses7_orch_ls nfs)"
         local orch_ls_igws
         orch_ls_igws="$(json_ses7_orch_ls iscsi)"
+        local orch_ls_prometheuses
+        orch_ls_prometheuses="$(json_ses7_orch_ls prometheus)"
         local success
         success="yes"
         local expected_mgrs
@@ -542,6 +544,7 @@ function number_of_services_expected_vs_orch_ls_test {
         local expected_rgws
         local expected_nfss
         local expected_igws
+        local expected_prometheuses
         [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
         [ "$MON_NODES" ] && expected_mons="$MON_NODES"
         [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -549,6 +552,7 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
         [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
         [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
+        [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
         echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
         if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
             true  # normal success case
@@ -569,6 +573,8 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$orch_ls_nfss" = "$expected_nfss" ] || success=""
         echo "IGW services (orch ls/expected): $orch_ls_igws/$expected_igws"
         [ "$orch_ls_igws" = "$expected_igws" ] || success=""
+        echo "Prometheus services (orch ls/expected): $orch_ls_prometheuses/$expected_prometheuses"
+        [ "$orch_ls_prometheuses" = "$expected_prometheuses" ] || success=""
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
@@ -599,6 +605,8 @@ function _orch_ps_test {
     orch_ps_nfss="$(json_ses7_orch_ps nfs)"
     local orch_ps_igws
     orch_ps_igws="$(json_ses7_orch_ps iscsi)"
+    local orch_ps_prometheuses
+    orch_ps_prometheuses="$(json_ses7_orch_ps prometheus)"
     ## commented-out osds pending resolution of
     ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
     ## - https://github.com/SUSE/sesdev/pull/203
@@ -611,6 +619,7 @@ function _orch_ps_test {
     local expected_rgws
     local expected_nfss
     local expected_igws
+    local expected_prometheuses
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -618,6 +627,7 @@ function _orch_ps_test {
     [ "$RGW_NODES" ] && expected_rgws="$RGW_NODES"
     [ "$NFS_NODES" ] && expected_nfss="$NFS_NODES"
     [ "$IGW_NODES" ] && expected_igws="$IGW_NODES"
+    [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
     echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
     if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
         true  # normal success case
@@ -638,6 +648,8 @@ function _orch_ps_test {
     [ "$orch_ps_nfss" = "$expected_nfss" ] || success=""
     echo "IGW daemons (orch ps/expected): $orch_ps_igws/$expected_igws"
     [ "$orch_ps_igws" = "$expected_igws" ] || success=""
+    echo "Prometheus daemons (orch ps/expected): $orch_ps_prometheuses/$expected_prometheuses"
+    [ "$orch_ps_prometheuses" = "$expected_prometheuses" ] || success=""
     if [ "$success" ] ; then
         return 0
     else
@@ -656,8 +668,8 @@ function number_of_services_expected_vs_orch_ps_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for \"ceph orch ps\" to list all expected daemons"
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 if _orch_ps_test ; then
                     success="not_empty"
                     break 2
@@ -768,8 +780,8 @@ function ceph_health_test {
     local cluster_status
     local minute
     local i
-    for minute in $(seq 1 "$minutes_to_wait") ; do
-        for i in $(seq 1 4) ; do
+    for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+        for (( i=1; i<=4; i++ )) ; do
             set -x
             ceph status
             cluster_status="$(ceph health detail --format json | jq -r .status)"
@@ -806,7 +818,7 @@ function maybe_rgw_smoke_test {
         local IFS
         IFS=","
         read -r -a rgw_nodes_arr <<<"$RGW_NODE_LIST"
-        for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
+        for (( n=0; n<${#rgw_nodes_arr[*]}; n++ )) ; do
             rgw_node_under_test="${rgw_nodes_arr[n]}"
             rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
             set -x
@@ -839,7 +851,7 @@ function cluster_json_test {
     local IFS
     IFS=","
     read -r -a nodes_arr <<<"$NODE_LIST"
-    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+    for (( n=0; n<${#nodes_arr[*]}; n++ )) ; do
         node_under_test="${nodes_arr[n]}"
         node_under_test="${node_under_test//[$'\t\r\n']}"
         set -x
@@ -873,7 +885,7 @@ function systemctl_list_units_test {
     local IFS
     IFS=","
     read -r -a nodes_arr <<<"$NODE_LIST"
-    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+    for (( n=0; n<${#nodes_arr[*]}; n++ )) ; do
         node_under_test="${nodes_arr[n]}"
         node_under_test="${node_under_test//[$'\t\r\n']}"
         set -x
@@ -1092,4 +1104,85 @@ function nfs_maybe_mount_export_and_touch_file {
     fi
     echo "WWWW: nfs_maybe_mount_export_and_touch_file: $result"
     echo
+}
+
+function _prometheus_wait_for {
+    local node="$1"
+    local port="$2"
+    set -e
+    set +x
+    echo "Waiting for Prometheus on $node to start listening on its port"
+    minutes_to_wait="20"
+    local minute
+    local i
+    local success
+    set +H
+    echo -en "" > /tmp/wfp.sh
+    echo -en "#!/bin/bash\n" >> /tmp/wfp.sh
+    echo -en "ss -ntulw | grep '\*\:$port'\n" >> /tmp/wfp.sh
+    scp "/tmp/wfp.sh" "$node:/home/vagrant/is_prometheus_listening.sh"
+    echo "Waiting up to $minutes_to_wait minutes for Prometheus on $node to start listening on its port $port"
+    for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+        for (( i=1; i<=12; i++ )) ; do
+            echo "Pinging prometheus on $node... ($i of 12)"
+            if ssh "$node" "bash" "/home/vagrant/is_prometheus_listening.sh" ; then
+                break 2
+            fi
+            sleep 5
+        done
+        echo "Trying for another minute!"
+    done
+}
+
+function prometheus_smoke_test {
+# assert that Prometheus is alive on the node where it is expected to be
+    echo
+    echo "WWWW: maybe_prometheus_smoke_test"
+    local run_the_test="yes"
+    [ -z "$PROMETHEUS_NODE_LIST" ] && run_the_test=""
+    [ "$VERSION_ID" = "12.3" ]     && run_the_test=""
+    if [ "$run_the_test" ] ; then
+        _zypper_ref_on_master
+        _zypper_install_on_master curl
+        local prometheus_default_port
+        if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+            prometheus_default_port="9095"
+        else
+            prometheus_default_port="9090"
+        fi
+        local prometheus_nodes_arr
+        local prometheus_node_count
+        prometheus_node_count="0"
+        local prometheus_node_under_test
+        local IFS
+        local curl_exit_status
+        IFS=","
+        read -r -a prometheus_nodes_arr <<<"$PROMETHEUS_NODE_LIST"
+        for (( n=0; n<${#prometheus_nodes_arr[*]}; n++ )) ; do
+            prometheus_node_under_test="${prometheus_nodes_arr[n]}"
+            prometheus_node_under_test="${prometheus_node_under_test//[$'\t\r\n']}"
+            _prometheus_wait_for "$prometheus_node_under_test" "$prometheus_default_port"
+            set -x
+            set +e
+            curl --silent "http://${prometheus_node_under_test}:$prometheus_default_port"
+            curl_exit_status="$?"
+            set +x
+            set -e
+            if [ "$curl_exit_status" = "0" ] ; then
+                prometheus_node_count="$((prometheus_node_count + 1))"
+            fi
+        done
+        echo "Prometheus nodes expected/tested: $prometheus_node_count/${#prometheus_nodes_arr[*]}"
+        if [ "$prometheus_node_count" = "${#prometheus_nodes_arr[*]}" ] ; then
+            echo "WWWW: maybe_prometheus_smoke_test: OK"
+            echo
+        else
+            echo "WWWW: maybe_prometheus_smoke_test: FAIL"
+            echo
+            false
+        fi
+    else
+        echo "WWWW: maybe_prometheus_smoke_test: SKIPPED"
+        echo
+    fi
 }

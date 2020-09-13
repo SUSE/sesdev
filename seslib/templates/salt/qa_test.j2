@@ -12,6 +12,7 @@ set -x
     ~ " --mgr-nodes=" ~ mgr_nodes
     ~ " --mon-nodes=" ~ mon_nodes
     ~ " --osd-nodes=" ~ storage_nodes
+    ~ " --prometheus-nodes=" ~ prometheus_nodes
     ~ " --rgw-nodes=" ~ rgw_nodes
     ~ " --node-list=" ~ node_list
     ~ " --nfs-node-list=" ~ nfs_node_list
@@ -20,6 +21,7 @@ set -x
     ~ " --mgr-node-list=" ~ mgr_node_list
     ~ " --mon-node-list=" ~ mon_node_list
     ~ " --osd-node-list=" ~ storage_node_list
+    ~ " --prometheus-node-list=" ~ prometheus_node_list
     ~ " --rgw-node-list=" ~ rgw_node_list
     ~ " --osds=" ~ total_osds
 -%}
