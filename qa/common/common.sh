@@ -260,8 +260,8 @@ function maybe_wait_for_osd_nodes_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_osd_nodes OSD node(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 actual_osd_nodes="$(json_osd_nodes)"
                 set +x
@@ -269,7 +269,7 @@ function maybe_wait_for_osd_nodes_test {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "$i"
+                    _grace_period 15 "($i of 4)"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -303,8 +303,8 @@ function maybe_wait_for_mdss_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_mdss MDS daemon(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 metadata_mdss="$(json_metadata_mdss)"
                 actual_mdss="$(json_total_mdss)"
@@ -346,8 +346,8 @@ function maybe_wait_for_rgws_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected_rgws RGW daemon(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 actual_rgws="$(json_total_rgws)"
                 set +x
@@ -390,8 +390,8 @@ function _wait_for {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for all $expected $what daemon(s) to show up..."
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 set -x
                 orch_ls="$(json_ses7_orch_ls "$what")"
                 orch_ps="$(json_ses7_orch_ps "$what")"
@@ -656,8 +656,8 @@ function number_of_services_expected_vs_orch_ps_test {
         local i
         local success
         echo "Waiting up to $minutes_to_wait minutes for \"ceph orch ps\" to list all expected daemons"
-        for minute in $(seq 1 "$minutes_to_wait") ; do
-            for i in $(seq 1 4) ; do
+        for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+            for (( i=1; i<=4; i++ )) ; do
                 if _orch_ps_test ; then
                     success="not_empty"
                     break 2
@@ -768,8 +768,8 @@ function ceph_health_test {
     local cluster_status
     local minute
     local i
-    for minute in $(seq 1 "$minutes_to_wait") ; do
-        for i in $(seq 1 4) ; do
+    for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+        for (( i=1; i<=4; i++ )) ; do
             set -x
             ceph status
             cluster_status="$(ceph health detail --format json | jq -r .status)"
@@ -806,7 +806,7 @@ function maybe_rgw_smoke_test {
         local IFS
         IFS=","
         read -r -a rgw_nodes_arr <<<"$RGW_NODE_LIST"
-        for (( n=0; n < ${#rgw_nodes_arr[*]}; n++ )) ; do
+        for (( n=0; n<${#rgw_nodes_arr[*]}; n++ )) ; do
             rgw_node_under_test="${rgw_nodes_arr[n]}"
             rgw_node_under_test="${rgw_node_under_test//[$'\t\r\n']}"
             set -x
@@ -839,7 +839,7 @@ function cluster_json_test {
     local IFS
     IFS=","
     read -r -a nodes_arr <<<"$NODE_LIST"
-    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+    for (( n=0; n<${#nodes_arr[*]}; n++ )) ; do
         node_under_test="${nodes_arr[n]}"
         node_under_test="${node_under_test//[$'\t\r\n']}"
         set -x
@@ -873,7 +873,7 @@ function systemctl_list_units_test {
     local IFS
     IFS=","
     read -r -a nodes_arr <<<"$NODE_LIST"
-    for (( n=0; n < ${#nodes_arr[*]}; n++ )) ; do
+    for (( n=0; n<${#nodes_arr[*]}; n++ )) ; do
         node_under_test="${nodes_arr[n]}"
         node_under_test="${node_under_test//[$'\t\r\n']}"
         set -x
@@ -1109,13 +1109,13 @@ function _prometheus_wait_for {
     echo -en "ss -ntulw | grep '\*\:9095'\n" >> /tmp/wfp.sh
     scp "/tmp/wfp.sh" "$node:/home/vagrant/is_prometheus_listening.sh"
     echo "Waiting up to $minutes_to_wait minutes for Prometheus on $node to start listening on its port"
-    for minute in $(seq 1 "$minutes_to_wait") ; do
-        for i in $(seq 1 60) ; do
-            echo "Pinging prometheus on $node... ($i)"
+    for (( minute=1; minute<=minutes_to_wait; minute++ )) ; do
+        for (( i=1; i<=12; i++ )) ; do
+            echo "Pinging prometheus on $node... ($i of 12)"
             if ssh "$node" "bash" "/home/vagrant/is_prometheus_listening.sh" ; then
                 break 2
             fi
-            sleep 1
+            sleep 5
         done
         echo "Trying for another minute!"
     done
@@ -1139,7 +1139,7 @@ function prometheus_smoke_test {
         local curl_exit_status
         IFS=","
         read -r -a prometheus_nodes_arr <<<"$PROMETHEUS_NODE_LIST"
-        for (( n=0; n < ${#prometheus_nodes_arr[*]}; n++ )) ; do
+        for (( n=0; n<${#prometheus_nodes_arr[*]}; n++ )) ; do
             prometheus_node_under_test="${prometheus_nodes_arr[n]}"
             prometheus_node_under_test="${prometheus_node_under_test//[$'\t\r\n']}"
             _prometheus_wait_for "$prometheus_node_under_test"
