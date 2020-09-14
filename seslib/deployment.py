@@ -466,6 +466,8 @@ class Deployment():
             'cephadm_bootstrap_node': cephadm_bootstrap_node,
             'prometheus_nodes': self.node_counts["prometheus"],
             'prometheus_node_list': ','.join(self.nodes_with_role["prometheus"]),
+            'grafana_nodes': self.node_counts["grafana"],
+            'grafana_node_list': ','.join(self.nodes_with_role["grafana"]),
             'nfs_nodes': self.node_counts["nfs"],
             'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],
