@@ -333,6 +333,7 @@ if [ "$PACIFIC" ] ; then
 fi
 
 if [ "$MAKECHECK" ] ; then
+    sesdev --verbose box remove --non-interactive tumbleweed
     # dry run
     run_cmd sesdev create makecheck --dry-run
     run_cmd sesdev --verbose create makecheck --non-interactive --stop-before-run-make-check --ram 4
