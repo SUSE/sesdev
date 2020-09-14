@@ -467,6 +467,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'prometheus_node_list': ','.join(self.nodes_with_role["prometheus"]),
             'grafana_nodes': self.node_counts["grafana"],
             'grafana_node_list': ','.join(self.nodes_with_role["grafana"]),
+            'alertmanager_nodes': self.node_counts["alertmanager"],
+            'alertmanager_node_list': ','.join(self.nodes_with_role["alertmanager"]),
             'nfs_nodes': self.node_counts["nfs"],
             'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],
