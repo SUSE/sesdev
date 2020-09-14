@@ -36,10 +36,10 @@ from .exceptions import \
                         ServicePortForwardingNotSupported, \
                         SubcommandNotSupportedInVersion, \
                         SupportconfigOnlyOnSLE, \
-                        VagrantBoxDoesNotExist, \
                         VagrantSshConfigNoHostName, \
                         VersionOSNotSupported, \
-                        UniqueRoleViolation
+                        UniqueRoleViolation, \
+                        UnsupportedVMEngine
 from .log import Log
 from .node import Node, NodeManager
 from .settings import Settings, SettingsEncoder
@@ -71,7 +71,7 @@ def _vet_dep_id(dep_id):
     return dep_id
 
 
-class Deployment():
+class Deployment():  # use Deployment.create() to create a Deployment object
 
     def __init__(self, dep_id, settings, existing=False):
         Log.info("Instantiating deployment {}".format(dep_id))
@@ -92,6 +92,7 @@ class Deployment():
         Log.debug("Deployment ctor: node_counts: {}".format(self.node_counts))
         self.master = None
         self.suma = None
+        self.vagrant_box = None
         self.box = Box(settings)
         self._populate_roles()
         self._count_roles()
@@ -374,15 +375,13 @@ class Deployment():
             self.nodes[node.name] = node
 
     def _generate_vagrantfile(self):
-        vagrant_box = self.settings.os
-
         try:
             version = self.settings.version
             os_setting = self.settings.os
             version_repos = self.settings.version_devel_repos[version][os_setting]
         except KeyError as exc:
             raise VersionOSNotSupported(self.settings.version, self.settings.os) from exc
-
+        #
         # version_repos might contain URLs with a "magic priority prefix" -- see
         # https://github.com/SUSE/sesdev/issues/162
         version_repos_prio = []
@@ -438,7 +437,7 @@ class Deployment():
             'libvirt_use_ssh': 'true' if self.settings.libvirt_use_ssh else 'false',
             'libvirt_private_key_file': self.settings.libvirt_private_key_file,
             'libvirt_storage_pool': self.settings.libvirt_storage_pool,
-            'vagrant_box': vagrant_box,
+            'vagrant_box': self.vagrant_box,
             'nodes': list(self.nodes.values()),
             'cluster_json': json.dumps({
                 "num_disks": self.settings.num_disks,
@@ -526,12 +525,20 @@ class Deployment():
         scripts['Vagrantfile'] = template.render(**context)
         return scripts
 
-    def save(self):
+    def save(self, log_handler):
+        if self.settings.vm_engine == 'libvirt':
+            self._get_vagrant_box(log_handler)
+        else:
+            raise UnsupportedVMEngine(self.settings.vm_engine)
+        #
+        # by "scripts", we mean the Vagrantfile itself plus one provisioning
+        # script for each node
         scripts = self._generate_vagrantfile()
         key = RSA.generate(2048)
         private_key = key.exportKey('PEM')
         public_key = key.publickey().exportKey('OpenSSH')
-
+        #
+        # write settings to metadata file
         os.makedirs(self._dep_dir, exist_ok=False)
         metadata_file = os.path.join(self._dep_dir, Constant.METADATA_FILENAME)
         with open(metadata_file, 'w') as file:
@@ -539,38 +546,38 @@ class Deployment():
                 'id': self.dep_id,
                 'settings': self.settings
             }, file, cls=SettingsEncoder)
-
+        #
+        # write "scripts" to files inside the _dep_dir
         for filename, script in scripts.items():
             full_path = os.path.join(self._dep_dir, filename)
             with open(full_path, 'w') as file:
                 file.write(script)
-
-        # generate ssh key pair
+        #
+        # generate and write deployment-specific ssh key pair
         keys_dir = os.path.join(self._dep_dir, 'keys')
         os.makedirs(keys_dir)
-
         with open(os.path.join(keys_dir, Constant.SSH_KEY_NAME), 'w') as file:
             file.write(private_key.decode('utf-8'))
         os.chmod(os.path.join(keys_dir, Constant.SSH_KEY_NAME), 0o600)
-
         with open(os.path.join(keys_dir, str(Constant.SSH_KEY_NAME + '.pub')), 'w') as file:
             file.write(str(public_key.decode('utf-8') + " sesdev\n"))
         os.chmod(os.path.join(keys_dir, str(Constant.SSH_KEY_NAME + '.pub')), 0o600)
-
-        # bin dir with helper scripts
+        #
+        # create bin dir for helper scripts
         bin_dir = os.path.join(self._dep_dir, 'bin')
         os.makedirs(bin_dir)
 
     def _get_vagrant_box(self, log_handler):
-        if self.settings.vagrant_box:
-            using_custom_box = True
-            vagrant_box = self.settings.vagrant_box
+        Log.debug('_get_vagrant_box: os is ->{}<'.format(self.settings.os))
+        if self.settings.os in Constant.OS_BOX_ALIASES:
+            self.vagrant_box = Constant.OS_BOX_ALIASES[self.settings.os]
         else:
-            using_custom_box = False
-            vagrant_box = self.settings.os
-
-        Log.info("Checking if vagrant box is already here: {}"
-                 .format(vagrant_box))
+            self.vagrant_box = self.settings.os
+        Log.debug('_get_vagrant_box: vagrant_box is ->{}<-'.format(self.vagrant_box))
+        assert self.vagrant_box in self.box.all_possible_boxes, \
+            "self.vagrant_box got set to unrecognized value ->{}<-".format(self.vagrant_box)
+        #
+        Log.info("Checking if vagrant box is already here: {}" .format(self.vagrant_box))
         found_box = False
         cmd = ['vagrant', 'box', 'list']
         output = tools.run_sync(cmd)
@@ -578,32 +585,32 @@ class Deployment():
         for line in lines:
             if line:
                 box_name = line.split()[0]
-                if box_name == vagrant_box:
+                if box_name == self.vagrant_box:
                     Log.info("Found vagrant box")
                     found_box = True
                     break
-
         if not found_box:
-            if using_custom_box:
-                Log.error("Vagrant box '{}' is not installed".format(vagrant_box))
-                raise VagrantBoxDoesNotExist(vagrant_box)
-
-            Log.info("Vagrant box for '{}' is not installed, we need to add it"
+            Log.info("Vagrant box for OS ->{}<- is not installed: downloading it"
                      .format(self.settings.os))
-
-            log_handler("Downloading vagrant box: {}\n".format(self.settings.os))
-
-            image_to_remove = self.box.get_image_by_box(self.settings.os)
+            log_handler("Downloading vagrant box: {}\n".format(self.vagrant_box))
+            #
+            # remove image in libvirt to guarantee that, when "vagrant up"
+            # runs, the new box will be uploaded to libvirt
+            image_to_remove = self.box.get_image_by_box(self.vagrant_box)
             if image_to_remove:
-                # remove image in libvirt to guarantee that, when "vagrant up"
-                # runs, the new box will be uploaded to libvirt
                 self.box.remove_image(image_to_remove)
-
-            tools.run_async(
-                ["vagrant", "box", "add", "--provider", "libvirt", "--name",
-                 self.settings.os, Constant.OS_BOX_MAPPING[self.settings.os]],
-                log_handler
-            )
+            #
+            # trigger "vagrant box add"
+            box_path = None
+            cmd = ["vagrant", "box", "add", "--provider", "libvirt"]
+            if self.vagrant_box in Constant.OS_ALIASED_BOXES:
+                # official vagrant boxes from vagrant cloud have name hard-coded
+                box_path = self.vagrant_box
+            else:
+                cmd += ["--name", self.settings.os]
+                box_path = Constant.OS_BOX_MAPPING[self.settings.os]
+            cmd += [box_path]
+            tools.run_async(cmd, log_handler)
 
     def _vagrant_up(self, node, log_handler):
         cmd = ["vagrant", "up"]
@@ -722,9 +729,7 @@ deployment might not be completely destroyed.
     def start(self, log_handler, node=None):
         if node and node not in self.nodes:
             raise NodeDoesNotExist(node)
-
-        if self.settings.vm_engine == 'libvirt':
-            self._get_vagrant_box(log_handler)
+        assert self.vagrant_box is not None, "vagrant_box is set to None!"
         self._vagrant_up(node, log_handler)
 
     def __str__(self):
@@ -766,8 +771,6 @@ deployment might not be completely destroyed.
             result += "- version:          {}\n".format(self.settings.version)
             result += "- OS:               {}\n".format(self.settings.os)
             result += "- public network:   {}0/24\n".format(self.settings.public_network)
-            if self.settings.vagrant_box:
-                result += "- vagrant_box       {}\n".format(self.settings.vagrant_box)
             if self.settings.version == 'makecheck':
                 result += ("- git repo:         {}\n"
                            .format(self.settings.makecheck_ceph_repo))
@@ -1440,15 +1443,15 @@ deployment might not be completely destroyed.
             ssh_cmd.append("ceph mgr module enable {}".format(module))
             tools.run_sync(ssh_cmd)
 
+    # This is the "real" constructor
     @classmethod
-    def create(cls, dep_id, settings):
+    def create(cls, dep_id, log_handler, settings):
         dep_dir = os.path.join(Constant.A_WORKING_DIR, dep_id)
         if os.path.exists(dep_dir):
             raise DeploymentAlreadyExists(dep_id)
-
         dep = cls(dep_id, settings)
         Log.info("creating new deployment: {}".format(dep))
-        dep.save()
+        dep.save(log_handler)
         return dep
 
     @classmethod

@@ -59,6 +59,13 @@ class Constant():
 
     METADATA_FILENAME = ".metadata"
 
+    OS_ALIASED_BOXES = {
+        'opensuse/Leap-15.2.x86_64': 'leap-15.2',
+        'opensuse/Tumbleweed.x86_64': 'tumbleweed',
+    }
+
+    OS_BOX_ALIASES = {v: k for k, v in OS_ALIASED_BOXES.items()}
+
     OS_BOX_MAPPING = {
         'leap-15.1': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.1/images/'
@@ -66,6 +73,7 @@ class Constant():
         'tumbleweed': 'https://download.opensuse.org/repositories/Virtualization:/'
                       'Appliances:/Images:/openSUSE-Tumbleweed/openSUSE_Tumbleweed/'
                       'Tumbleweed.x86_64-libvirt.box',
+        'opensuse/Tumbleweed.x86_64': 'opensuse/Tumbleweed.x86_64',
         'sles-15-sp1': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP1/images/'
                        'SLES15-SP1-Vagrant.x86_64-libvirt.box',
         'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/vagrant/'
@@ -73,6 +81,7 @@ class Constant():
         'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.2/images/'
                      'Leap-15.2.x86_64-libvirt.box',
+        'opensuse/Leap-15.2.x86_64': 'opensuse/Leap-15.2.x86_64',
         'sles-15-sp2': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP2/images/'
                        'SLES15-SP2-Vagrant.x86_64-libvirt.box',
     }

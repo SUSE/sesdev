@@ -270,11 +270,6 @@ SETTINGS = {
         'help': 'Use "salt" (or "salt-run") to apply Salt Formula (or execute DeepSea Stages)',
         'default': False,
     },
-    'vagrant_box': {
-        'type': str,
-        'help': 'Vagrant box to use in deployment',
-        'default': '',
-    },
     'version': {
         'type': str,
         'help': 'Deployment version to install ("nautilus", "ses6", "caasp4", etc.)',

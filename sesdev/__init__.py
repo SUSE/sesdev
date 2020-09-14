@@ -109,8 +109,6 @@ def common_create_options(func):
         click.option('--os', type=click.Choice(['leap-15.1', 'leap-15.2', 'tumbleweed',
                                                 'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2']),
                      default=None, help='OS (open)SUSE distro'),
-        click.option('--vagrant-box', type=str, default=None,
-                     help='Vagrant box to use in deployment'),
         click.option('--deploy/--no-deploy', default=True,
                      help="Don't run the deployment phase. Just generate the Vagrantfile"),
         click.option('--cpus', default=None, type=int,
@@ -307,7 +305,7 @@ def list_boxes(**kwargs):
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
-    box_names = box_obj.list()
+    box_names = box_obj.printable_list()
     if box_names:
         click.echo("List of all Vagrant Boxes installed in the system")
         click.echo("-------------------------------------------------")
@@ -339,11 +337,19 @@ def remove_box(box_name, **kwargs):
     remove_all_boxes = kwargs.get('all_boxes', False)
     boxes_to_remove = None
     if remove_all_boxes:
-        boxes_to_remove = box_obj.list()
+        boxes_to_remove = box_obj.printable_list()
     else:
         if box_name:
             if not box_obj.exists(box_name):
-                raise BoxDoesNotExist(box_name)
+                # but it might be an alias
+                if box_name in Constant.OS_BOX_ALIASES:
+                    dealiased_box_name = Constant.OS_BOX_ALIASES[box_name]
+                    if box_obj.exists(dealiased_box_name):
+                        box_name = dealiased_box_name
+                    else:
+                        raise BoxDoesNotExist(box_name)
+                else:
+                    raise BoxDoesNotExist(box_name)
             boxes_to_remove = [box_name]
         else:
             raise RemoveBoxNeedsBoxNameOrAllOption
@@ -512,7 +518,6 @@ def _gen_settings_dict(
         stop_before_run_make_check=None,
         synced_folder=None,
         username=None,
-        vagrant_box=None,
 ):
 
     settings_dict = {}
@@ -624,9 +629,6 @@ def _gen_settings_dict(
     if qa_test_opt is not None:
         settings_dict['qa_test'] = qa_test_opt
 
-    if vagrant_box is not None:
-        settings_dict['vagrant_box'] = vagrant_box
-
     if scc_user is not None:
         settings_dict['scc_username'] = scc_user
 
@@ -733,7 +735,7 @@ def _create_command(deployment_id, deploy, settings_dict):
     interactive = not settings_dict.get('non_interactive', False)
     Log.debug("_create_command: interactive set to {}".format(interactive))
     settings = Settings(**settings_dict)
-    dep = Deployment.create(deployment_id, settings)
+    dep = Deployment.create(deployment_id, _print_log, settings)
     if not dep.settings.devel_repo:
         if dep.settings.version not in Constant.CORE_VERSIONS:
             raise OptionNotSupportedInVersion('--product', dep.settings.version)
@@ -1173,7 +1175,7 @@ def redeploy(deployment_id, **kwargs):
             raise click.Abort()
     dep = Deployment.load(deployment_id)
     dep.destroy(_print_log)
-    dep = Deployment.create(deployment_id, dep.settings)
+    dep = Deployment.create(deployment_id, _print_log, dep.settings)
     dep.start(_print_log)
 
 

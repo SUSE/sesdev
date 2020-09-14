@@ -311,14 +311,6 @@ class UniqueRoleViolation(SesDevException):
         )
 
 
-class VagrantBoxDoesNotExist(SesDevException):
-    def __init__(self, box):
-        super().__init__(
-            "The vagrant box '{}' does not exist. Please add it with `vagrant box add ...` command"
-            .format(box)
-        )
-
-
 class VagrantSshConfigNoHostName(SesDevException):
     def __init__(self, name):
         super().__init__(
@@ -338,4 +330,12 @@ class VersionOSNotSupported(SesDevException):
     def __init__(self, version, os):
         super().__init__(
             "Combination of version '{}' and OS '{}' not supported".format(version, os)
+        )
+
+
+class UnsupportedVMEngine(SesDevException):
+    def __init__(self, engine):
+        super().__init__(
+            "Unsupported VM engine ->{}<- encountered. This is a bug: please "
+            "report it to the maintainers".format(engine)
         )
