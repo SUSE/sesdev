@@ -309,6 +309,16 @@ SETTINGS = {
         'help': 'VM engine to use for VM deployment. Current options [libvirt]',
         'default': 'libvirt',
     },
+    'msgr2_secure_mode': {
+        'type': bool,
+        'help': 'Set "ms_*_mode" options to "secure"',
+        'default': False,
+    },
+    'msgr2_prefer_secure': {
+        'type': bool,
+        'help': 'Prioritise secure mode over "crc" in the ms_*_mode options.',
+        'default': False,
+    },
 }
 
 

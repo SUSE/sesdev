@@ -99,6 +99,10 @@ def ceph_salt_options(func):
                      help='registry path from which to download Ceph base container image'),
         click.option('--salt/--ceph-salt', default=False,
                      help='Use "salt" (instead of "ceph-salt") to run ceph-salt formula'),
+        click.option('--msgr2-secure-mode', is_flag=True, default=False,
+                     help='enable "ms_*_mode" options to secure'),
+        click.option('--msgr2-prefer-secure', is_flag=True, default=False,
+                     help='enable "ms_*_mode" to prefer secure (change to "secure crc")'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -535,6 +539,8 @@ def _gen_settings_dict(
         stop_before_run_make_check=None,
         synced_folder=None,
         username=None,
+        msgr2_secure_mode=None,
+        msgr2_prefer_secure=None,
 ):
 
     settings_dict = {}
@@ -750,6 +756,11 @@ def _gen_settings_dict(
         except ValueError as exc:
             raise OptionFormatError('--synced-folder', "src:dst", folder) from exc
     settings_dict['synced_folder'] = [folder.split(':') for folder in synced_folder]
+
+    if msgr2_secure_mode:
+        settings_dict['msgr2_secure_mode'] = True
+    if msgr2_prefer_secure:
+        settings_dict['msgr2_prefer_secure'] = True
 
     return settings_dict
 

@@ -62,6 +62,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [octopus from filesystems:ceph:octopus&#8203;:upstream](#octopus-from-filesystemscephoctopusupstream)
          * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
+      * [With wire encryption](#with-wire-encryption)
       * [Deploying non-SUSE environments](#deploying-non-suse-environments)
          * [Ubuntu "Bionic Beaver" 18.04](#ubuntu-bionic-beaver-1804)
    * [List existing deployments](#list-existing-deployments)
@@ -747,6 +748,35 @@ Note: The elevated priority on the `Devel:Storage:7.0:CR` repo is needed to
 ensure that the ceph package from that project gets installed even if RPM
 evaluates its version number to be lower than that of the ceph packages in the
 SES7 Product and `Devel:Storage:7.0` repos.
+
+#### With wire encryption
+
+The "octopus", "ses7", and "pacific" deployment versions can be told to use wire
+encryption (a feature of the Ceph Messenger v2), where Ceph encrypts its own
+network traffic.
+
+In order to deploy a cluster with Messenger v2 encryption, we need to
+either prioritise 'secure' over 'crc' mode, or only provide 'secure' mode.
+
+The specific ceph options used to accomplish this are:
+
+- `ms_cluster_mode`
+- `ms_service_mode`
+- `ms_client_mode`
+
+By default all of these are set to `crc secure`, which prioritises `crc`
+over full encryption (`secure`).
+
+To tell sesdev to deploy a cluster with wire encryption active, provide one of
+the following two options:
+
+`--msgr2-secure-mode`: This sets the above 3 options to just 'secure'.
+
+`--msgr2-prefer-secure`: This changes the order to `secure crc` so secure
+is prefered over crc.
+
+These only effect msgr2, so anything talking msgr1 (like the RBD and CephFS
+kernel clients) will be unencrypted.
 
 #### Deploying non-SUSE environments
 

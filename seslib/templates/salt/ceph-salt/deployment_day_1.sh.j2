@@ -81,6 +81,20 @@ ceph-salt config /cephadm_bootstrap/ceph_conf add global
 ceph-salt config /cephadm_bootstrap/ceph_conf/global set "osd crush chooseleaf type" 0
 {% endif %}
 
+{% if msgr2_secure_mode %}
+ceph-salt config /cephadm_bootstrap/ceph_conf add global
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set ms_cluster_mode secure
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set ms_service_mode secure
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set ms_client_mode secure
+{% endif %}
+
+{% if msgr2_prefer_secure %}
+ceph-salt config /cephadm_bootstrap/ceph_conf add global
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set ms_cluster_mode "secure crc"
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set ms_service_mode "secure crc"
+ceph-salt config /cephadm_bootstrap/ceph_conf/global set ms_client_mode "secure crc"
+{% endif %}
+
 ceph-salt config /cephadm_bootstrap/dashboard/username set admin
 ceph-salt config /cephadm_bootstrap/dashboard/password set admin
 ceph-salt config /cephadm_bootstrap/dashboard/force_password_update disable
