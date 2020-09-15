@@ -63,6 +63,7 @@ ceph-salt config /ssh/ generate
 ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
 {% set external_timeserver = "pool.ntp.org" %}
 ceph-salt config /time_server/external_servers add {{ external_timeserver }}
+ceph-salt config /time_server/subnet set {{ public_network }}
 
 {% if image_path %}
 ceph-salt config /cephadm_bootstrap/ceph_image_path set {{ image_path }}
@@ -76,6 +77,7 @@ ceph-salt config /cephadm_bootstrap/ceph_conf/global set "osd crush chooseleaf t
 ceph-salt config /cephadm_bootstrap/dashboard/username set admin
 ceph-salt config /cephadm_bootstrap/dashboard/password set admin
 ceph-salt config /cephadm_bootstrap/dashboard/force_password_update disable
+ceph-salt config /cephadm_bootstrap/mon_ip set {{ bootstrap_mon_ip }}
 
 ceph-salt config ls
 ceph-salt export --pretty
