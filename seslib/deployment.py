@@ -94,6 +94,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.suma = None
         self.vagrant_box = None
         self.box = Box(settings)
+        self.bootstrap_mon_ip = None
         self._populate_roles()
         self._count_roles()
         self._populate_os()
@@ -303,6 +304,9 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                     networks = ('node.vm.network :private_network, autostart: true, ip:'
                                 '"{}"').format(public_address)
 
+            if 'bootstrap' in node_roles:
+                self.bootstrap_mon_ip = public_address
+
             node = Node(name,
                         fqdn,
                         node_roles,
@@ -511,6 +515,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 self.settings.makecheck_stop_before_run_make_check,
             'ssd': self.settings.ssd,
             'reasonable_timeout_in_seconds': Constant.REASONABLE_TIMEOUT_IN_SECONDS,
+            'public_network': "{}0/24".format(self.settings.public_network),
+            'bootstrap_mon_ip': self.bootstrap_mon_ip,
         }
 
         scripts = {}
