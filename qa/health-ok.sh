@@ -35,43 +35,47 @@ function usage {
     echo "  $SCRIPTNAME [-h,--help] [options as shown below]"
     echo
     echo "Options:"
-    echo "    --help                 Display this usage message"
-    echo "    --grafana-nodes        expected number of nodes with Grafana"
-    echo "    --igw-nodes            expected number of nodes with iSCSI Gateway"
-    echo "    --mds-nodes            expected number of nodes with MDS"
-    echo "    --mgr-nodes            expected number of nodes with MGR"
-    echo "    --mon-nodes            expected number of nodes with MON"
-    echo "    --nfs-nodes            expected number of nodes with NFS"
-    echo "    --osd-nodes            expected number of nodes with OSD"
-    echo "    --prometheus-nodes     expected number of nodes with Prometheus"
-    echo "    --rgw-nodes            expected number of nodes with RGW"
-    echo "    --node-list            comma-separated list of all nodes in cluster"
-    echo "    --grafana-node-list    comma-separated list of nodes with Grafana"
-    echo "    --igw-node-list        comma-separated list of nodes with iSCSI Gateway"
-    echo "    --mds-node-list        comma-separated list of nodes with MDS"
-    echo "    --mgr-node-list        comma-separated list of nodes with MGR"
-    echo "    --mon-node-list        comma-separated list of nodes with MON"
-    echo "    --nfs-node-list        comma-separated list of nodes with NFS"
-    echo "    --osd-node-list        comma-separated list of nodes with OSD"
-    echo "    --prometheus-node-list comma-separated list of nodes with Prometheus"
-    echo "    --rgw-node-list        comma-separated list of nodes with RGW"
-    echo "    --osds                 expected total number of OSDs in cluster"
-    echo "    --filestore-osds       whether there are FileStore OSDs in cluster"
-    echo "    --strict-versions      Insist that daemon versions match \"ceph --version\""
-    echo "    --total-nodes          expected total number of nodes in cluster"
+    echo "    --help                   Display this usage message"
+    echo "    --alertmanager-nodes     expected number of nodes with alertmanager"
+    echo "    --grafana-nodes          expected number of nodes with Grafana"
+    echo "    --igw-nodes              expected number of nodes with iSCSI Gateway"
+    echo "    --mds-nodes              expected number of nodes with MDS"
+    echo "    --mgr-nodes              expected number of nodes with MGR"
+    echo "    --mon-nodes              expected number of nodes with MON"
+    echo "    --nfs-nodes              expected number of nodes with NFS"
+    echo "    --osd-nodes              expected number of nodes with OSD"
+    echo "    --prometheus-nodes       expected number of nodes with Prometheus"
+    echo "    --rgw-nodes              expected number of nodes with RGW"
+    echo "    --node-list              comma-separated list of all nodes in cluster"
+    echo "    --alertmanager-node-list comma-separated list of nodes with alertmanager"
+    echo "    --grafana-node-list      comma-separated list of nodes with Grafana"
+    echo "    --igw-node-list          comma-separated list of nodes with iSCSI Gateway"
+    echo "    --mds-node-list          comma-separated list of nodes with MDS"
+    echo "    --mgr-node-list          comma-separated list of nodes with MGR"
+    echo "    --mon-node-list          comma-separated list of nodes with MON"
+    echo "    --nfs-node-list          comma-separated list of nodes with NFS"
+    echo "    --osd-node-list          comma-separated list of nodes with OSD"
+    echo "    --prometheus-node-list   comma-separated list of nodes with Prometheus"
+    echo "    --rgw-node-list          comma-separated list of nodes with RGW"
+    echo "    --osds                   expected total number of OSDs in cluster"
+    echo "    --filestore-osds         whether there are FileStore OSDs in cluster"
+    echo "    --strict-versions        Insist that daemon versions match \"ceph --version\""
+    echo "    --total-nodes            expected total number of nodes in cluster"
     exit 1
 }
 
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
+--long "help,alertmanager-nodes:,alertmanager-node-list:,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
 # set some global variables
 ADMIN_KEYRING="/etc/ceph/ceph.client.admin.keyring"
 CEPH_CONF="/etc/ceph/ceph.conf"
+ALERTMANAGER_NODES=""
+ALERTMANAGER_NODE_LIST=""
 GRAFANA_NODES=""
 GRAFANA_NODE_LIST=""
 IGW_NODES=""
@@ -99,6 +103,8 @@ NODE_LIST=""
 # process command-line options
 while true ; do
     case "$1" in
+        --alertmanager-nodes) shift ; ALERTMANAGER_NODES="$1" ; shift ;;
+        --alertmanager-node-list) shift ; ALERTMANAGER_NODE_LIST="$1" ; shift ;;
         --grafana-nodes) shift ; GRAFANA_NODES="$1" ; shift ;;
         --grafana-node-list) shift ; GRAFANA_NODE_LIST="$1" ; shift ;;
         --igw-nodes) shift ; IGW_NODES="$1" ; shift ;;
@@ -132,6 +138,7 @@ done
 set +e
 test "$ADMIN_KEYRING"
 test "$CEPH_CONF"
+test "$ALERTMANAGER_NODES"
 test "$GRAFANA_NODES"
 test "$IGW_NODES"
 test "$MDS_NODES"
@@ -141,6 +148,7 @@ test "$NFS_NODES"
 test "$OSD_NODES"
 test "$PROMETHEUS_NODES"
 test "$RGW_NODES"
+test "$ALERTMANAGER_NODE_LIST"
 test "$GRAFANA_NODE_LIST"
 test "$IGW_NODE_LIST"
 test "$MDS_NODE_LIST"
@@ -196,3 +204,4 @@ nfs_maybe_mount_export_and_touch_file
 # monitoring smoke tests
 prometheus_smoke_test
 grafana_smoke_test
+alertmanager_smoke_test

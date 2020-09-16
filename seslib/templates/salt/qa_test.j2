@@ -6,6 +6,7 @@ set -x
 {% set qa_test_script = "/home/vagrant/qa-test.sh" %}
 {%- set qa_test_cmd = "/home/vagrant/sesdev-qa/health-ok.sh"
     ~ " --total-nodes=" ~ nodes|length
+    ~ " --alertmanager-nodes=" ~ alertmanager_nodes
     ~ " --grafana-nodes=" ~ grafana_nodes
     ~ " --igw-nodes=" ~ igw_nodes
     ~ " --nfs-nodes=" ~ nfs_nodes
@@ -16,6 +17,7 @@ set -x
     ~ " --prometheus-nodes=" ~ prometheus_nodes
     ~ " --rgw-nodes=" ~ rgw_nodes
     ~ " --node-list=" ~ node_list
+    ~ " --alertmanager-node-list=" ~ alertmanager_node_list
     ~ " --grafana-node-list=" ~ grafana_node_list
     ~ " --igw-node-list=" ~ igw_node_list
     ~ " --nfs-node-list=" ~ nfs_node_list
