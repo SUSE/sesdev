@@ -54,8 +54,15 @@ hostnamectl set-hostname {{ node.name }}
 sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf
 systemctl restart systemd-journald
 
-# zypper-related setup (tweak settings, repos, system packages)
-{% include "zypper.j2" %}
+{% if package_manager == 'zypper' %}
+{% include "zypper.j2" ignore missing %}
+{% elif package_manager == 'apt' %}
+{% include "apt.j2" ignore missing %}
+{% elif package_manager == 'yum' %}
+{% include "yum.j2" ignore missing %}
+{% elif package_manager == 'dnf' %}
+{% include "dnf.j2" ignore missing %}
+{% endif %} {# package_manager #}
 
 # sync clocks if needed
 {% include "sync_clocks.j2" %}
@@ -67,5 +74,7 @@ systemctl restart systemd-journald
 {% include "caasp/provision.sh.j2" %}
 {% elif version == 'makecheck' %}
 {% include "makecheck/provision.sh.j2" %}
-{% endif %}
+{% elif os.startswith('ubuntu') %}
+{% include "ubuntu/provision.sh.j2" %}
+{% endif %} {# deploy_salt or suma #}
 
