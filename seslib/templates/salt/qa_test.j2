@@ -5,6 +5,7 @@ set -x
 
 {% set qa_test_script = "/home/vagrant/qa-test.sh" %}
 {%- set qa_test_cmd = "/home/vagrant/sesdev-qa/health-ok.sh"
+    ~ " --deployment-version=" ~ version
     ~ " --total-nodes=" ~ nodes|length
     ~ " --alertmanager-nodes=" ~ alertmanager_nodes
     ~ " --grafana-nodes=" ~ grafana_nodes

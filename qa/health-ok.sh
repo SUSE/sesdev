@@ -61,13 +61,14 @@ function usage {
     echo "    --filestore-osds         whether there are FileStore OSDs in cluster"
     echo "    --strict-versions        Insist that daemon versions match \"ceph --version\""
     echo "    --total-nodes            expected total number of nodes in cluster"
+    echo "    --deployment-version     deployment version (e.g. \"pacific\")"
     exit 1
 }
 
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,alertmanager-nodes:,alertmanager-node-list:,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:" \
+--long "help,alertmanager-nodes:,alertmanager-node-list:,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:,deployment-version:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -99,6 +100,7 @@ FILESTORE_OSDS=""
 STRICT_VERSIONS=""
 TOTAL_NODES=""
 NODE_LIST=""
+DEPLOYMENT_VERSION=""
 
 # process command-line options
 while true ; do
@@ -128,6 +130,7 @@ while true ; do
         --strict-versions) STRICT_VERSIONS="$1"; shift ;;
         --total-nodes) shift ; TOTAL_NODES="$1" ; shift ;;
         --node-list) shift ; NODE_LIST="$1" ; shift ;;
+        --deployment-version) shift ; DEPLOYMENT_VERSION="$1" ; shift ;;
         -h|--help) usage ;;    # does not return
         --) shift ; break ;;
         *) echo "Internal error" ; exit 1 ;;
@@ -163,6 +166,7 @@ test "$FILESTORE_OSDS"
 test "$STRICT_VERSIONS"
 test "$TOTAL_NODES"
 test "$NODE_LIST"
+test "$DEPLOYMENT_VERSION"
 set -e
 
 # tests that verify basic assumptions
