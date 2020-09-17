@@ -190,6 +190,11 @@ SETTINGS = {
         'help': 'repos to add on all VMs of a given operating system (os)',
         'default': Constant.OS_REPOS,
     },
+    'provision': {
+        'type': bool,
+        'help': 'Whether to provision the VMs (e.g., deploy Ceph on them) after they are created',
+        'default': True,
+    },
     'public_network': {
         'type': str,
         'help': 'The network address prefix for the public network',
