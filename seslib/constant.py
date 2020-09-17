@@ -21,7 +21,7 @@ class Constant():
     IMAGE_PATHS = {
         'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
         'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
-        'pacific': 'registry.opensuse.org/filesystems/ceph/master/upstream/images/ceph/ceph',
+        'pacific': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
     }
 
     JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -252,11 +252,11 @@ class Constant():
         },
         'pacific': {
             'leap-15.2': [
-                'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/pacific/'
                 'openSUSE_Leap_15.2'
             ],
             'tumbleweed': [
-                'https://download.opensuse.org/repositories/filesystems:/ceph:/master:/upstream/'
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/pacific/'
                 'openSUSE_Tumbleweed'
             ],
         },
