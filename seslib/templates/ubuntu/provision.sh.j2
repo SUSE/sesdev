@@ -1,0 +1,12 @@
+# ubuntu/provision.sh.j2 (part of provision.sh.j2)
+
+{% if stop_before_cephadm_bootstrap %}
+set +x
+echo "Stopping the deployment before \"cephadm bootstrap\" because --stop-before-cephadm-bootstrap was given"
+exit 0
+{% endif %} {# stop_before_cephadm_bootstrap #}
+
+{% if node == master %}
+mkdir -p /etc/ceph
+cephadm bootstrap --mon-ip {{ bootstrap_mon_ip }}
+{% endif %} {# node == master #}

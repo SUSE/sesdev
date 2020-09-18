@@ -94,6 +94,12 @@ set -x
 exit 0
 {% endif %} {# stop_before_ceph_salt_apply #}
 
+{% if stop_before_cephadm_bootstrap %}
+set +x
+echo "Stopping the deployment now because --stop-before-cephadm-bootstrap option was given"
+exit 0
+{% endif %} {# stop_before_cephadm_bootstrap #}
+
 {% if use_salt %}
 salt -G 'ceph-salt:member' state.apply ceph-salt
 echo "\"salt state.apply\" exit code: $?"

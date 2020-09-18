@@ -250,6 +250,11 @@ SETTINGS = {
         'help': 'Stops deployment before ceph-salt apply',
         'default': False,
     },
+    'stop_before_cephadm_bootstrap': {
+        'type': bool,
+        'help': 'Stops deployment before cephadm bootstrap',
+        'default': False,
+    },
     'stop_before_ceph_salt_config': {
         'type': bool,
         'help': 'Stops deployment before ceph-salt config',

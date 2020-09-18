@@ -327,9 +327,10 @@ class VersionNotKnown(SesDevException):
 
 
 class VersionOSNotSupported(SesDevException):
-    def __init__(self, version, os):
+    def __init__(self, version, operating_system):
         super().__init__(
-            "Combination of version '{}' and OS '{}' not supported".format(version, os)
+            "sesdev does not know how to deploy \"{}\" on operating system \"{}\""
+            .format(version, operating_system)
         )
 
 

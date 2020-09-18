@@ -84,11 +84,13 @@ def deepsea_options(func):
 def ceph_salt_options(func):
     click_options = [
         click.option('--stop-before-ceph-salt-config', is_flag=True, default=False,
-                     help='Allows to stop deployment before creating ceph-salt configuration'),
+                     help='Stop deployment before creating ceph-salt configuration'),
         click.option('--stop-before-ceph-salt-apply', is_flag=True, default=False,
-                     help='Allows to stop deployment before applying ceph-salt configuration'),
+                     help='Stop deployment before applying ceph-salt configuration'),
+        click.option('--stop-before-cephadm-bootstrap', is_flag=True, default=False,
+                     help='Stop deployment before running "cephadm bootstrap"'),
         click.option('--stop-before-ceph-orch-apply', is_flag=True, default=False,
-                     help='Allows to stop deployment before applying ceph orch service spec'),
+                     help='Stop deployment before applying ceph orch service spec'),
         click.option('--ceph-salt-repo', type=str, default=None,
                      help='ceph-salt Git repo URL'),
         click.option('--ceph-salt-branch', type=str, default=None,
@@ -107,7 +109,8 @@ def common_create_options(func):
                      help='List of roles for each node. Example for two nodes: '
                           '[master, client, prometheus],[storage, mon, mgr]'),
         click.option('--os', type=click.Choice(['leap-15.1', 'leap-15.2', 'tumbleweed',
-                                                'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2']),
+                                                'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2',
+                                                'ubuntu-bionic']),
                      default=None, help='OS (open)SUSE distro'),
         click.option('--deploy/--no-deploy', default=True,
                      help="Don't run the deployment phase. Just generate the Vagrantfile"),
@@ -511,6 +514,7 @@ def _gen_settings_dict(
         ssd=None,
         stop_before_ceph_orch_apply=None,
         stop_before_ceph_salt_apply=None,
+        stop_before_cephadm_bootstrap=None,
         stop_before_ceph_salt_config=None,
         stop_before_deepsea_stage=None,
         stop_before_git_clone=None,
@@ -679,6 +683,9 @@ def _gen_settings_dict(
 
     if stop_before_ceph_salt_apply is not None:
         settings_dict['stop_before_ceph_salt_apply'] = stop_before_ceph_salt_apply
+
+    if stop_before_cephadm_bootstrap is not None:
+        settings_dict['stop_before_cephadm_bootstrap'] = stop_before_cephadm_bootstrap
 
     if stop_before_ceph_orch_apply is not None:
         settings_dict['stop_before_ceph_orch_apply'] = stop_before_ceph_orch_apply

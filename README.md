@@ -62,6 +62,8 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [octopus from filesystems:ceph:octopus&#8203;:upstream](#octopus-from-filesystemscephoctopusupstream)
          * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
+      * [Deploying non-SUSE environments](#deploying-non-suse-environments)
+         * [Ubuntu "Bionic Beaver" 18.04](#ubuntu-bionic-beaver-1804)
    * [List existing deployments](#list-existing-deployments)
    * [SSH access to a cluster](#ssh-access-to-a-cluster)
    * [Copy files into and out of a cluster](#copy-files-into-and-out-of-a-cluster)
@@ -441,8 +443,8 @@ Some caveats apply:
 3. For `octopus`, `ses7`, and `pacific`, the only roles required are `master`
    and `bootstrap`. While it is possible to stop the deployment script at
    various stages (see `sesdev create octopus --help` for details), in general
-   the deployment script will try to "do the right thing" according to the roles
-   given.
+   sesdev will try to deploy Ceph services/daemons according to the roles
+   given by the user.
 4. You can specify a node with no roles like so: `[]`
 5. Ordinarily, a node gets extra disks ("OSD disks") only when the `storage`
    role is specified. However, to facilitate deployment of "bare bone" clusters,
@@ -744,6 +746,23 @@ Note: The elevated priority on the `Devel:Storage:7.0:CR` repo is needed to
 ensure that the ceph package from that project gets installed even if RPM
 evaluates its version number to be lower than that of the ceph packages in the
 SES7 Product and `Devel:Storage:7.0` repos.
+
+#### Deploying non-SUSE environments
+
+sesdev has limited ability to deploy non-SUSE environments. Read on for details.
+
+##### Ubuntu "Bionic Beaver" 18.04
+
+Ubuntu Bionic is supported with the `octopus` deployment version. For example:
+
+```
+sesdev create octopus --os ubuntu-bionic
+sesdev create octopus --single-node --os ubuntu-bionic
+```
+
+This will create Ubuntu 18.04 VMs and bootstrap a Ceph Octopus cluster on them
+using `cephadm bootstrap`. To stop the deployment before bootstrap, give the
+`--stop-before-cephadm-bootstrap` option.
 
 ### List existing deployments
 
