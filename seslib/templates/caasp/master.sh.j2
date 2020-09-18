@@ -190,6 +190,9 @@ rm ${MLBCONFIG}
 
 # deploy and configure rook + Ceph
 
+# add special lable to allow Rook deploy on all nodes
+kubectl label nodes --all node-role.rook-ceph/cluster=any
+
 zypper --non-interactive install rook-k8s-yaml
 cd /usr/share/k8s-yaml/rook/ceph/
 
