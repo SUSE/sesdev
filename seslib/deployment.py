@@ -528,6 +528,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'reasonable_timeout_in_seconds': Constant.REASONABLE_TIMEOUT_IN_SECONDS,
             'public_network': "{}0/24".format(self.settings.public_network),
             'bootstrap_mon_ip': self.bootstrap_mon_ip,
+            'msgr2_secure_mode': self.settings.msgr2_secure_mode,
+            'msgr2_prefer_secure': self.settings.msgr2_prefer_secure,
         }
 
         scripts = {}
