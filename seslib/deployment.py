@@ -739,7 +739,8 @@ deployment might not be completely destroyed.
     def start(self, log_handler, node=None):
         if node and node not in self.nodes:
             raise NodeDoesNotExist(node)
-        assert self.vagrant_box is not None, "vagrant_box is set to None!"
+        if not self.existing:
+            assert self.vagrant_box is not None, "vagrant_box is set to None!"
         self._vagrant_up(node, log_handler)
 
     def __str__(self):
