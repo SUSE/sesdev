@@ -35,40 +35,42 @@ function usage {
     echo "  $SCRIPTNAME [-h,--help] [options as shown below]"
     echo
     echo "Options:"
-    echo "    --help                   Display this usage message"
-    echo "    --alertmanager-nodes     expected number of nodes with alertmanager"
-    echo "    --grafana-nodes          expected number of nodes with Grafana"
-    echo "    --igw-nodes              expected number of nodes with iSCSI Gateway"
-    echo "    --mds-nodes              expected number of nodes with MDS"
-    echo "    --mgr-nodes              expected number of nodes with MGR"
-    echo "    --mon-nodes              expected number of nodes with MON"
-    echo "    --nfs-nodes              expected number of nodes with NFS"
-    echo "    --osd-nodes              expected number of nodes with OSD"
-    echo "    --prometheus-nodes       expected number of nodes with Prometheus"
-    echo "    --rgw-nodes              expected number of nodes with RGW"
-    echo "    --node-list              comma-separated list of all nodes in cluster"
-    echo "    --alertmanager-node-list comma-separated list of nodes with alertmanager"
-    echo "    --grafana-node-list      comma-separated list of nodes with Grafana"
-    echo "    --igw-node-list          comma-separated list of nodes with iSCSI Gateway"
-    echo "    --mds-node-list          comma-separated list of nodes with MDS"
-    echo "    --mgr-node-list          comma-separated list of nodes with MGR"
-    echo "    --mon-node-list          comma-separated list of nodes with MON"
-    echo "    --nfs-node-list          comma-separated list of nodes with NFS"
-    echo "    --osd-node-list          comma-separated list of nodes with OSD"
-    echo "    --prometheus-node-list   comma-separated list of nodes with Prometheus"
-    echo "    --rgw-node-list          comma-separated list of nodes with RGW"
-    echo "    --osds                   expected total number of OSDs in cluster"
-    echo "    --filestore-osds         whether there are FileStore OSDs in cluster"
-    echo "    --strict-versions        Insist that daemon versions match \"ceph --version\""
-    echo "    --total-nodes            expected total number of nodes in cluster"
-    echo "    --deployment-version     deployment version (e.g. \"pacific\")"
+    echo "    --help                    Display this usage message"
+    echo "    --alertmanager-nodes      expected number of nodes with alertmanager"
+    echo "    --grafana-nodes           expected number of nodes with Grafana"
+    echo "    --igw-nodes               expected number of nodes with iSCSI Gateway"
+    echo "    --mds-nodes               expected number of nodes with MDS"
+    echo "    --mgr-nodes               expected number of nodes with MGR"
+    echo "    --mon-nodes               expected number of nodes with MON"
+    echo "    --nfs-nodes               expected number of nodes with NFS"
+    echo "    --node-exporter-nodes     expected number of nodes with node-exporter"
+    echo "    --osd-nodes               expected number of nodes with OSD"
+    echo "    --prometheus-nodes        expected number of nodes with Prometheus"
+    echo "    --rgw-nodes               expected number of nodes with RGW"
+    echo "    --node-list               comma-separated list of all nodes in cluster"
+    echo "    --alertmanager-node-list  comma-separated list of nodes with alertmanager"
+    echo "    --grafana-node-list       comma-separated list of nodes with Grafana"
+    echo "    --igw-node-list           comma-separated list of nodes with iSCSI Gateway"
+    echo "    --mds-node-list           comma-separated list of nodes with MDS"
+    echo "    --mgr-node-list           comma-separated list of nodes with MGR"
+    echo "    --mon-node-list           comma-separated list of nodes with MON"
+    echo "    --nfs-node-list           comma-separated list of nodes with NFS"
+    echo "    --node-exporter-node-list comma-separated list of nodes with node-exporter"
+    echo "    --osd-node-list           comma-separated list of nodes with OSD"
+    echo "    --prometheus-node-list    comma-separated list of nodes with Prometheus"
+    echo "    --rgw-node-list           comma-separated list of nodes with RGW"
+    echo "    --osds                    expected total number of OSDs in cluster"
+    echo "    --filestore-osds          whether there are FileStore OSDs in cluster"
+    echo "    --strict-versions         Insist that daemon versions match \"ceph --version\""
+    echo "    --total-nodes             expected total number of nodes in cluster"
+    echo "    --deployment-version      deployment version (e.g. \"pacific\")"
     exit 1
 }
 
 assert_enhanced_getopt
 
 TEMP=$(getopt -o h \
---long "help,alertmanager-nodes:,alertmanager-node-list:,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:,deployment-version:" \
+--long "help,alertmanager-nodes:,alertmanager-node-list:,grafana-nodes:,grafana-node-list:,igw-nodes:,igw-node-list:,mds-nodes:,mds-node-list:,mgr-nodes:,mgr-node-list:,mon-nodes:,mon-node-list:,nfs-nodes:,nfs-node-list:,node-exporter-nodes:,node-exporter-node-list:,osd-nodes:,osd-node-list:,prometheus-nodes:,prometheus-node-list:,rgw-nodes:,rgw-node-list:,osds:,filestore-osds,strict-versions,total-nodes:,node-list:,deployment-version:" \
 -n 'health-ok.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
 eval set -- "$TEMP"
 
@@ -89,6 +91,8 @@ MON_NODES=""
 MON_NODE_LIST=""
 NFS_NODES=""
 NFS_NODE_LIST=""
+NODE_EXPORTER_NODES=""
+NODE_EXPORTER_NODE_LIST=""
 OSD_NODES=""
 OSD_NODE_LIST=""
 PROMETHEUS_NODES=""
@@ -119,6 +123,8 @@ while true ; do
         --mon-node-list) shift ; MON_NODE_LIST="$1" ; shift ;;
         --nfs-nodes) shift ; NFS_NODES="$1" ; shift ;;
         --nfs-node-list) shift ; NFS_NODE_LIST="$1" ; shift ;;
+        --node-exporter-nodes) shift ; NODE_EXPORTER_NODES="$1" ; shift ;;
+        --node-exporter-node-list) shift ; NODE_EXPORTER_NODE_LIST="$1" ; shift ;;
         --osd-nodes) shift ; OSD_NODES="$1" ; shift ;;
         --osd-node-list) shift ; OSD_NODE_LIST="$1" ; shift ;;
         --prometheus-nodes) shift ; PROMETHEUS_NODES="$1" ; shift ;;
@@ -148,6 +154,7 @@ test "$MDS_NODES"
 test "$MGR_NODES"
 test "$MON_NODES"
 test "$NFS_NODES"
+test "$NODE_EXPORTER_NODES"
 test "$OSD_NODES"
 test "$PROMETHEUS_NODES"
 test "$RGW_NODES"
@@ -158,6 +165,7 @@ test "$MDS_NODE_LIST"
 test "$MGR_NODE_LIST"
 test "$MON_NODE_LIST"
 test "$NFS_NODE_LIST"
+test "$NODE_EXPORTER_NODE_LIST"
 test "$OSD_NODE_LIST"
 test "$PROMETHEUS_NODE_LIST"
 test "$RGW_NODE_LIST"
@@ -209,3 +217,4 @@ nfs_maybe_mount_export_and_touch_file
 prometheus_smoke_test
 grafana_smoke_test
 alertmanager_smoke_test
+node_exporter_smoke_test

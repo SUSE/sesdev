@@ -539,6 +539,8 @@ function number_of_services_expected_vs_orch_ls_test {
         orch_ls_grafanas="$(json_ses7_orch_ls grafana)"
         local orch_ls_alertmanagers
         orch_ls_alertmanagers="$(json_ses7_orch_ls alertmanager)"
+        local orch_ls_node_exporters
+        orch_ls_node_exporters="$(json_ses7_orch_ls node-exporter)"
         local success
         success="yes"
         local expected_mgrs
@@ -551,6 +553,7 @@ function number_of_services_expected_vs_orch_ls_test {
         local expected_prometheuses
         local expected_grafanas
         local expected_alertmanagers
+        local expected_node_exporters
         [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
         [ "$MON_NODES" ] && expected_mons="$MON_NODES"
         [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -561,6 +564,7 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
         [ "$GRAFANA_NODES" ] && expected_grafanas="$GRAFANA_NODES"
         [ "$ALERTMANAGER_NODES" ] && expected_alertmanagers="$ALERTMANAGER_NODES"
+        [ "$NODE_EXPORTER_NODES" ] && expected_node_exporters="$NODE_EXPORTER_NODES"
         echo "MGR services (orch ls/expected): $orch_ls_mgrs/$expected_mgrs"
         if [ "$orch_ls_mgrs" = "$expected_mgrs" ] ; then
             true  # normal success case
@@ -587,6 +591,8 @@ function number_of_services_expected_vs_orch_ls_test {
         [ "$orch_ls_grafanas" = "$expected_grafanas" ] || success=""
         echo "alertmanager services (orch ls/expected): $orch_ls_alertmanagers/$expected_alertmanagers"
         [ "$orch_ls_alertmanagers" = "$expected_alertmanagers" ] || success=""
+        echo "node-manager services (orch ls/expected): $orch_ls_node_exporters/$expected_node_exporters"
+        [ "$orch_ls_node_exporters" = "$expected_node_exporters" ] || success=""
         if [ "$success" ] ; then
             echo "WWWW: number_of_services_expected_vs_orch_ls_test: OK"
             echo
@@ -623,6 +629,8 @@ function _orch_ps_test {
     orch_ps_grafanas="$(json_ses7_orch_ps grafana)"
     local orch_ps_alertmanagers
     orch_ps_alertmanagers="$(json_ses7_orch_ps alertmanager)"
+    local orch_ps_node_exporters
+    orch_ps_node_exporters="$(json_ses7_orch_ps node-exporter)"
     ## commented-out osds pending resolution of
     ## - https://bugzilla.suse.com/show_bug.cgi?id=1172791
     ## - https://github.com/SUSE/sesdev/pull/203
@@ -638,6 +646,7 @@ function _orch_ps_test {
     local expected_prometheuses
     local expected_grafanas
     local expected_alertmanagers
+    local expected_node_exporters
     [ "$MGR_NODES" ] && expected_mgrs="$MGR_NODES"
     [ "$MON_NODES" ] && expected_mons="$MON_NODES"
     [ "$MDS_NODES" ] && expected_mdss="$MDS_NODES"
@@ -648,6 +657,7 @@ function _orch_ps_test {
     [ "$PROMETHEUS_NODES" ] && expected_prometheuses="$PROMETHEUS_NODES"
     [ "$GRAFANA_NODES" ] && expected_grafanas="$GRAFANA_NODES"
     [ "$ALERTMANAGER_NODES" ] && expected_alertmanagers="$ALERTMANAGER_NODES"
+    [ "$NODE_EXPORTER_NODES" ] && expected_node_exporters="$NODE_EXPORTER_NODES"
     echo "MGR daemons (orch ps/expected): $orch_ps_mgrs/$expected_mgrs"
     if [ "$orch_ps_mgrs" = "$expected_mgrs" ] ; then
         true  # normal success case
@@ -674,6 +684,8 @@ function _orch_ps_test {
     [ "$orch_ps_grafanas" = "$expected_grafanas" ] || success=""
     echo "alertmanager daemons (orch ps/expected): $orch_ps_alertmanagers/$expected_alertmanagers"
     [ "$orch_ps_alertmanagers" = "$expected_alertmanagers" ] || success=""
+    echo "node-manager services (orch ps/expected): $orch_ps_node_exporters/$expected_node_exporters"
+    [ "$orch_ps_node_exporters" = "$expected_node_exporters" ] || success=""
     if [ "$success" ] ; then
         return 0
     else
@@ -1177,6 +1189,8 @@ function _monitoring_smoke_test {
         nodes_list="$GRAFANA_NODE_LIST"
     elif [ "$daemon_type" = "alertmanager" ] ; then
         nodes_list="$ALERTMANAGER_NODE_LIST"
+    elif [ "$daemon_type" = "node-exporter" ] ; then
+        nodes_list="$NODE_EXPORTER_NODE_LIST"
     else
         echo "_monitoring_smoke_test: badness, bailing out!"
         false
@@ -1186,7 +1200,7 @@ function _monitoring_smoke_test {
     local run_the_test="yes"
     [ -z "$nodes_list" ]       && run_the_test=""
     [ "$VERSION_ID" = "12.3" ] && run_the_test=""
-    if [ "$daemon_type" = "node-exporter" ] ; then
+    if [ "$daemon_type" = "alertmanager" ] || [ "$daemon_type" = "node-exporter" ] ; then
         [ "$VERSION_ID" = "15.1" ] && run_the_test=""
     fi
     if [ "$run_the_test" ] ; then
@@ -1203,6 +1217,8 @@ function _monitoring_smoke_test {
             default_port="3000"
         elif [ "$daemon_type" = "alertmanager" ] ; then
             default_port="9093"
+        elif [ "$daemon_type" = "node-exporter" ] ; then
+            default_port="9100"
         else
             echo "_monitoring_smoke_test: extreme badness, bailing out!"
             false
@@ -1265,4 +1281,8 @@ function grafana_smoke_test {
 
 function alertmanager_smoke_test {
     _monitoring_smoke_test "alertmanager" "title.Alertmanager"
+}
+
+function node_exporter_smoke_test {
+    _monitoring_smoke_test "node-exporter" "title.Node.Exporter"
 }
