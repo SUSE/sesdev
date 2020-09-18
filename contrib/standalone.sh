@@ -332,6 +332,9 @@ if [ "$PACIFIC" ] ; then
     run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node pacific-1node
     run_cmd sesdev --verbose qa-test pacific-1node
     run_cmd sesdev --verbose destroy --non-interactive pacific-1node
+    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --ipv6 pacific-1node-ipv6
+    run_cmd sesdev --verbose qa-test pacific-1node-ipv6
+    run_cmd sesdev --verbose destroy --non-interactive pacific-1node-ipv6
     run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
     run_cmd sesdev --verbose qa-test pacific-4node
     run_cmd sesdev --verbose destroy --non-interactive pacific-4node

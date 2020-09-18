@@ -154,6 +154,18 @@ def common_create_options(func):
     return _decorator_composer(click_options, func)
 
 
+def ipv6_options(func):
+    click_options = [
+        click.option('--ipv6', is_flag=True, default=False,
+                     help='Configure IPv6 addresses. This option requires "Accept Router '
+                          'Advertisements" to be set to 2. You can change it by running '
+                          '"sysctl -w net.ipv6.conf.<if>.accept_ra=2" where '
+                          '<if> is the network interface used by libvirt for network '
+                          'forwarding, or "all" to apply to all interfaces.',),
+    ]
+    return _decorator_composer(click_options, func)
+
+
 def _parse_roles(roles):
     roles = "".join(roles.split())
     if roles.startswith('[[') and roles.endswith(']]'):
@@ -494,6 +506,7 @@ def _gen_settings_dict(
         encrypted_osds=None,
         force=None,
         image_path=None,
+        ipv6=None,
         libvirt_host=None,
         libvirt_networks=None,
         libvirt_private_key_file=None,
@@ -551,6 +564,9 @@ def _gen_settings_dict(
 
     if os is not None:
         settings_dict['os'] = os
+
+    if ipv6 is not None:
+        settings_dict['ipv6'] = ipv6
 
     if cpus is not None:
         settings_dict['cpus'] = cpus
@@ -873,6 +889,7 @@ def ses6(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
+@ipv6_options
 def ses7(deployment_id, deploy, **kwargs):
     """
     Creates a SES7 cluster using SLES-15-SP2 and packages (and container image)
@@ -909,6 +926,7 @@ def nautilus(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
+@ipv6_options
 def octopus(deployment_id, deploy, **kwargs):
     """
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages
@@ -926,6 +944,7 @@ def octopus(deployment_id, deploy, **kwargs):
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
+@ipv6_options
 def pacific(deployment_id, deploy, **kwargs):
     """
     Creates a Ceph Pacific cluster using openSUSE Leap 15.2 and packages
