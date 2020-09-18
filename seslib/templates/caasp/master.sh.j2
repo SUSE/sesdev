@@ -206,6 +206,9 @@ sed -i 's/allowMultiplePerNode: false/allowMultiplePerNode: true/' /usr/share/k8
 
 sed -i 's/count: .*/count: 1/' /usr/share/k8s-yaml/rook/ceph/cluster.yaml
 
+# change anti-affinity variable to some dumb var so it could assign couple of mons to one node
+sed -i 's/topologyKey: kubernetes.io\/hostname.*/topologyKey: rook.io\/dumb_var/' /usr/share/k8s-yaml/rook/ceph/cluster.yaml
+
 {% endif %}
 
 kubectl apply -f common.yaml -f operator.yaml
