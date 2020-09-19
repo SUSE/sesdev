@@ -116,8 +116,11 @@ def common_create_options(func):
                                                 'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2',
                                                 'ubuntu-bionic']),
                      default=None, help='OS (open)SUSE distro'),
-        click.option('--deploy/--no-deploy', default=True,
-                     help="Don't run the deployment phase. Just generate the Vagrantfile"),
+        click.option('--provision/--no-provision',
+                     default=True,
+                     help="Whether to provision the VMs (e.g., deploy Ceph on them) "
+                          "after creation"
+                    ),
         click.option('--cpus', default=None, type=int,
                      help='Number of virtual CPUs for the VMs'),
         click.option('--ram', default=None, type=int,
@@ -519,6 +522,7 @@ def _gen_settings_dict(
         non_interactive=None,
         num_disks=None,
         os=None,
+        provision=None,
         qa_test_opt=None,
         ram=None,
         repo=None,
@@ -631,6 +635,9 @@ def _gen_settings_dict(
 
     if version is not None:
         settings_dict['version'] = version
+
+    if provision is not None:
+        settings_dict['provision'] = provision
 
     if repo_priority is not None:
         settings_dict['repo_priority'] = repo_priority
@@ -765,7 +772,7 @@ def _gen_settings_dict(
     return settings_dict
 
 
-def _create_command(deployment_id, deploy, settings_dict):
+def _create_command(deployment_id, settings_dict):
     interactive = not settings_dict.get('non_interactive', False)
     Log.debug("_create_command: interactive set to {}".format(interactive))
     settings = Settings(**settings_dict)
@@ -778,77 +785,76 @@ def _create_command(deployment_id, deploy, settings_dict):
                .format(deployment_id)
                )
     click.echo(dep.configuration_report(show_individual_vms=(not interactive)))
-    if deploy:
-        really_want_to = True
-        if interactive:
-            not_sure = True
-            details_already_shown = False
-            while not_sure:
-                if details_already_shown:
-                    really_want_to = click.prompt(
-                        ('Proceed with deployment (y=yes, n=no, b=show basic config again, '
-                         'd=show details again) ?'),
-                        type=str,
-                        default="y",
-                    )
-                else:
-                    really_want_to = click.prompt(
-                        'Proceed with deployment (y=yes, n=no, d=show details) ?',
-                        type=str,
-                        default="y",
-                    )
-                really_want_to = really_want_to.lower()[0]
-                # pylint: disable=consider-using-in
-                if really_want_to == 'y' or not really_want_to:
-                    really_want_to = True
-                    break
-                if really_want_to == 'n':
-                    really_want_to = False
-                    break
-                if really_want_to == 'b':
-                    click.echo(dep.configuration_report(
-                        show_deployment_wide_params=True,
-                        show_individual_vms=False,
-                    ))
-                if really_want_to == 'd':
-                    details_already_shown = True
-                    click.echo(dep.configuration_report(
-                        show_deployment_wide_params=False,
-                        show_individual_vms=True,
-                    ))
-        try:
-            if really_want_to:
-                dep.vet_configuration()
-                if dep.settings.dry_run:
-                    click.echo("Dry run. Stopping now, before creating any VMs.")
-                    raise click.Abort()
-                dep.start(_print_log)
-                click.echo("=== Deployment Finished ===")
-                click.echo()
-                click.echo("You can login into the cluster with:")
-                click.echo()
-                click.echo("  $ sesdev ssh {}".format(deployment_id))
-                click.echo()
-                if dep.settings.version == 'ses5':
-                    click.echo("Or, access openATTIC with:")
-                    click.echo()
-                    click.echo("  $ sesdev tunnel {} openattic".format(deployment_id))
-                elif dep.settings.version == 'octopus' and dep.has_suma():
-                    click.echo("Or, access the SUMA WebUI with:")
-                    click.echo()
-                    click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
-                    click.echo()
-                else:
-                    click.echo("Or, access the Ceph Dashboard with:")
-                    click.echo()
-                    click.echo("  $ sesdev tunnel {} dashboard".format(deployment_id))
-                    click.echo()
+    really_want_to = True
+    if interactive:
+        not_sure = True
+        details_already_shown = False
+        while not_sure:
+            if details_already_shown:
+                really_want_to = click.prompt(
+                    ('Proceed with deployment (y=yes, n=no, b=show basic config again, '
+                     'd=show details again) ?'),
+                    type=str,
+                    default="y",
+                )
             else:
+                really_want_to = click.prompt(
+                    'Proceed with deployment (y=yes, n=no, d=show details) ?',
+                    type=str,
+                    default="y",
+                )
+            really_want_to = really_want_to.lower()[0]
+            # pylint: disable=consider-using-in
+            if really_want_to == 'y' or not really_want_to:
+                really_want_to = True
+                break
+            if really_want_to == 'n':
+                really_want_to = False
+                break
+            if really_want_to == 'b':
+                click.echo(dep.configuration_report(
+                    show_deployment_wide_params=True,
+                    show_individual_vms=False,
+                ))
+            if really_want_to == 'd':
+                details_already_shown = True
+                click.echo(dep.configuration_report(
+                    show_deployment_wide_params=False,
+                    show_individual_vms=True,
+                ))
+    try:
+        if really_want_to:
+            dep.vet_configuration()
+            if dep.settings.dry_run:
+                click.echo("Dry run. Stopping now, before creating any VMs.")
                 raise click.Abort()
-        except click.Abort:
+            dep.start(_print_log)
+            click.echo("=== Deployment Finished ===")
             click.echo()
-            click.echo("Exiting...")
-            dep.destroy(_silent_log)
+            click.echo("You can login into the cluster with:")
+            click.echo()
+            click.echo("  $ sesdev ssh {}".format(deployment_id))
+            click.echo()
+            if dep.settings.version == 'ses5':
+                click.echo("Or, access openATTIC with:")
+                click.echo()
+                click.echo("  $ sesdev tunnel {} openattic".format(deployment_id))
+            elif dep.settings.version == 'octopus' and dep.has_suma():
+                click.echo("Or, access the SUMA WebUI with:")
+                click.echo()
+                click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
+                click.echo()
+            else:
+                click.echo("Or, access the Ceph Dashboard with:")
+                click.echo()
+                click.echo("  $ sesdev tunnel {} dashboard".format(deployment_id))
+                click.echo()
+        else:
+            raise click.Abort()
+    except click.Abort:
+        click.echo()
+        click.echo("Exiting...")
+        dep.destroy(_silent_log)
 
 
 def _prep_kwargs(kwargs):
@@ -866,7 +872,7 @@ def _prep_kwargs(kwargs):
 @common_create_options
 @deepsea_options
 @libvirt_options
-def ses5(deployment_id, deploy, **kwargs):
+def ses5(deployment_id, **kwargs):
     """
     Creates a SES5 cluster using SLES-12-SP3
     """
@@ -876,7 +882,7 @@ def ses5(deployment_id, deploy, **kwargs):
         raise OptionNotSupportedInVersion('--filestore', 'ses5')
     settings_dict = _gen_settings_dict('ses5', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses5', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -884,14 +890,14 @@ def ses5(deployment_id, deploy, **kwargs):
 @common_create_options
 @deepsea_options
 @libvirt_options
-def ses6(deployment_id, deploy, **kwargs):
+def ses6(deployment_id, **kwargs):
     """
     Creates a SES6 cluster using SLES-15-SP1
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses6', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses6', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -901,7 +907,7 @@ def ses6(deployment_id, deploy, **kwargs):
 @ceph_salt_options
 @libvirt_options
 @ipv6_options
-def ses7(deployment_id, deploy, **kwargs):
+def ses7(deployment_id, **kwargs):
     """
     Creates a SES7 cluster using SLES-15-SP2 and packages (and container image)
     from the Devel:Storage:7.0 IBS project
@@ -909,7 +915,7 @@ def ses7(deployment_id, deploy, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses7', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses7', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -917,7 +923,7 @@ def ses7(deployment_id, deploy, **kwargs):
 @common_create_options
 @deepsea_options
 @libvirt_options
-def nautilus(deployment_id, deploy, **kwargs):
+def nautilus(deployment_id, **kwargs):
     """
     Creates a Ceph Nautilus cluster using openSUSE Leap 15.1 and packages
     from filesystems:ceph:nautilus OBS project
@@ -928,7 +934,7 @@ def nautilus(deployment_id, deploy, **kwargs):
         raise OptionNotSupportedInVersion('--product', 'nautilus')
     settings_dict = _gen_settings_dict('nautilus', **kwargs)
     deployment_id = _maybe_gen_dep_id('nautilus', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -938,7 +944,7 @@ def nautilus(deployment_id, deploy, **kwargs):
 @ceph_salt_options
 @libvirt_options
 @ipv6_options
-def octopus(deployment_id, deploy, **kwargs):
+def octopus(deployment_id, **kwargs):
     """
     Creates a Ceph Octopus cluster using openSUSE Leap 15.2 and packages
     (and container image) from filesystems:ceph:octopus:upstream OBS project
@@ -946,7 +952,7 @@ def octopus(deployment_id, deploy, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('octopus', **kwargs)
     deployment_id = _maybe_gen_dep_id('octopus', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -956,7 +962,7 @@ def octopus(deployment_id, deploy, **kwargs):
 @ceph_salt_options
 @libvirt_options
 @ipv6_options
-def pacific(deployment_id, deploy, **kwargs):
+def pacific(deployment_id, **kwargs):
     """
     Creates a Ceph Pacific cluster using openSUSE Leap 15.2 and packages
     (and container image) from filesystems:ceph:master:upstream OBS project
@@ -964,7 +970,7 @@ def pacific(deployment_id, deploy, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('pacific', **kwargs)
     deployment_id = _maybe_gen_dep_id('pacific', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -973,14 +979,14 @@ def pacific(deployment_id, deploy, **kwargs):
 @libvirt_options
 @click.option("--deploy-ses", is_flag=True, default=False,
               help="Deploy SES using rook in CaasP")
-def caasp4(deployment_id, deploy, **kwargs):
+def caasp4(deployment_id, **kwargs):
     """
     Creates a CaaSP cluster using SLES 15 SP2
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
     deployment_id = _maybe_gen_dep_id('caasp4', deployment_id, settings_dict)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -999,7 +1005,7 @@ def caasp4(deployment_id, deploy, **kwargs):
               help="Stop before running install-deps.sh")
 @click.option("--stop-before-run-make-check", is_flag=True, default=False,
               help="Stop before running run-make-check.sh")
-def makecheck(deployment_id, deploy, **kwargs):
+def makecheck(deployment_id, **kwargs):
     """
     Brings up a single VM and clones a Ceph repo/branch which can either be
     specified explicitly on the command line or, failing that, will default to
@@ -1012,7 +1018,7 @@ def makecheck(deployment_id, deploy, **kwargs):
         os = settings_dict['os'] if 'os' in settings_dict else 'tumbleweed'
         safe_os = os.replace('_', '-').replace('.', '-')
         deployment_id = 'makecheck-{}'.format(safe_os)
-    _create_command(deployment_id, deploy, settings_dict)
+    _create_command(deployment_id, settings_dict)
 
 
 def _is_a_glob(a_string):

@@ -463,6 +463,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deepsea_git_repo': self.settings.deepsea_git_repo,
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
+            'provision': self.settings.provision,
             'deploy_salt': bool(self.settings.version != 'makecheck' and
                                 self.settings.version != 'caasp4' and
                                 not self.suma and

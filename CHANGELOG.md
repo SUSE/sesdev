@@ -7,6 +7,9 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Removed
+- replace --deploy/--no-deploy option with --provision/--no-provision (PR #490)
+
 ## [1.7.0] - 2020-09-13
 
 ### Added

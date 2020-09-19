@@ -25,13 +25,6 @@ echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/host
 {% endif %}
 {% endfor %}
 
-# if --ssd option was given, set rotational flag on first additional disk
-{% if ssd %}
-if [ -f /sys/block/vdb/queue/rotational ] ; then
-    echo "0" > /sys/block/vdb/queue/rotational
-fi
-{% endif %} {# ssd #}
-
 # distribute SSH keys
 cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
 [ ! -e "/root/.ssh" ] && mkdir /root/.ssh
@@ -54,6 +47,19 @@ hostnamectl set-hostname {{ node.name }}
 sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf
 systemctl restart systemd-journald
 
+{% if not provision %}
+set +x
+echo "Stopping the deployment now because the --no-provision option was given"
+exit 0
+{% endif %} {# not provision #}
+
+# if --ssd option was given, set rotational flag on first additional disk
+{% if ssd %}
+if [ -f /sys/block/vdb/queue/rotational ] ; then
+    echo "0" > /sys/block/vdb/queue/rotational
+fi
+{% endif %} {# ssd #}
+
 {% if package_manager == 'zypper' %}
 {% include "zypper.j2" ignore missing %}
 {% elif package_manager == 'apt' %}
@@ -62,7 +68,7 @@ systemctl restart systemd-journald
 {% include "yum.j2" ignore missing %}
 {% elif package_manager == 'dnf' %}
 {% include "dnf.j2" ignore missing %}
-{% endif %} {# package_manager #}
+{% endif %} {# package_manager == 'zypper' #}
 
 # sync clocks if needed
 {% include "sync_clocks.j2" %}
