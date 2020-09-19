@@ -483,6 +483,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'grafana_node_list': ','.join(self.nodes_with_role["grafana"]),
             'alertmanager_nodes': self.node_counts["alertmanager"],
             'alertmanager_node_list': ','.join(self.nodes_with_role["alertmanager"]),
+            'node_exporter_nodes': self.node_counts["node-exporter"],
+            'node_exporter_node_list': ','.join(self.nodes_with_role["node-exporter"]),
             'nfs_nodes': self.node_counts["nfs"],
             'nfs_node_list': ','.join(self.nodes_with_role["nfs"]),
             'igw_nodes': self.node_counts["igw"],

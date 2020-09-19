@@ -301,6 +301,21 @@ placement:
 EOF
 {% endif %} {# alertmanager_nodes > 0 #}
 
+{% if node_exporter_nodes > 0 %}
+cat >> {{ service_spec_gw }} << 'EOF'
+---
+service_type: node-exporter
+service_id: node-exporter
+placement:
+    hosts:
+{% for node in nodes %}
+{% if node.has_role('node-exporter') %}
+        - '{{ node.name }}'
+{% endif %}
+{% endfor %}
+EOF
+{% endif %} {# node_exporter_nodes > 0 #}
+
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
 

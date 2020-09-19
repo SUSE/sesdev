@@ -29,7 +29,7 @@ SUCCESS="yes"
 for role in $ROLES_OF_THIS_NODE ; do
     REGEX=""
     [ "$role" = "storage" ] && role="osd"
-    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ] || [ "$role" = "prometheus" ] || [ "$role" = "grafana" ] || [ "$role" = "alertmanager" ] ; then
+    if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] || [ "$role" = "rgw" ] || [ "$role" = "nfs" ] || [ "$role" = "igw" ] || [ "$role" = "prometheus" ] || [ "$role" = "grafana" ] || [ "$role" = "alertmanager" ] || [ "$role" = "node-exporter" ] ; then
         if [ "$role" = "mon" ] || [ "$role" = "mgr" ] || [ "$role" = "osd" ] || [ "$role" = "mds" ] ; then
             if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
                 REGEX="^ceph-$FSID@$role.+loaded active running"
@@ -75,6 +75,12 @@ for role in $ROLES_OF_THIS_NODE ; do
         elif [ "$role" = "alertmanager" ] ; then
             if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
                 REGEX="^ceph-$FSID@alertmanager.+loaded active running"
+            else
+                REGEX=""
+            fi
+        elif [ "$role" = "node-exporter" ] ; then
+            if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+                REGEX="^ceph-$FSID@node-exporter.+loaded active running"
             else
                 REGEX=""
             fi
