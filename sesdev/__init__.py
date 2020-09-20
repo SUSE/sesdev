@@ -19,6 +19,7 @@ from seslib.exceptions import \
                               BoxDoesNotExist, \
                               CmdException, \
                               DebugWithoutLogFileDoesNothing, \
+                              NodeDoesNotExist, \
                               NoExplicitRolesWithSingleNode, \
                               OptionFormatError, \
                               OptionNotSupportedInVersion, \
@@ -1168,73 +1169,23 @@ def link(dep_id_1, dep_id_2):
     click.echo("Have a nice day!")
 
 
-@click.option('--format', 'format_opt', type=str, default=None)
+@click.option('--format', 'format_opt', type=str, default=None,
+              help="Provide --format=json for JSON output")
 @cli.command(name='list')
-def list_deps(format_opt):
+def list_deps(**kwargs):
     """
-    Lists all the available deployments.
+    (DEPRECATED) replaced by 'sesdev status'
     """
-    p_table = None
-    deployments_list = []
-    deps = Deployment.list(True)
-    if deps:
-        Log.info("list_deps: Found deployments: {}".format(", ".join(d.dep_id for d in deps)))
-    else:
-        msg = "No deployments found"
-        Log.info("list_deps: {}".format(msg))
-        if format_opt in ['json']:
-            click.echo(json.dumps([], sort_keys=True, indent=4))
-        else:
-            click.echo(msg)
-        return None
-
-    def _status(nodes):
-        status = None
-        for node in nodes.values():
-            if status is None:
-                status = node.status
-            elif node.status == 'running' and status == 'not deployed':
-                status = 'partially deployed'
-            elif node.status == 'stopped' and status == 'running':
-                status = 'partially running'
-            elif node.status == 'suspended' and status == 'running':
-                status = 'partially running'
-            elif node.status == 'running' and status == 'stopped':
-                status = 'partially running'
-            elif node.status == 'running' and status == 'suspended':
-                status = 'partially running'
-        return status
-
-    if format_opt not in ['json']:
-        p_table = PrettyTable(["ID", "Version", "Status", "Nodes"])
-        p_table.align = "l"
-
-    for dep in deps:
-        Log.debug("_status: Looping over deployments ({})".format(dep.dep_id))
-        status = str(_status(dep.nodes))
-        Log.debug("_status: -> status: {}".format(status))
-        version = getattr(dep.settings, 'version', None)
-        Log.debug("_status: -> version: {}".format(version))
-        nodes = getattr(dep, 'nodes', None)
-        node_names = '(unknown)' if nodes is None else ', '.join(nodes)
-        Log.debug("_status: -> node_names: {}".format(node_names))
-        if format_opt in ['json']:
-            deployments_list.append({
-                "id": dep.dep_id,
-                "version": version,
-                "status": status,
-                "nodes": list(nodes),
-            })
-        else:
-            p_table.add_row([dep.dep_id, version, status, node_names])
+    format_opt = kwargs.get('format_opt', None)
     if format_opt in ['json']:
-        click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
+        Log.warning("Deprecated \"sesdev list\" was called with --format option")
     else:
-        deployment_word = "deployments" if len(deps) > 1 else "deployment"
-        click.echo("Found {} {}:".format(len(deps), deployment_word))
         click.echo()
-        click.echo(p_table)
+        click.echo("***************************************")
+        click.echo("DEPRECATED: USE \"sesdev status\" instead!")
+        click.echo("***************************************")
         click.echo()
+    _show_status_of_all_deployments(**kwargs)
 
 
 @cli.command(name='qa-test')
@@ -1386,6 +1337,141 @@ def ssh(deployment_id, node=None, command=None):
     if command:
         Log.info("Running SSH command on {}: {}".format(node_name, command))
     dep.ssh(node_name, command)
+
+
+@cli.command()
+@click.option('--format', 'format_opt', type=str, default=None,
+              help="Provide --format=json for JSON output")
+@click.argument('deployment_id', required=False)
+@click.argument('node', required=False)
+def status(**kwargs):
+    """
+    Without any arguments, lists all deployments and their current status.
+    When called with a deployment ID, lists the individual nodes of that
+    deployment, and their current status. When called with a deployment ID
+    and a node, displays the status of just that node.
+    """
+    deployment_id = kwargs.get('deployment_id')
+    node_opt = kwargs.get('node')
+    format_opt = kwargs.get('format_opt')
+    node_list = []
+    if deployment_id:
+        dep = Deployment.load(deployment_id)
+        node_found = False
+        if format_opt not in ['json']:
+            p_table = PrettyTable(["Node", "Status"])
+            p_table.align = "l"
+        for (node_name, node_obj) in dep.nodes.items():
+            if node_opt:
+                if node_name == node_opt:
+                    node_found = True
+                    if format_opt in ['json']:
+                        click.echo("\"{}\"".format(node_obj.status))
+                        return
+                    p_table.add_row([node_name, node_obj.status])
+            else:
+                if format_opt in ['json']:
+                    node_list.append({
+                        "name": node_name,
+                        "status": node_obj.status,
+                    })
+                else:
+                    p_table.add_row([node_name, node_obj.status])
+        if node_opt:
+            if node_found:
+                assert format_opt not in ['json'], \
+                    (
+                        "BADNESS: this code block should not have been reached. Report it "
+                        "as a bug! Bailing out!"
+                    )
+                click.echo()
+                click.echo("Current status of node \"{}\" in deployment \"{}\""
+                           .format(node_opt, deployment_id)
+                          )
+                click.echo()
+                click.echo(p_table)
+                click.echo()
+            else:
+                raise NodeDoesNotExist(node_opt, deployment_id)
+        else:
+            if format_opt in ['json']:
+                click.echo(json.dumps(node_list, sort_keys=True, indent=4))
+            else:
+                click.echo()
+                click.echo("Current status of the {} nodes of deployment \"{}\""
+                           .format(len(dep.nodes), deployment_id)
+                          )
+                click.echo()
+                click.echo(p_table)
+                click.echo()
+    else:
+        # bare "sesdev status" is synonymous with "sesdev list"
+        _show_status_of_all_deployments(format_opt=format_opt)
+
+
+def _show_status_of_all_deployments(**kwargs):
+    format_opt = kwargs.get('format_opt')
+    p_table = None
+    deployments_list = []
+    deps = Deployment.list(True)
+    if deps:
+        Log.info("list_deps: Found deployments: {}".format(", ".join(d.dep_id for d in deps)))
+    else:
+        msg = "No deployments found"
+        Log.info("list_deps: {}".format(msg))
+        if format_opt in ['json']:
+            click.echo(json.dumps([], sort_keys=True, indent=4))
+        else:
+            click.echo(msg)
+        return None
+
+    def _status(nodes):
+        status_str = None
+        for node in nodes.values():
+            if status_str is None:
+                status_str = node.status
+            elif node.status == 'running' and status_str == 'not deployed':
+                status_str = 'partially deployed'
+            elif node.status == 'stopped' and status_str == 'running':
+                status_str = 'partially running'
+            elif node.status == 'suspended' and status_str == 'running':
+                status_str = 'partially running'
+            elif node.status == 'running' and status_str == 'stopped':
+                status_str = 'partially running'
+            elif node.status == 'running' and status_str == 'suspended':
+                status_str = 'partially running'
+        return status_str
+
+    if format_opt not in ['json']:
+        p_table = PrettyTable(["ID", "Version", "Status", "Nodes"])
+        p_table.align = "l"
+
+    for dep in deps:
+        Log.debug("_status: Looping over deployments ({})".format(dep.dep_id))
+        status_str = str(_status(dep.nodes))
+        Log.debug("_status: -> status: {}".format(status_str))
+        version = getattr(dep.settings, 'version', None)
+        Log.debug("_status: -> version: {}".format(version))
+        nodes = getattr(dep, 'nodes', None)
+        node_names = '(unknown)' if nodes is None else ', '.join(nodes)
+        Log.debug("_status: -> node_names: {}".format(node_names))
+        if format_opt in ['json']:
+            deployments_list.append({
+                "id": dep.dep_id,
+                "version": version,
+                "status": status_str,
+                "nodes": list(nodes),
+            })
+        else:
+            p_table.add_row([dep.dep_id, version, status_str, node_names])
+    if format_opt in ['json']:
+        click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
+    else:
+        deployment_word = "deployments" if len(deps) > 1 else "deployment"
+        click.echo("Found {} {}:".format(len(deps), deployment_word))
+        click.echo()
+        click.echo(p_table)
+        click.echo()
 
 
 @cli.command()
