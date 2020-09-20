@@ -63,6 +63,7 @@ function usage {
     echo "    --ses5                   Run ses5 deployment tests"
     echo "    --ses6                   Run ses6 deployment tests"
     echo "    --ses7                   Run ses7 deployment tests"
+    echo "    --ubuntu-bionic          Run Ubuntu Bionic tests"
     echo
     exit 1
 }
@@ -127,7 +128,7 @@ function tunnel_gone {
 }
 
 TEMP=$(getopt -o h \
---long "help,caasp4,ceph-salt-branch:,ceph-salt-repo:,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7" \
+--long "help,caasp4,ceph-salt-branch:,ceph-salt-repo:,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7,ubuntu-bionic" \
 -n 'standalone.sh' -- "$@")
 set +e
 eval set -- "$TEMP"
@@ -147,6 +148,7 @@ SES5=""
 SES6=""
 SES7=""
 STOP_ON_FAILURE="not_empty"
+UBUNTU_BIONIC=""
 while true ; do
     case "$1" in
         --caasp4)                CAASP4="--caasp4" ; shift ;;
@@ -161,13 +163,14 @@ while true ; do
         --ses5)                  SES5="$1" ; shift ;;
         --ses6)                  SES6="$1" ; shift ;;
         --ses7)                  SES7="$1" ; shift ;;
+        --ubuntu-bionic)         UBUNTU_BIONIC="$1" ; shift ;;
         -h|--help)               usage ;; # does not return
         --) shift ; break ;;
         *) echo "Internal error" ; exit 1 ;;
     esac
 done
 
-if [ "$CAASP4" ] || [ "$FULL" ] || [ "$MAKECHECK" ] || [ "$NAUTILUS" ] || [ "$OCTOPUS" ] || [ "$PACIFIC" ] || [ "$SES5" ] || [ "$SES6" ] || [ "$SES7" ] ; then
+if [ "$CAASP4" ] || [ "$FULL" ] || [ "$MAKECHECK" ] || [ "$NAUTILUS" ] || [ "$OCTOPUS" ] || [ "$PACIFIC" ] || [ "$SES5" ] || [ "$SES6" ] || [ "$SES7" ] || [ "$UBUNTU_BIONIC" ] ; then
     NORMAL_OPERATION=""
 fi
 
@@ -175,6 +178,7 @@ if [ "$FULL" ] || [ "$NORMAL_OPERATION" ] ; then
     if [ "$FULL" ] ; then
         CAASP4="--caasp4"
         MAKECHECK="--makecheck"
+        UBUNTU_BIONIC="--ubuntu-bionic"
     fi
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
@@ -338,6 +342,18 @@ if [ "$PACIFIC" ] ; then
     run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
     run_cmd sesdev --verbose qa-test pacific-4node
     run_cmd sesdev --verbose destroy --non-interactive pacific-4node
+fi
+
+if [ "$UBUNTU_BIONIC" ] ; then
+    sesdev --verbose box remove --non-interactive ubuntu-bionic
+    run_cmd sesdev create octopus --os ubuntu-bionic --dry-run
+    run_cmd sesdev --verbose create octopus --non-interactive --os ubuntu-bionic --single-node ubuntu-mini
+    run_cmd sesdev --verbose destroy --non-interactive ubuntu-mini
+    run_cmd sesdev --verbose create octopus --non-interactive --os ubuntu-bionic --no-provision ubuntu1
+    run_cmd sesdev --verbose create octopus --non-interactive --os ubuntu-bionic --no-provision ubuntu2
+    run_cmd sesdev --verbose link ubuntu1 ubuntu2
+    run_cmd sesdev --verbose destroy --non-interactive ubuntu1
+    run_cmd sesdev --verbose destroy --non-interactive ubuntu2
 fi
 
 if [ "$MAKECHECK" ] ; then
