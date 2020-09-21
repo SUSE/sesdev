@@ -636,6 +636,10 @@ class Deployment():  # use Deployment.create() to create a Deployment object
 
     def _vagrant_up(self, node, log_handler):
         cmd = ["vagrant", "up"]
+        if self.existing:
+            cmd.extend(["--no-provision"])
+        else:
+            cmd.extend(["--provision"])
         if node is not None:
             cmd.append(node)
         if Constant.VAGRANT_DEBUG:

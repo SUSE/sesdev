@@ -1353,7 +1353,7 @@ def start(deployment_id, node=None):
         click.echo("Ignoring node advice because DEPLOYMENT_SPEC is a glob")
         node = None
     for dep in matching_deployments:
-        dep.start(_print_log, node)
+        dep.start(_print_log, node=node)
         click.echo("Deployment {} started!".format(dep.dep_id))
 
 
