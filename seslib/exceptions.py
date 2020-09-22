@@ -148,6 +148,14 @@ class NoExplicitRolesWithSingleNode(SesDevException):
         )
 
 
+class NoNodeWithRole(SesDevException):
+    def __init__(self, deployment_id, role):
+        super().__init__(
+            "Deployment '{}' has no node with role '{}'"
+            .format(deployment_id, role)
+        )
+
+
 class NoPrometheusGrafanaInSES5(SesDevException):
     def __init__(self):
         super().__init__(
@@ -195,6 +203,15 @@ class OptionFormatError(SesDevException):
         super().__init__(
             "Wrong format for option '{}': expected format: '{}', actual format: '{}'"
             .format(option, expected_type, value)
+        )
+
+
+class OptionNotSupportedInContext(SesDevException):
+    def __init__(self, option):
+        super().__init__(
+            "Option '{}' not supported in this context. Open a bug report if "
+            "you need this functionality."
+            .format(option)
         )
 
 
@@ -340,4 +357,11 @@ class UnsupportedVMEngine(SesDevException):
         super().__init__(
             "Unsupported VM engine ->{}<- encountered. This is a bug: please "
             "report it to the maintainers".format(engine)
+        )
+
+
+class YouMustProvide(SesDevException):
+    def __init__(self, what):
+        super().__init__(
+            "You must provide {}".format(what)
         )
