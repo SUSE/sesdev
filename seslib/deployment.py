@@ -85,6 +85,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.nodes = {}
         self.node_counts = {}
         self.nodes_with_role = {}
+        self.public_network_segment = "{}0/24".format(self.settings.public_network)
         self.roles_of_nodes = {}
         for role in Constant.ROLES_KNOWN:
             self.node_counts[role] = 0
@@ -95,21 +96,21 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.vagrant_box = None
         self.box = Box(settings)
         self.bootstrap_mon_ip = None
-        self._populate_roles()
-        self._count_roles()
-        self._populate_os()
-        self._populate_deployment_tool()
-        self._populate_image_path()
+        self.__populate_roles()
+        self.__count_roles()
+        self.__populate_os()
+        self.__populate_deployment_tool()
+        self.__populate_image_path()
         if not self.settings.libvirt_networks and not existing:
-            self._generate_static_networks()
+            self.__generate_static_networks()
         if self.settings.version in ['makecheck']:
-            self._set_up_make_check()
-        self._maybe_tweak_roles()
-        self._maybe_adjust_num_disks()
-        self._generate_nodes()
+            self.__set_up_make_check()
+        self.__maybe_tweak_roles()
+        self.__maybe_adjust_num_disks()
+        self.__generate_nodes()
         self.node_list = ','.join(self.nodes.keys())
 
-    def _populate_roles(self):
+    def __populate_roles(self):
         if self.settings.roles:
             pass
         else:
@@ -117,7 +118,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                                    self.settings.version_default_roles[self.settings.version]
                                    )
 
-    def _count_roles(self):
+    def __count_roles(self):
         for node_roles in self.settings.roles:  # loop once for every node in cluster
             for role in node_roles:
                 if role not in Constant.ROLES_KNOWN:
@@ -126,22 +127,22 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 if role_type in node_roles:
                     self.node_counts[role_type] += 1
 
-    def _populate_os(self):
+    def __populate_os(self):
         if not self.settings.os:
             self.settings.os = Constant.VERSION_PREFERRED_OS[self.settings.version]
 
-    def _populate_deployment_tool(self):
+    def __populate_deployment_tool(self):
         if not self.settings.deployment_tool \
                 and self.settings.version not in ['caasp4', 'makecheck']:
             self.settings.deployment_tool = \
                 Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
-    def _populate_image_path(self):
+    def __populate_image_path(self):
         if self.settings.deployment_tool == 'cephadm':
             if not self.settings.image_path:
                 self.settings.image_path = self.settings.image_paths[self.settings.version]
 
-    def _set_up_make_check(self):
+    def __set_up_make_check(self):
         self.settings.override('single_node', True)
         self.settings.override('roles', Constant.ROLES_DEFAULT_BY_VERSION['makecheck'])
         if not self.settings.explicit_num_disks:
@@ -161,7 +162,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 Constant.MAKECHECK_DEFAULT_REPO_BRANCH[self.settings.os]['branch']
             )
 
-    def _maybe_tweak_roles(self):
+    def __maybe_tweak_roles(self):
         if self.settings.version in Constant.CORE_VERSIONS:
             if self.node_counts['master'] == 0:
                 self.settings.roles[0].append('master')
@@ -174,7 +175,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                         self.node_counts['bootstrap'] = 1
                         break
 
-    def _maybe_adjust_num_disks(self):
+    def __maybe_adjust_num_disks(self):
         single_node = self.settings.single_node or len(self.settings.roles) == 1
         storage_nodes = self.node_counts["storage"]
         if self.settings.version in ['caasp4'] and self.settings.caasp_deploy_ses:
@@ -182,7 +183,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 storage_nodes = 1
             else:
                 storage_nodes = self.node_counts["worker"]
-        Log.debug("_generate_nodes: storage_nodes == {}".format(storage_nodes))
+        Log.debug("__maybe_adjust_num_disks: storage_nodes == {}".format(storage_nodes))
         if not self.settings.explicit_num_disks and storage_nodes:
             new_num_disks = None
             if storage_nodes == 1:
@@ -213,7 +214,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 return True
         return False
 
-    def _generate_static_networks(self):
+    def __generate_static_networks(self):
         if self._needs_cluster_network() and self.settings.public_network \
                 and self.settings.cluster_network:
             return
@@ -231,6 +232,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             else:
                 break
         self.settings.public_network = public_network
+        self.public_network_segment = "{}0/24".format(public_network)
 
         if self._needs_cluster_network():
             existing_networks = [dep.settings.cluster_network for dep in deps
@@ -244,12 +246,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                     break
             self.settings.cluster_network = cluster_network
 
-    def _generate_nodes(self):
+    def __generate_nodes(self):
         node_id = 0
         worker_id = 0
         loadbl_id = 0
         nfs_id = 0
-        Log.debug("_generate_nodes: about to process cluster roles: {}"
+        Log.debug("__generate_nodes: about to process cluster roles: {}"
                   .format(self.settings.roles))
 
         for node_roles in self.settings.roles:  # loop once for every node in cluster
@@ -1010,6 +1012,7 @@ deployment might not be completely destroyed.
                 " -o 'StrictHostKeyChecking no'"
                 " -o 'UserKnownHostsFile /dev/null'"
                 " -o 'PasswordAuthentication no'"
+                " -o 'LogLevel=ERROR'"
             )
         else:
             retval = [
@@ -1017,6 +1020,7 @@ deployment might not be completely destroyed.
                 "-o", "StrictHostKeyChecking no",
                 "-o", "UserKnownHostsFile /dev/null",
                 "-o", "PasswordAuthentication no",
+                "-o", "LogLevel ERROR",
             ]
         return retval
 
@@ -1032,10 +1036,17 @@ deployment might not be completely destroyed.
             _cmd.extend(["-o", "ProxyCommand={}".format(proxycmd)])
         if command:
             _cmd.extend(command)
+        Log.info("_ssh_cmd: {}".format(_cmd))
         return _cmd
 
     def ssh(self, name, command):
         return tools.run_interactive(self._ssh_cmd(name, command))
+
+    def sync_ssh(self, name, command):
+        return tools.run_sync(
+            self._ssh_cmd(name, command),
+            self._dep_dir
+        )
 
     def _scp_cmd(self, source, destination, recurse=False):
         (host_is_source,
