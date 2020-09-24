@@ -40,7 +40,6 @@ EOF
 cat >> {{ service_spec_core }} << 'EOF'
 ---
 service_type: osd
-service_id: sesdev_osd_deployment
 placement:
     hosts:
 {% for node in nodes %}
