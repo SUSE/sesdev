@@ -356,9 +356,9 @@ def remove_box(box_name, **kwargs):
     box_obj = Box(settings)
     #
     # determine which box(es) are to be removed
-    remove_all_boxes = kwargs.get('all_boxes', False)
     boxes_to_remove = None
-    if remove_all_boxes:
+    # pylint: disable=E1101
+    if settings.all_boxes:
         boxes_to_remove = box_obj.printable_list()
     else:
         if box_name:
@@ -460,19 +460,21 @@ def create():
     """
 
 
-def _gen_box_settings_dict(libvirt_host,
-                           libvirt_user,
-                           libvirt_private_key_file,
-                           libvirt_storage_pool,
-                           libvirt_networks,
+# pylint: disable=W0622
+def _gen_box_settings_dict(libvirt_host=None,
+                           libvirt_user=None,
+                           libvirt_private_key_file=None,
+                           libvirt_storage_pool=None,
+                           libvirt_networks=None,
                            all_boxes=None,
+                           all=None,
                            non_interactive=None,
                            force=None,
                            ):
     settings_dict = {}
 
-    if all_boxes:
-        pass
+    if all_boxes or all:
+        settings_dict['all_boxes'] = True
 
     if non_interactive or force:
         settings_dict['non_interactive'] = True
@@ -497,6 +499,7 @@ def _gen_box_settings_dict(libvirt_host,
 
 def _gen_settings_dict(
         version,
+        all_boxes=None,
         bluestore=None,
         ceph_branch=None,
         ceph_repo=None,
@@ -568,6 +571,9 @@ def _gen_settings_dict(
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
+
+    if all_boxes is not None:
+        settings_dict['all_boxes'] = all_boxes
 
     if single_node is not None:
         settings_dict['single_node'] = single_node

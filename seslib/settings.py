@@ -10,6 +10,11 @@ from .log import Log
 
 SETTINGS = {
     # RESERVED KEY, DO NOT USE: 'strict'
+    'all_boxes': {
+        'type': bool,
+        'help': 'Whether all boxes should be operated upon',
+        'default': False,
+    },
     'caasp_deploy_ses': {
         'type': bool,
         'help': 'Deploy SES using rook in CaasP',
