@@ -192,7 +192,7 @@ pipeline {
                     sh """
                         source venv/bin/activate
                         sesdev --version
-                        sesdev list
+                        sesdev status
                         sesdev qa-test mini
                     """
                 }

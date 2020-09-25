@@ -112,9 +112,10 @@ class MultipleRolesPerMachineNotAllowedInCaaSP(SesDevException):
 
 
 class NodeDoesNotExist(SesDevException):
-    def __init__(self, node):
+    def __init__(self, node, deployment_id):
         super().__init__(
-            "Node '{}' does not exist in this deployment".format(node)
+            "No such node '{}' in deployment '{}'"
+            .format(node, deployment_id)
         )
 
 

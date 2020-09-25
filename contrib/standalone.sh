@@ -68,6 +68,16 @@ function usage {
     exit 1
 }
 
+function expect_fail {
+    "$@" 
+    exit_status="$1"
+    if [ "$exit_status" = "0" ] ; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 function run_cmd {
     local exit_status
     local timestamp
@@ -205,10 +215,10 @@ if [ "$CEPH_SALT_BRANCH" ] || [ "$CEPH_SALT_REPO" ] ; then
     CEPH_SALT_OPTIONS+=( "--ceph-salt-branch" "$CEPH_SALT_BRANCH" )
 fi
 
-if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
-    echo "ERROR: detected existing deployments"
-    echo "(This script expects a clean environment -- i.e., \"sesdev list\" must be empty)"
-    exit 1
+if [ "$(sesdev status --format json | jq -r '. | length')" != "0" ] ; then
+     echo "ERROR: detected existing deployments"
+     echo "(This script expects a clean environment -- i.e., \"sesdev status\" must be empty)"
+     exit 1
 fi
 
 if [ -f "$CONFIG_YAML" ] || [ ! -s "$CONFIG_YAML" ] ; then
@@ -303,7 +313,9 @@ if [ "$OCTOPUS" ] ; then
     run_cmd sesdev --verbose destroy --non-interactive octopus-1node
     run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
     run_cmd sesdev --verbose qa-test octopus-4node
+    run_cmd sesdev status octopus-4node
     run_cmd sesdev --verbose destroy --non-interactive octopus-4node
+    run_cmd expect_fail sesdev status octopus-4node
 fi
 
 if [ "$SES7" ] ; then
@@ -367,7 +379,9 @@ if [ "$MAKECHECK" ] ; then
     run_cmd sesdev --verbose create makecheck --non-interactive --os sles-15-sp1 --stop-before-run-make-check --ram 4
     run_cmd sesdev --verbose destroy --non-interactive makecheck-sles-15-sp1
     run_cmd sesdev --verbose create makecheck --non-interactive --os sles-15-sp2 --stop-before-run-make-check --ram 4
+    run_cmd sesdev status makecheck-sles-15-sp2
     run_cmd sesdev --verbose destroy --non-interactive makecheck-sles-15-sp2
+    run_cmd expect_fail sesdev status makecheck-sles-15-sp2
 fi
 
 if [ "$CAASP4" ] ; then
@@ -381,7 +395,7 @@ if [ "$CAASP4" ] ; then
     run_cmd sesdev --verbose destroy --non-interactive caasp4-mini
 fi
 
-if [ "$(sesdev list --format json | jq -r '. | length')" != "0" ] ; then
+if [ "$(sesdev status --format json | jq -r '. | length')" != "0" ] ; then
     echo "ERROR: dangling deployments detected"
     echo "(One or more deployments created by this script were not destroyed)"
     exit 1

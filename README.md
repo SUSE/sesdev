@@ -65,6 +65,11 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [With wire encryption](#with-wire-encryption)
       * [Deploying non-SUSE environments](#deploying-non-suse-environments)
          * [Ubuntu "Bionic Beaver" 18.04](#ubuntu-bionic-beaver-1804)
+      * [Introspect existing deployments](#introspect-existing-deployments)
+         * [List all existing deployments and their overall status](#list-all-existing-deployments-and-their-overall-status)
+         * [Get status of individual nodes in an existing deployment](#get-status-of-individual-nodes-in-an-existing-deployment)
+         * [Show details of an existing deployment](#show-details-of-an-existing-deployment)
+         * [Show roles of nodes in an existing deployment](#show-roles-of-nodes-in-an-existing-deployment)
    * [List existing deployments](#list-existing-deployments)
    * [SSH access to a cluster](#ssh-access-to-a-cluster)
    * [Copy files into and out of a cluster](#copy-files-into-and-out-of-a-cluster)
@@ -796,10 +801,30 @@ This will create Ubuntu 18.04 VMs and bootstrap a Ceph Octopus cluster on them
 using `cephadm bootstrap`. To stop the deployment before bootstrap, give the
 `--stop-before-cephadm-bootstrap` option.
 
-### List existing deployments
+### Introspect existing deployments
+
+#### List all existing deployments and their overall status
 
 ```
-$ sesdev list
+$ sesdev status
+```
+
+#### Get status of individual nodes in an existing deployment
+
+```
+$ sesdev status <deployment_id> [NODE]
+```
+
+#### Show details of a single existing deployment
+
+```
+$ sesdev show --detail <deployment_id>
+```
+
+#### Show roles of nodes in an existing deployment
+
+```
+$ sesdev show --detail <deployment_id>
 ```
 
 ### SSH access to a cluster

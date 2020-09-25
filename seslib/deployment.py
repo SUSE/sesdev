@@ -746,7 +746,7 @@ deployment might not be completely destroyed.
 
     def stop(self, log_handler, node=None):
         if node and node not in self.nodes:
-            raise NodeDoesNotExist(node)
+            raise NodeDoesNotExist(node, self.dep_id)
         if node:
             log_handler("Stopping node {} of deployment {}\n".format(node, self.dep_id))
             self._stop(node)
@@ -757,7 +757,7 @@ deployment might not be completely destroyed.
 
     def start(self, log_handler, node=None):
         if node and node not in self.nodes:
-            raise NodeDoesNotExist(node)
+            raise NodeDoesNotExist(node, self.dep_id)
         if not self.existing:
             assert self.vagrant_box is not None, "vagrant_box is set to None!"
         self._vagrant_up(node, log_handler)
@@ -951,7 +951,7 @@ deployment might not be completely destroyed.
 
     def _vagrant_ssh_config(self, name):
         if name not in self.nodes:
-            raise NodeDoesNotExist(name)
+            raise NodeDoesNotExist(name, self.dep_id)
 
         cmd = ["vagrant", "ssh-config", name]
         out = tools.run_sync(cmd, cwd=self._dep_dir)
@@ -1248,7 +1248,7 @@ deployment might not be completely destroyed.
                 service_url = 'http://{}:{}'.format(local_address, local_port)
         else:
             if node not in self.nodes:
-                raise NodeDoesNotExist(node)
+                raise NodeDoesNotExist(node, self.dep_id)
             if remote_port is None:
                 raise NoSourcePortForPortForwarding()
             if local_port is None:
