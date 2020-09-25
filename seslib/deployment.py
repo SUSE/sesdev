@@ -85,7 +85,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.nodes = {}
         self.node_counts = {}
         self.nodes_with_role = {}
-        self.public_network_segment = "{}0/24".format(self.settings.public_network)
+        self.public_network_segment = "{}0/24".format(self.settings.public_network) \
+            if self.settings.public_network else None
         self.roles_of_nodes = {}
         for role in Constant.ROLES_KNOWN:
             self.node_counts[role] = 0
@@ -531,7 +532,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 self.settings.makecheck_stop_before_run_make_check,
             'ssd': self.settings.ssd,
             'reasonable_timeout_in_seconds': Constant.REASONABLE_TIMEOUT_IN_SECONDS,
-            'public_network': "{}0/24".format(self.settings.public_network),
+            'public_network': self.public_network_segment,
             'bootstrap_mon_ip': self.bootstrap_mon_ip,
             'msgr2_secure_mode': self.settings.msgr2_secure_mode,
             'msgr2_prefer_secure': self.settings.msgr2_prefer_secure,
