@@ -449,6 +449,23 @@ function maybe_wait_for_igws_test {
     fi
 }
 
+function maybe_wait_for_grafanas_test {
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+        local expected_grafanas="$1"
+        echo
+        echo "WWWW: maybe_wait_for_grafanas_test"
+        if [ "$expected_grafanas" -gt "0" ] ; then
+            _wait_for grafana "$expected_grafanas"
+            echo "WWWW: maybe_wait_for_grafanas_test: OK"
+            echo
+        else
+            echo "No Grafanas expected: nothing to wait for."
+            echo "WWWW: maybe_wait_for_grafanas_test: SKIPPED"
+            echo
+        fi
+    fi
+}
+
 function mgr_is_available_test {
     echo
     echo "WWWW: mgr_is_available_test"

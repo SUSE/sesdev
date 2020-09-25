@@ -187,11 +187,12 @@ ceph_daemon_versions_test "$STRICT_VERSIONS"
 
 # wait for deployed daemons to show up and cluster to reach HEALTH_OK
 mgr_is_available_test
-maybe_wait_for_osd_nodes_test "$OSD_NODES"  # it might take a long time for OSD nodes to show up
-maybe_wait_for_mdss_test "$MDS_NODES"  # it might take a long time for MDSs to be ready
-maybe_wait_for_rgws_test "$RGW_NODES"  # it might take a long time for RGWs to be ready
-maybe_wait_for_nfss_test "$NFS_NODES"  # it might take a long time for NFSs to be ready
-maybe_wait_for_igws_test "$IGW_NODES"  # it might take a long time for NFSs to be ready
+maybe_wait_for_osd_nodes_test "$OSD_NODES"
+maybe_wait_for_mdss_test "$MDS_NODES"
+maybe_wait_for_rgws_test "$RGW_NODES"
+maybe_wait_for_nfss_test "$NFS_NODES"
+maybe_wait_for_igws_test "$IGW_NODES"
+maybe_wait_for_grafanas_test "$GRAFANA_NODES"
 ceph_health_test
 
 # check that OSDs have the expected objectstore
