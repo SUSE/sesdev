@@ -239,14 +239,6 @@ class ProductOptionOnlyOnSES(SesDevException):
         )
 
 
-class RemoveBoxNeedsBoxNameOrAllOption(SesDevException):
-    def __init__(self):
-        super().__init__(
-            "Either provide the name of a box to be removed or the --all option "
-            "to remove all boxes at once"
-            )
-
-
 class RoleNotKnown(SesDevException):
     def __init__(self, role):
         super().__init__(
