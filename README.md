@@ -803,6 +803,11 @@ using `cephadm bootstrap`. To stop the deployment before bootstrap, give the
 
 ### Introspect existing deployments
 
+Please note that the `sesdev status` and `sesdev show` commands take
+a `--format` option, which can be used to make the command produce JSON output
+(easily parsable by computer programs) as opposed to the default format
+(intended to be read by humans).
+
 #### List all existing deployments and their overall status
 
 ```
@@ -815,6 +820,18 @@ $ sesdev status
 $ sesdev status <deployment_id> [NODE]
 ```
 
+For example, if I want to see the status of all nodes in deployment "foo":
+
+```
+$ sesdev status foo
+```
+
+If I want to see the status of just one node3 in deployment "foo":
+
+```
+$ sesdev status foo node3
+```
+
 #### Show details of a single existing deployment
 
 ```
@@ -823,8 +840,17 @@ $ sesdev show --detail <deployment_id>
 
 #### Show roles of nodes in an existing deployment
 
+The following command provides all details of a deployment, including the roles
+of all nodes:
+
 ```
 $ sesdev show --detail <deployment_id>
+```
+
+If you need to find which node of a deployment contains role "foo", try this:
+
+```
+$ sesdev show --nodes-with-role=<role> <deployment_id>
 ```
 
 ### SSH access to a cluster

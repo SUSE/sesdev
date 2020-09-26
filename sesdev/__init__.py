@@ -21,11 +21,14 @@ from seslib.exceptions import \
                               DebugWithoutLogFileDoesNothing, \
                               NodeDoesNotExist, \
                               NoExplicitRolesWithSingleNode, \
+                              NoNodeWithRole, \
                               OptionFormatError, \
+                              OptionNotSupportedInContext, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
                               RemoveBoxNeedsBoxNameOrAllOption, \
-                              VersionNotKnown
+                              VersionNotKnown, \
+                              YouMustProvide
 from seslib.log import Log
 from seslib.settings import Settings
 from seslib import tools
@@ -1306,6 +1309,10 @@ def scp(recursive, deployment_id, source, destination):
 @cli.command()
 @click.option('--detail/--no-detail', is_flag=True, default=False,
               help='Display details of each VM in additional to deployment-wide configuration')
+@click.option('--format', 'format_opt', type=str, default=None,
+              help="Provide --format=json for JSON output")
+@click.option('--nodes-with-role', default=None, type=str,
+              help='Display details of each VM in additional to deployment-wide configuration')
 @click.argument('deployment_id')
 def show(deployment_id, **kwargs):
     """
@@ -1314,8 +1321,35 @@ def show(deployment_id, **kwargs):
     whether they are really sure they want to create the cluster). Use "--detail"
     to get information on individual VMs in the deployment.
     """
+    format_opt = kwargs.get('format_opt', None)
+    nodes_with_role_option = kwargs.get('nodes_with_role', None)
+    if nodes_with_role_option:
+        role_in_question = nodes_with_role_option
+        if not role_in_question:
+            raise YouMustProvide("a role")
     dep = Deployment.load(deployment_id)
-    click.echo(dep.configuration_report(show_individual_vms=kwargs['detail']))
+    if nodes_with_role_option:
+        if format_opt in ['json']:
+            retval = dep.nodes_with_role.get(role_in_question, [])
+            click.echo(json.dumps(retval, sort_keys=True, indent=4))
+        else:
+            if role_in_question in dep.nodes_with_role:
+                multiple_nodes = len(dep.nodes_with_role[role_in_question]) > 1
+                retval = ",".join(dep.nodes_with_role[role_in_question])
+                if multiple_nodes:
+                    click.echo("In deployment '{}', nodes {} have role '{}'"
+                               .format(dep.dep_id, retval, role_in_question)
+                              )
+                else:
+                    click.echo("In deployment '{}', node {} has role '{}'"
+                               .format(dep.dep_id, retval, role_in_question)
+                              )
+            else:
+                raise NoNodeWithRole(dep.dep_id, role_in_question)
+    else:
+        if format_opt in ['json']:
+            raise OptionNotSupportedInContext('--format=json')
+        click.echo(dep.configuration_report(show_individual_vms=kwargs['detail']))
 
 
 @cli.command()

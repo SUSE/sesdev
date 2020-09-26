@@ -323,6 +323,9 @@ if [ "$SES7" ] ; then
     # dry run
     run_cmd sesdev create ses7 --dry-run
     run_cmd sesdev --verbose create ses7 --non-interactive --roles "[admin,master,bootstrap,storage,mon,mgr]" ses7-mini
+    run_cmd sesdev --verbose show ses7-mini
+    run_cmd sesdev --verbose show --detail ses7-mini
+    run_cmd test "$(sesdev show ses7-mini --format json --nodes-with-role bootstrap | jq -r '.[0]')" = "master"
     run_cmd sesdev --verbose qa-test ses7-mini
     run_cmd sesdev --verbose destroy --non-interactive ses7-mini
     run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node ses7-1node
