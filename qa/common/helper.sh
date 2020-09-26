@@ -48,7 +48,7 @@ function _grace_period {
     local counter
     counter="$2"
     if [ "$counter" ] ; then
-        echo "${SECONDS}-second grace period ($counter)"
+        echo "${SECONDS}-second grace period: $counter"
     else
         echo "${SECONDS}-second grace period"
     fi
