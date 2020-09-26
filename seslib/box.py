@@ -136,15 +136,22 @@ class Box():
         self.libvirt_conn = libvirt.open(self.libvirt_uri)
         return None
 
-    def printable_list(self):
+    def printable_list(self, **kwargs):
         box_list = []
+        simple_list = kwargs.get('simple', None)
+        Log.info("printable_list: simple_list: {}".format(simple_list))
         for box in self.boxes:
+            what_to_append = ''
             alias = ''
             if box in Constant.OS_ALIASED_BOXES:
-                alias = '(alias: {})'.format(self.humanize_box_name(box))
-                box_list.append('{} {}'.format(box, alias))
+                if simple_list:
+                    what_to_append = box
+                else:
+                    alias = '(alias: {})'.format(self.humanize_box_name(box))
+                    what_to_append = '{} {}'.format(box, alias)
             else:
-                box_list.append('{}'.format(self.humanize_box_name(box)))
+                what_to_append = box
+            box_list.append('{}'.format(what_to_append))
         return box_list
 
     def remove_image(self, image_name):

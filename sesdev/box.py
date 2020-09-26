@@ -21,12 +21,10 @@ def box_list_handler(box_name, **kwargs):
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
-    list_lines = box_obj.printable_list()
+    list_lines = box_obj.printable_list(simple=True)
     if list_lines:
-        click.echo("List of all Vagrant Boxes installed in the system")
-        click.echo("-------------------------------------------------")
-    for line in list_lines:
-        click.echo(line)
+        for line in list_lines:
+            click.echo(line)
 
 
 def box_remove_handler(box_name, **kwargs):
