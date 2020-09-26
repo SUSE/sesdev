@@ -16,16 +16,17 @@ def _singular_or_plural(an_iterable):
     return "Vagrant Boxes"
 
 
-def box_list_handler(**kwargs):
+def box_list_handler(box_name, **kwargs):
+    Log.debug("box_list_handler: called with box_name ->{}<-".format(box_name))
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
-    box_names = box_obj.printable_list()
-    if box_names:
+    list_lines = box_obj.printable_list()
+    if list_lines:
         click.echo("List of all Vagrant Boxes installed in the system")
         click.echo("-------------------------------------------------")
-    for box_name in box_names:
-        click.echo(box_name)
+    for line in list_lines:
+        click.echo(line)
 
 
 def box_remove_handler(box_name, **kwargs):
