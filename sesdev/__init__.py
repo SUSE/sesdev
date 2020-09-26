@@ -857,17 +857,9 @@ def makecheck(deployment_id, **kwargs):
     _create_command(deployment_id, settings_dict)
 
 
-def _is_a_glob(a_string):
-    """
-    Return True or False depending on whether a_string appears to be a glob
-    """
-    pattern = re.compile(r'[\*\[\]\{\}\?]')
-    return bool(pattern.search(a_string))
-
-
 def _maybe_glob_deps(deployment_id):
     matching_deployments = None
-    if _is_a_glob(deployment_id):
+    if tools.is_a_glob(deployment_id):
         deps = Deployment.list(True)
         dep_ids = [d.dep_id for d in deps]
         matching_dep_ids = fnmatch.filter(dep_ids, deployment_id)
@@ -918,12 +910,13 @@ def box():
 
 
 @box.command(name='list')
+@click.argument('box_name', required=False)
 @libvirt_options
-def list_boxes(**kwargs):
+def list_boxes(box_name, **kwargs):
     """
     List all Vagrant Boxes installed in the system.
     """
-    box_list_handler(**kwargs)
+    box_list_handler(box_name, **kwargs)
 
 
 @box.command(name='remove')
