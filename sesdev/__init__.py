@@ -26,7 +26,6 @@ from seslib.exceptions import \
                               OptionNotSupportedInContext, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
-                              RemoveBoxNeedsBoxNameOrAllOption, \
                               VersionNotKnown, \
                               YouMustProvide
 from seslib.log import Log
@@ -914,25 +913,28 @@ def box():
 @libvirt_options
 def list_boxes(box_name, **kwargs):
     """
-    List all Vagrant Boxes installed in the system.
+    List Vagrant Boxes installed in the system.
+
+    When no argument is provided, lists all boxes. The optional argument can be
+    either a literal box name, a box alias, or a glob (globs match against
+    literal box names, only).
     """
     box_list_handler(box_name, **kwargs)
 
 
 @box.command(name='remove')
-@click.argument('box_name', required=False)
+@click.argument('box_name')
 @libvirt_options
 @click.option('--non-interactive', '-n', '--force', '-f',
               is_flag=True,
               help='Allow to remove Vagrant Box(es) without user confirmation',
              )
-@click.option('--all-boxes', '--all', is_flag=True, help='Remove all Vagrant Boxes in the system')
 def remove_box(box_name, **kwargs):
     """
-    Remove a Vagrant Box installed in the system by sesdev.
+    Remove one or more Vagrant Boxes that were installed in the system by sesdev.
 
-    This involves first removing the corresponding image from the libvirt
-    storage pool, and then running 'vagrant box remove' on it.
+    Takes one mandatory argument, which can be either a literal box name, a box
+    alias, or a glob (globs match against literal box names, only).
     """
     box_remove_handler(box_name, **kwargs)
 

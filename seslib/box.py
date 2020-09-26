@@ -1,3 +1,4 @@
+import fnmatch
 import os
 from xml.dom import minidom
 import libvirt
@@ -5,6 +6,7 @@ import libvirt
 from . import tools
 from .constant import Constant
 from .log import Log
+from .tools import is_a_glob
 
 
 class Box():
@@ -123,10 +125,44 @@ class Box():
         return list(networks)
 
     @staticmethod
+    def dehumanize_box_name(box_name):
+        if box_name in Constant.OS_BOX_ALIASES:
+            return Constant.OS_BOX_ALIASES[box_name]
+        return box_name
+
+    @staticmethod
     def humanize_box_name(box_name):
         if box_name in Constant.OS_ALIASED_BOXES:
             return Constant.OS_ALIASED_BOXES[box_name]
         return box_name
+
+    def maybe_glob_boxes(self, box_spec, **kwargs):
+        simple_list = kwargs.get('simple', False)
+        all_boxes = self.printable_list(simple=True)
+        all_boxes_with_aliases = self.printable_list(simple=False)
+        matching_boxes = None
+        if isinstance(box_spec, str):
+            if is_a_glob(box_spec):
+                matching_boxes = fnmatch.filter(all_boxes, box_spec)
+            else:
+                Log.info("{} is not a glob".format(box_spec))
+                if box_spec == self.dehumanize_box_name(box_spec):
+                    Log.info("{} is not an alias".format(box_spec))
+                    matching_boxes = fnmatch.filter(all_boxes, box_spec)
+                else:
+                    matching_boxes = [self.dehumanize_box_name(box_spec)]
+        else:
+            matching_boxes = all_boxes
+        assert isinstance(matching_boxes, list), \
+            "maybe_glob_boxes: matching_boxes is not a list! Bailing out!"
+        if matching_boxes:
+            if not simple_list:
+                for list_line in all_boxes_with_aliases:
+                    literal_box_name = list_line.split()[0]
+                    if literal_box_name in matching_boxes:
+                        index = matching_boxes.index(literal_box_name)
+                        matching_boxes[index] = list_line
+        return matching_boxes
 
     def open_libvirt_connection(self):
         if self.libvirt_conn:
@@ -136,15 +172,22 @@ class Box():
         self.libvirt_conn = libvirt.open(self.libvirt_uri)
         return None
 
-    def printable_list(self):
+    def printable_list(self, **kwargs):
         box_list = []
+        simple_list = kwargs.get('simple', None)
+        Log.info("printable_list: simple_list: {}".format(simple_list))
         for box in self.boxes:
+            what_to_append = ''
             alias = ''
             if box in Constant.OS_ALIASED_BOXES:
-                alias = '(alias: {})'.format(self.humanize_box_name(box))
-                box_list.append('{} {}'.format(box, alias))
+                if simple_list:
+                    what_to_append = box
+                else:
+                    alias = '(alias: {})'.format(self.humanize_box_name(box))
+                    what_to_append = '{} {}'.format(box, alias)
             else:
-                box_list.append('{}'.format(self.humanize_box_name(box)))
+                what_to_append = box
+            box_list.append('{}'.format(what_to_append))
         return box_list
 
     def remove_image(self, image_name):

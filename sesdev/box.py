@@ -1,11 +1,7 @@
 import click
 
 from seslib.box import Box
-from seslib.constant import Constant
 from seslib.deployment import Deployment
-from seslib.exceptions import \
-                              BoxDoesNotExist, \
-                              RemoveBoxNeedsBoxNameOrAllOption
 from seslib.log import Log
 from seslib.settings import Settings
 
@@ -21,12 +17,12 @@ def box_list_handler(box_name, **kwargs):
     settings_dict = _gen_box_settings_dict(**kwargs)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
-    list_lines = box_obj.printable_list()
-    if list_lines:
-        click.echo("List of all Vagrant Boxes installed in the system")
-        click.echo("-------------------------------------------------")
-    for line in list_lines:
-        click.echo(line)
+    boxes_to_list = box_obj.maybe_glob_boxes(box_name)
+    if len(boxes_to_list) == 0:
+        click.echo("No Vagrant Boxes found")
+    else:
+        for box in boxes_to_list:
+            click.echo(box)
 
 
 def box_remove_handler(box_name, **kwargs):
@@ -34,27 +30,7 @@ def box_remove_handler(box_name, **kwargs):
     interactive = not settings_dict.get('non_interactive', False)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
-    #
-    # determine which box(es) are to be removed
-    remove_all_boxes = kwargs.get('all_boxes', False)
-    boxes_to_remove = None
-    if remove_all_boxes:
-        boxes_to_remove = box_obj.printable_list()
-    else:
-        if box_name:
-            if not box_obj.exists(box_name):
-                # but it might be an alias
-                if box_name in Constant.OS_BOX_ALIASES:
-                    dealiased_box_name = Constant.OS_BOX_ALIASES[box_name]
-                    if box_obj.exists(dealiased_box_name):
-                        box_name = dealiased_box_name
-                    else:
-                        raise BoxDoesNotExist(box_name)
-                else:
-                    raise BoxDoesNotExist(box_name)
-            boxes_to_remove = [box_name]
-        else:
-            raise RemoveBoxNeedsBoxNameOrAllOption
+    boxes_to_remove = box_obj.maybe_glob_boxes(box_name, simple=True)
     box_word = None
     if boxes_to_remove:
         box_word = _singular_or_plural(boxes_to_remove)
@@ -62,8 +38,8 @@ def box_remove_handler(box_name, **kwargs):
         return None
     if interactive:
         if boxes_to_remove:
-            click.echo("You have asked to remove the following Vagrant Boxes")
-            click.echo("----------------------------------------------------")
+            click.echo("You have asked to remove the following {}".format(box_word))
+            click.echo("---------------------------------------" + len(box_word) * '-')
             for box_to_remove in boxes_to_remove:
                 click.echo(box_to_remove)
             click.echo()
