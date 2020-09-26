@@ -1,6 +1,6 @@
 # salt/provision.sh.j2 (part of provision.sh.j2)
 
-# deploy Salt, and then, Ceph or SUMA as required
+# deploy Salt
 
 {% include "salt/cluster_json.j2" %}
 
@@ -89,28 +89,3 @@ salt-key -Ay
 
 {% include "salt/wait_for_minions.j2" %}
 {% endif %} {# node == master #}
-
-# deploy ceph cluster via DeepSea
-{% if deployment_tool == "deepsea" %}
-{% if node == master %}
-{% include "salt/deepsea/deepsea_deployment.sh.j2" %}
-{% include "salt/qa_test.j2" %}
-{% endif %} {# node == master #}
-{% endif %} {# deployment_tool == "deepsea" #}
-
-# deploy SUMA
-{% if node == suma %}
-{% include "salt/suma/suma_deployment.sh.j2" %}
-{% endif %} {# node == suma #}
-
-# deploy ceph cluster via ceph-salt and cephadm
-{% if deployment_tool == "cephadm" %}
-{% if node == master %}
-{% include "salt/ceph-salt/deployment_day_1.sh.j2" %}
-{% include "salt/ceph-salt/deployment_day_2.sh.j2" %}
-{% include "salt/qa_test.j2" %}
-{% endif %} {# node == master #}
-{% endif %} {# deployment_tool == "cephadm" #}
-
-{% endif %} {# node == master or node == suma #}
-
