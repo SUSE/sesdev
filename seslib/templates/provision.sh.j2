@@ -73,14 +73,40 @@ fi
 # sync clocks if needed
 {% include "sync_clocks.j2" %}
 
-# deploy
-{% if deploy_salt or suma %}
+# deploy state machine
+
+# DeepSea
+{% if deploy_salt and deployment_tool == "deepsea" %}
 {% include "salt/provision.sh.j2" %}
+{% if node == master %}
+{% include "salt/deepsea/deepsea_deployment.sh.j2" %}
+{% include "salt/qa_test.j2" %}
+{% endif %} {# node == master #}
+
+# SUMA
+{% elif suma and node == suma %}
+{% include "salt/provision.sh.j2" %}
+{% include "salt/suma/suma_deployment.sh.j2" %}
+
+# ceph-salt (Day 1) + cephadm (Day 2)
+{% elif deploy_salt and deployment_tool == "cephadm" %}
+{% include "salt/provision.sh.j2" %}
+{% if node == master %}
+{% include "salt/ceph-salt/deployment_day_1.sh.j2" %}
+{% include "cephadm/deployment_day_2.sh.j2" %}
+{% include "salt/qa_test.j2" %}
+{% endif %} {# node == master #}
+
+# caasp4
 {% elif version == 'caasp4' %}
 {% include "caasp/provision.sh.j2" %}
+
+# make check
 {% elif version == 'makecheck' %}
 {% include "makecheck/provision.sh.j2" %}
+
+# upstream Ceph on Ubuntu
 {% elif os.startswith('ubuntu') %}
 {% include "ubuntu/provision.sh.j2" %}
-{% endif %} {# deploy_salt or suma #}
 
+{% endif %} {# end of deploy state machine #}
