@@ -269,7 +269,7 @@ function maybe_wait_for_osd_nodes_test {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "($i of 4)"
+                    _grace_period 15 "$i of 4 in minute $minute"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -313,7 +313,7 @@ function maybe_wait_for_mdss_test {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "$i"
+                    _grace_period 15 "$i of 4 in minute $minute"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -355,7 +355,7 @@ function maybe_wait_for_rgws_test {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "$i"
+                    _grace_period 15 "$i of 4 in minute $minute"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -400,7 +400,7 @@ function _wait_for {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "$i"
+                    _grace_period 15 "$i of 4 in minute $minute"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -727,7 +727,7 @@ function number_of_services_expected_vs_orch_ps_test {
                     success="not_empty"
                     break 2
                 else
-                    _grace_period 15 "$i"
+                    _grace_period 15 "$i of 4 in minute $minute"
                 fi
             done
             echo "Minutes left to wait: $((minutes_to_wait - minute))"
@@ -825,11 +825,11 @@ function number_of_daemons_expected_vs_actual {
 }
 
 function ceph_health_test {
-# wait for up to some minutes for cluster to reach HEALTH_OK
+# wait for up to 30 minutes for cluster to reach HEALTH_OK
     echo
     echo "WWWW: ceph_health_test"
     local minutes_to_wait
-    minutes_to_wait="5"
+    minutes_to_wait="30"
     local cluster_status
     local minute
     local i
@@ -842,7 +842,7 @@ function ceph_health_test {
             if [ "$cluster_status" = "HEALTH_OK" ] ; then
                 break 2
             else
-                _grace_period 15 "$i"
+                _grace_period 15 "$i of 4 in minute $minute"
             fi
         done
         echo "Minutes left to wait: $((minutes_to_wait - minute))"
