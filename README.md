@@ -306,32 +306,16 @@ If you are preparing a code change for submission and would like to run the
 unit tests on it, make sure you have installed sesdev from source, as described
 above, and the virtualenv is active. Then, follow the instructions below.
 
-First, install the "tox" package in your system:
+First, make sure you have installed sesdev from source following the
+instructions from [here](#install-sesdev-from-source).
 
-#### openSUSE
+Second, make sure your virtualenv is active (`source venv/bin/activate`).
 
-```
-zypper -n install python3-tox
-```
-
-#### Debian / Ubuntu
-
-```
-apt-get install -y tox
-```
-
-#### Fedora
-
-```
-dnf install -y python3-tox
-```
-
-Then, execute the following commands in the top-level of your local git clone
+Third, execute the following command in the top-level of your local git clone
 to install the dependencies, including test dependencies:
 
 ```
-source venv/bin/activate
-pip install --editable ./[dev]
+pip3 --use-feature=2020-resolver install --editable "./[dev]"
 ```
 
 Finally, inspect the list of testing environments in `tox.ini` and choose one or
@@ -341,7 +325,6 @@ be different:
 ```
 $ tox --listenvs
 py36
-py37
 lint
 ```
 
@@ -358,13 +341,8 @@ tox -e lint
 If you don't know which testing environment to choose, the command `tox` will
 run *all* the testing environments.
 
-CAVEAT: environments like `py36` and `py37` will only run if that exact version
-of Python is installed on your system. So, if you've got Python 3.6 and you
-want to run all possible tests:
-
-```
-tox -e py36,lint
-```
+CAVEAT: environments like `py36` will only run if that exact version of Python
+is installed on your system.
 
 ## Usage
 

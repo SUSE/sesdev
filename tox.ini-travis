@@ -1,5 +1,5 @@
 [tox]
-envlist = py36,lint
+envlist = py36,py38,lint
 minversion = 2.4
 skipsdist = True
 basepython = python3
@@ -9,7 +9,7 @@ ignore = E123,E124,E126,E129,W503,W504
 
 [testenv]
 usedevelop = True
-install_command = pip3 --use-feature=2020-resolver install {opts} {packages}
+install_command = pip3 install {opts} {packages}
 extras = dev
 commands =
   pytest {posargs: -vv}

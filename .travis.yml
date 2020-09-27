@@ -1,3 +1,4 @@
+sudo: true
 language: python
 matrix:
   include:
@@ -9,7 +10,6 @@ matrix:
     env: TOX_ENV=lint
 before_install:
 - sudo apt-get -y install libvirt-dev
-install:
-- pip install tox
-script:
-- tox -e $TOX_ENV
+- python -m pip install --upgrade pip
+install: pip3 --use-feature=2020-resolver install tox
+script: tox -c tox.ini-travis -e $TOX_ENV
