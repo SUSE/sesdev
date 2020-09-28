@@ -1,6 +1,7 @@
 import fcntl
 import os
 import random
+import re
 import string
 import subprocess
 import sys
@@ -8,6 +9,16 @@ import time
 
 from .exceptions import CmdException
 from .log import Log
+
+
+def is_a_glob(a_string):
+    """
+    Return True or False depending on whether a_string appears to be a glob
+    """
+    if isinstance(a_string, str):
+        pattern = re.compile(r'[\*\[\]\{\}\?]')
+        return bool(pattern.search(a_string))
+    return False
 
 
 def run_sync(command, cwd=None):
