@@ -30,6 +30,11 @@ zypper --non-interactive install salt-master
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
 sed -i -e '/^#/d' /etc/salt/master
 sed -i -e '/^\s*$/d' /etc/salt/master
+cat >> /etc/salt/master <<EOF
+pillar_roots:
+  base:
+    - /usr/share/ceph-salt
+EOF
 
 # dump /etc/salt/master for the sake of the log
 cat /etc/salt/master
