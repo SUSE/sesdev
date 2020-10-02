@@ -21,8 +21,9 @@ git checkout {{ ceph_salt_git_branch }}
 
 pip install --prefix /usr .
 # install ceph-salt-formula
-cp -r ceph-salt-formula/salt/* /srv/salt/
-chown -R salt:salt /srv
+mkdir -p /usr/share/ceph-salt/
+cp -r ceph-salt-formula/salt/* /usr/share/ceph-salt/
+chown -R salt:salt /usr/share/ceph-salt/
 {% else %}
 # ceph-salt-formula is installed automatically as a dependency of ceph-salt
 zypper --non-interactive install ceph-salt
