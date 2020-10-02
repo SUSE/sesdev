@@ -40,8 +40,8 @@ cat > {{ devel_repo_script }} << 'EOF'
 #!/bin/bash
 [[ "$*" =~ "--update" ]] && UPDATE="yes"
 set -x
-{% set devel_repo_count = version_repos_prio|length %}
-{% for _repo in version_repos_prio %}
+{% set devel_repo_count = version_devel_repos|length %}
+{% for _repo in version_devel_repos %}
 {% set devel_repo_name = "devel-repo-" ~ loop.index %}
 zypper addrepo --refresh
 {%- if _repo.priority %}
