@@ -13,6 +13,9 @@ sed -i -e '/^\s*$/d' /etc/salt/minion
 # change salt log level to info
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
 
+# dump /etc/salt/minion for the sake of the log
+cat /etc/salt/minion
+
 systemctl enable salt-minion
 systemctl start salt-minion
 
@@ -27,6 +30,9 @@ zypper --non-interactive install salt-master
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
 sed -i -e '/^#/d' /etc/salt/master
 sed -i -e '/^\s*$/d' /etc/salt/master
+
+# dump /etc/salt/master for the sake of the log
+cat /etc/salt/master
 
 systemctl enable salt-master
 systemctl start salt-master
