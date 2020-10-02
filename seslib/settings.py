@@ -95,6 +95,11 @@ SETTINGS = {
         'help': 'Whether --ram was given on the command line',
         'default': False,
     },
+    'fqdn': {
+        'type': bool,
+        'help': 'Whether \'hostname\' command returns FQDN or short hostname',
+        'default': False,
+    },
     'filestore_osds': {
         'type': bool,
         'help': 'Whether OSDs should be deployed with FileStore instead of BlueStore',

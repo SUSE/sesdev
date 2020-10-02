@@ -159,7 +159,9 @@ def common_create_options(func):
         click.option('--dry-run/--no-dry-run', is_flag=True, default=False,
                      help='Dry run (do not create any VMs)'),
         click.option('--ssd', is_flag=True, default=False,
-                     help='On VMS with additional disks, make one disk non-rotational')
+                     help='On VMS with additional disks, make one disk non-rotational'),
+        click.option('--fqdn', is_flag=True, default=False,
+                     help='Make \'hostname\' command return FQDN')
     ]
     return _decorator_composer(click_options, func)
 
@@ -347,6 +349,7 @@ def _gen_settings_dict(
         domain=None,
         encrypted_osds=None,
         force=None,
+        fqdn=None,
         image_path=None,
         ipv6=None,
         libvirt_host=None,
@@ -516,6 +519,9 @@ def _gen_settings_dict(
 
     if ssd is not None:
         settings_dict['ssd'] = ssd
+
+    if fqdn is not None:
+        settings_dict['fqdn'] = fqdn
 
     if encrypted_osds is not None:
         settings_dict['encrypted_osds'] = encrypted_osds
