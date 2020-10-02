@@ -99,6 +99,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.bootstrap_mon_ip = None
         self.version_devel_repos = None
         self.os_base_repos = None
+        self.os_makecheck_repos = None
         self.ceph_salt_fetch_github_pr_heads = None
         self.ceph_salt_fetch_github_pr_merges = None
         self.cephadm_bootstrap_node = None
@@ -426,6 +427,15 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         else:
             self.os_base_repos = []
 
+    def __set_os_makecheck_repos(self):
+        if self.settings.os in self.settings.os_makecheck_repos:
+            self.os_makecheck_repos = \
+                list(
+                    self.settings.os_makecheck_repos[self.settings.os].items()
+                )
+        else:
+            self.os_makecheck_repos = []
+
     def __analyze_ceph_salt_github_pr_fetching(self):
         self.ceph_salt_fetch_github_pr_heads = False
         self.ceph_salt_fetch_github_pr_merges = False
@@ -453,6 +463,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         """
         self.__set_version_devel_repos()
         self.__set_os_base_repos()
+        self.__set_os_makecheck_repos()
         self.__analyze_ceph_salt_github_pr_fetching()
         self.__set_cephadm_bootstrap_node()
 
@@ -495,6 +506,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deployment_tool': self.settings.deployment_tool,
             'version_devel_repos': self.version_devel_repos,
             'os_base_repos': self.os_base_repos,
+            'os_makecheck_repos': self.os_makecheck_repos,
             'devel_repo': self.settings.devel_repo,
             'core_version': self.settings.version in Constant.CORE_VERSIONS,
             'qa_test': self.settings.qa_test,

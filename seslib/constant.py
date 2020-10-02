@@ -102,12 +102,45 @@ class Constant():
         'ubuntu-bionic': 'apt',
     }
 
+    OS_MAKECHECK_REPOS = {
+        'sles-12-sp3': {
+            'sdk': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/',
+            'sdk-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/',
+        },
+        'sles-15-sp1': {
+            'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/'
+                            'SLE-Module-Desktop-Applications/15-SP1/x86_64/product/',
+            'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                                   'SLE-Module-Desktop-Applications/15-SP1/x86_64/update/',
+            'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
+            'dev-tools-update': 'http://dist.suse.de/ibs/SUSE/Products/'
+                                'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
+            'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/'
+                           'SLE-15-SP1-Product-WE-POOL-x86_64-Media1/',
+            'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP1/'
+                                  'x86_64/update/',
+        },
+        'sles-15-sp2': {
+            'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/'
+                            'SLE-Module-Desktop-Applications/15-SP2/x86_64/product/',
+            'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                                   'SLE-Module-Desktop-Applications/15-SP2/x86_64/update/',
+            'dev-tools': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
+                         '15-SP2/x86_64/product/',
+            'dev-tools-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+                                'SLE-Module-Development-Tools/15-SP2/x86_64/update/',
+            'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/TEST/images/repo/'
+                           'SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
+            'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP2/'
+                                  'x86_64/update/',
+        },
+    }
+
     OS_REPOS = {
         'sles-12-sp3': {
             'base': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/',
             'update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/',
-            'sdk': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/',
-            'sdk-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/',
             'storage': 'http://dist.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/',
             'storage-update': 'http://dist.suse.de/ibs/SUSE/Updates/Storage/5/x86_64/update/'
         },
@@ -122,18 +155,6 @@ class Constant():
                            'SLE-Module-Server-Applications/15-SP1/x86_64/product/',
             'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
-            'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/'
-                            'SLE-Module-Desktop-Applications/15-SP1/x86_64/product/',
-            'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                                   'SLE-Module-Desktop-Applications/15-SP1/x86_64/update/',
-            'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/'
-                         'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
-            'dev-tools-update': 'http://dist.suse.de/ibs/SUSE/Products/'
-                                'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
-            'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/'
-                           'SLE-15-SP1-Product-WE-POOL-x86_64-Media1/',
-            'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP1/'
-                                  'x86_64/update/',
             'storage': 'http://download.suse.de/ibs/SUSE/Products/Storage/6/x86_64/product/',
             'storage-update': 'http://download.suse.de/ibs/SUSE/Updates/Storage/6/x86_64/update/'
         },
@@ -146,18 +167,6 @@ class Constant():
                            'SLE-Module-Server-Applications/15-SP2/x86_64/product/',
             'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
-            'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/'
-                            'SLE-Module-Desktop-Applications/15-SP2/x86_64/product/',
-            'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                                   'SLE-Module-Desktop-Applications/15-SP2/x86_64/update/',
-            'dev-tools': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
-                         '15-SP2/x86_64/product/',
-            'dev-tools-update': 'http://download.suse.de/ibs/SUSE/Updates/'
-                                'SLE-Module-Development-Tools/15-SP2/x86_64/update/',
-            'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/TEST/images/repo/'
-                           'SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
-            'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP2/'
-                                  'x86_64/update/',
             'storage7-media': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/'
                               'SES7/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
         },

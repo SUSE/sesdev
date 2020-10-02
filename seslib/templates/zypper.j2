@@ -34,6 +34,13 @@ zypper --non-interactive removerepo repo-source-non-oss || true
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
+# make check repos
+{% if version == 'makecheck' %}
+{% for os_repo_name, os_repo_url in os_makecheck_repos %}
+zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
+{% endfor %}
+{% endif %} {# version == 'makecheck' #}
+
 # devel repos
 {% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
 cat > {{ devel_repo_script }} << 'EOF'
