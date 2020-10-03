@@ -190,6 +190,11 @@ SETTINGS = {
         'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
         'default': '',
     },
+    'os_makecheck_repos': {
+        'type': dict,
+        'help': 'repos to add to VMs in "makecheck" environments',
+        'default': Constant.OS_MAKECHECK_REPOS,
+    },
     'os_repos': {
         'type': dict,
         'help': 'repos to add on all VMs of a given operating system (os)',

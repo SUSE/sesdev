@@ -97,6 +97,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.vagrant_box = None
         self.box = Box(settings)
         self.bootstrap_mon_ip = None
+        self.version_devel_repos = None
+        self.os_base_repos = None
+        self.os_makecheck_repos = None
+        self.ceph_salt_fetch_github_pr_heads = None
+        self.ceph_salt_fetch_github_pr_merges = None
+        self.cephadm_bootstrap_node = None
         self.__populate_roles()
         self.__count_roles()
         self.__populate_os()
@@ -387,57 +393,82 @@ class Deployment():  # use Deployment.create() to create a Deployment object
 
             self.nodes[node.name] = node
 
-    def _generate_vagrantfile(self):
+    def __set_version_devel_repos(self):
         try:
             version = self.settings.version
             os_setting = self.settings.os
-            version_repos = self.settings.version_devel_repos[version][os_setting]
+            version_devel_repos = self.settings.version_devel_repos[version][os_setting]
         except KeyError as exc:
             raise VersionOSNotSupported(self.settings.version, self.settings.os) from exc
         #
         # version_repos might contain URLs with a "magic priority prefix" -- see
         # https://github.com/SUSE/sesdev/issues/162
-        version_repos_prio = []
-        for repo in version_repos:
-            version_repos_dict = {}
+        self.version_devel_repos = []
+        for repo in version_devel_repos:
+            version_devel_repos_dict = {}
             prio_match = re.match(r'^(\d.+)!(http.*)', repo)
             if prio_match:
-                version_repos_dict = {
+                version_devel_repos_dict = {
                     "url": prio_match[2],
                     "priority": prio_match[1],
                 }
             else:
-                version_repos_dict = {
+                version_devel_repos_dict = {
                     "url": repo,
                     "priority": 0,
                 }
-            version_repos_prio.append(version_repos_dict)
-        Log.debug("generate_vagrantfile: version_repos_prio: {}"
-                  .format(version_repos_prio))
+            self.version_devel_repos.append(version_devel_repos_dict)
+        Log.debug("_set_version_devel_repos: self.version_devel_repos: {}"
+                  .format(self.version_devel_repos))
 
+    def __set_os_base_repos(self):
         if self.settings.os in self.settings.os_repos:
-            os_base_repos = list(self.settings.os_repos[self.settings.os].items())
+            self.os_base_repos = list(self.settings.os_repos[self.settings.os].items())
         else:
-            os_base_repos = []
+            self.os_base_repos = []
 
-        # detect whether we need to fetch github PRs
-        ceph_salt_fetch_github_pr_heads = False
-        ceph_salt_fetch_github_pr_merges = False
+    def __set_os_makecheck_repos(self):
+        if self.settings.os in self.settings.os_makecheck_repos:
+            self.os_makecheck_repos = \
+                list(
+                    self.settings.os_makecheck_repos[self.settings.os].items()
+                )
+        else:
+            self.os_makecheck_repos = []
+
+    def __analyze_ceph_salt_github_pr_fetching(self):
+        self.ceph_salt_fetch_github_pr_heads = False
+        self.ceph_salt_fetch_github_pr_merges = False
         ceph_salt_git_branch = self.settings.ceph_salt_git_branch
         if ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr/'):
             Log.info("Detected special ceph-salt GitHub PR (HEAD) branch {}"
                      .format(ceph_salt_git_branch)
                      )
-            ceph_salt_fetch_github_pr_heads = True
+            self.ceph_salt_fetch_github_pr_heads = True
         elif ceph_salt_git_branch and ceph_salt_git_branch.startswith('origin/pr-merged/'):
             Log.info("Detected special ceph-salt GitHub PR (MERGE) branch {}"
                      .format(ceph_salt_git_branch)
                      )
-            ceph_salt_fetch_github_pr_merges = True
+            self.ceph_salt_fetch_github_pr_merges = True
 
-        cephadm_bootstrap_node = None
+    def __set_cephadm_bootstrap_node(self):
+        self.cephadm_bootstrap_node = None
         if self.nodes_with_role["bootstrap"]:
-            cephadm_bootstrap_node = self.nodes[self.nodes_with_role["bootstrap"][0]]
+            self.cephadm_bootstrap_node = self.nodes[self.nodes_with_role["bootstrap"][0]]
+
+    def _prepare_to_generate_vagrantfile(self):
+        """
+        Add some properties to the deployment object which are needed for new
+        deployments
+        """
+        self.__set_version_devel_repos()
+        self.__set_os_base_repos()
+        self.__set_os_makecheck_repos()
+        self.__analyze_ceph_salt_github_pr_fetching()
+        self.__set_cephadm_bootstrap_node()
+
+    def _generate_vagrantfile(self):
+        self._prepare_to_generate_vagrantfile()
 
         context = {
             'ssh_key_name': Constant.SSH_KEY_NAME,
@@ -457,8 +488,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'cluster_json': json.dumps({
                 "num_disks": self.settings.num_disks,
                 "roles_of_nodes": self.roles_of_nodes,
-                "cephadm_bootstrap_node": (cephadm_bootstrap_node.name if
-                                           cephadm_bootstrap_node else ''),
+                "cephadm_bootstrap_node": (self.cephadm_bootstrap_node.name if
+                                           self.cephadm_bootstrap_node else ''),
                 }, sort_keys=True, indent=4),
             'master': self.master,
             'suma': self.suma,
@@ -473,13 +504,14 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                                 not self.settings.os.startswith('ubuntu')),
             'stop_before_stage': self.settings.stop_before_stage,
             'deployment_tool': self.settings.deployment_tool,
-            'version_repos_prio': version_repos_prio,
-            'os_base_repos': os_base_repos,
+            'version_devel_repos': self.version_devel_repos,
+            'os_base_repos': self.os_base_repos,
+            'os_makecheck_repos': self.os_makecheck_repos,
             'devel_repo': self.settings.devel_repo,
             'core_version': self.settings.version in Constant.CORE_VERSIONS,
             'qa_test': self.settings.qa_test,
             'node_list': self.node_list,
-            'cephadm_bootstrap_node': cephadm_bootstrap_node,
+            'cephadm_bootstrap_node': self.cephadm_bootstrap_node,
             'prometheus_nodes': self.node_counts["prometheus"],
             'prometheus_node_list': ','.join(self.nodes_with_role["prometheus"]),
             'grafana_nodes': self.node_counts["grafana"],
@@ -513,8 +545,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'scc_password': self.settings.scc_password,
             'ceph_salt_git_repo': self.settings.ceph_salt_git_repo,
             'ceph_salt_git_branch': self.settings.ceph_salt_git_branch,
-            'ceph_salt_fetch_github_pr_heads': ceph_salt_fetch_github_pr_heads,
-            'ceph_salt_fetch_github_pr_merges': ceph_salt_fetch_github_pr_merges,
+            'ceph_salt_fetch_github_pr_heads': self.ceph_salt_fetch_github_pr_heads,
+            'ceph_salt_fetch_github_pr_merges': self.ceph_salt_fetch_github_pr_merges,
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_apply': self.settings.stop_before_ceph_salt_apply,
             'stop_before_ceph_orch_apply': self.settings.stop_before_ceph_orch_apply,

@@ -34,14 +34,21 @@ zypper --non-interactive removerepo repo-source-non-oss || true
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
+# make check repos
+{% if version == 'makecheck' %}
+{% for os_repo_name, os_repo_url in os_makecheck_repos %}
+zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
+{% endfor %}
+{% endif %} {# version == 'makecheck' #}
+
 # devel repos
 {% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
 cat > {{ devel_repo_script }} << 'EOF'
 #!/bin/bash
 [[ "$*" =~ "--update" ]] && UPDATE="yes"
 set -x
-{% set devel_repo_count = version_repos_prio|length %}
-{% for _repo in version_repos_prio %}
+{% set devel_repo_count = version_devel_repos|length %}
+{% for _repo in version_devel_repos %}
 {% set devel_repo_name = "devel-repo-" ~ loop.index %}
 zypper addrepo --refresh
 {%- if _repo.priority %}
