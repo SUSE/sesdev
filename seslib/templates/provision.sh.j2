@@ -41,7 +41,11 @@ Host *
 EOF
 
 # set hostname
+{% if fqdn %}
+hostnamectl set-hostname {{ node.fqdn }}
+{% else %}
 hostnamectl set-hostname {{ node.name }}
+{% endif %}
 
 # persist the journal
 sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf

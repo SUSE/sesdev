@@ -531,6 +531,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'makecheck_stop_before_run_make_check':
                 self.settings.makecheck_stop_before_run_make_check,
             'ssd': self.settings.ssd,
+            'fqdn': self.settings.fqdn,
             'reasonable_timeout_in_seconds': Constant.REASONABLE_TIMEOUT_IN_SECONDS,
             'public_network': self.public_network_segment,
             'bootstrap_mon_ip': self.bootstrap_mon_ip,
