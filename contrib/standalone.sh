@@ -292,7 +292,7 @@ if [ "$SES6" ] ; then
     run_cmd sesdev --verbose qa-test ses6-1node
     run_cmd sesdev --verbose add-repo --update ses6-1node
     run_cmd sesdev --verbose destroy --non-interactive ses6-1node
-    run_cmd sesdev --verbose create ses6 --non-interactive ses6-4node
+    run_cmd sesdev --verbose create ses6 --non-interactive --fqdn ses6-4node
     run_cmd sesdev --verbose qa-test ses6-4node
     run_cmd sesdev --verbose supportconfig ses6-4node node1
     rm -f scc*
@@ -311,7 +311,7 @@ if [ "$OCTOPUS" ] ; then
     run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node octopus-1node
     run_cmd sesdev --verbose qa-test octopus-1node
     run_cmd sesdev --verbose destroy --non-interactive octopus-1node
-    run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" octopus-4node
+    run_cmd sesdev --verbose create octopus --non-interactive "${CEPH_SALT_OPTIONS[@]}" --fqdn octopus-4node
     run_cmd sesdev --verbose qa-test octopus-4node
     run_cmd sesdev status octopus-4node
     run_cmd sesdev --verbose destroy --non-interactive octopus-4node
@@ -328,7 +328,7 @@ if [ "$SES7" ] ; then
     run_cmd test "$(sesdev show ses7-mini --format json --nodes-with-role bootstrap | jq -r '.[0]')" = "master"
     run_cmd sesdev --verbose qa-test ses7-mini
     run_cmd sesdev --verbose destroy --non-interactive ses7-mini
-    run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node ses7-1node
+    run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --fqdn ses7-1node
     run_cmd sesdev --verbose qa-test ses7-1node
     run_cmd sesdev --verbose destroy --non-interactive ses7-1node
     run_cmd sesdev --verbose create ses7 --non-interactive "${CEPH_SALT_OPTIONS[@]}" ses7-4node
@@ -354,7 +354,7 @@ if [ "$PACIFIC" ] ; then
     run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node --ipv6 pacific-1node-ipv6
     run_cmd sesdev --verbose qa-test pacific-1node-ipv6
     run_cmd sesdev --verbose destroy --non-interactive pacific-1node-ipv6
-    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" pacific-4node
+    run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --fqdn pacific-4node
     run_cmd sesdev --verbose qa-test pacific-4node
     run_cmd sesdev --verbose destroy --non-interactive pacific-4node
 fi
