@@ -52,6 +52,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [CaaSP on just one node](#caasp-on-just-one-node)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
+      * [With a FQDN environment](#with-a-fqdn-environment)
       * [Without the devel repo](#without-the-devel-repo)
       * [With an additional custom zypper repo](#with-an-additional-custom-zypper-repo)
       * [With a set of custom zypper repos completely replacing the default repos](#with-a-set-of-custom-zypper-repos-completely-replacing-the-default-repos)
@@ -544,6 +545,21 @@ nautilus, ses6) or the "ceph-salt" command to apply the ceph-salt Salt Formula
 
 If you would rather use Salt directly, give the `--salt` option on the `sesdev
 create` command line.
+
+#### With a FQDN environment
+
+In some cases you might want to deploy a Ceph cluster in an environment where
+
+    hostname
+
+returns an FQDN and
+
+    hostname -s
+
+returns the short hostname (defined as a string containing no `.` characters).
+DeepSea and ceph-salt should have no problem with this. You can tell sesdev
+to set the hostname to the FQDN by passing the `--fqdn` option to `sesdev
+create`.
 
 #### Without the devel repo
 

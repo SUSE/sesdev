@@ -14,11 +14,15 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('mon') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('mon') #}
 {% endfor %}
 EOF
-{% endif %} {# mon_nodes > 1 #}
+{% endif %}{# mon_nodes > 1 #}
 
 {% if mgr_nodes > 1 %}
 {% set ceph_orch_apply_needed = True %}
@@ -29,11 +33,15 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('mgr') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('mgr') #}
 {% endfor %}
 EOF
-{% endif %} {# mgr_nodes > 1 #}
+{% endif %}{# mgr_nodes > 1 #}
 
 {% if storage_nodes > 0 %}
 {% set ceph_orch_apply_needed = True %}
@@ -45,8 +53,12 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('storage') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('storage') #}
 {% endfor %}
 data_devices:
     all: true
@@ -57,13 +69,13 @@ encrypted: true
 objectstore: filestore
 {% endif %}
 EOF
-{% endif %} {# storage_nodes > 0 #}
+{% endif %}{# storage_nodes > 0 #}
 
 {% if ceph_orch_apply_needed %}
 cat {{ service_spec_core }}
 ceph orch apply -i {{ service_spec_core }} --dry-run
 ceph orch apply -i {{ service_spec_core }}
-{% endif %} {# ceph_orch_apply_needed #}
+{% endif %}{# ceph_orch_apply_needed #}
 
 {% if total_osds > 0 %}
 
@@ -95,23 +107,25 @@ while true ; do
 done
 set -x
 
-{% endif %} {# if total_osds > 0 #}
+{% endif %}{# if total_osds > 0 #}
 
 {% if storage_nodes > 0 %}
 
-{% if mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 %}
+{% if nfs_nodes > 0 %}
 
 NFS_NODES_COMMA_SEPARATED_LIST=""
 {% for node in nodes %}
-{% if node.has_role('mds') %}
-{% endif %}
 {% if node.has_role('nfs') %}
+{% if fqdn %}
+NFS_NODES_COMMA_SEPARATED_LIST+="{{ node.fqdn }},"
+{% else %}
 NFS_NODES_COMMA_SEPARATED_LIST+="{{ node.name }},"
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('nfs') #}
 {% endfor %}
 NFS_NODES_COMMA_SEPARATED_LIST="${NFS_NODES_COMMA_SEPARATED_LIST%,*}"
 
-{% endif %} {# mds_nodes > 0 or rgw_nodes > 0 or nfs_nodes > 0 #}
+{% endif %}{# nfs_nodes > 0 #}
 
 {% if mds_nodes > 0 %}
 
@@ -125,8 +139,12 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('mds') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('mds') #}
 {% endfor %}
 EOF
 ceph orch apply -i {{ service_spec_mds }}
@@ -181,9 +199,9 @@ ceph fs status --format json-pretty
 ceph nfs cluster create cephfs {{ nfs_cluster }} "$NFS_NODES_COMMA_SEPARATED_LIST"
 sleep 10
 ceph nfs cluster ls
-{% endif %} {# nfs_nodes > 0 #}
+{% endif %}{# nfs_nodes > 0 #}
 
-{% endif %} {# mds_nodes > 0 #}
+{% endif %}{# mds_nodes > 0 #}
 
 {% set deploy_monitoring = False %}
 {% if prometheus_nodes > 0 %}
@@ -191,10 +209,10 @@ ceph nfs cluster ls
 # manually enabling prometheus module will no longer be required once
 # https://tracker.ceph.com/issues/46606 is fixed
 ceph mgr module enable prometheus
-{% endif %} {# prometheus_nodes > 0 #}
+{% endif %}{# prometheus_nodes > 0 #}
 {% if grafana_nodes > 0 or alertmanager_nodes > 0 %}
 {% set deploy_monitoring = True %}
-{% endif %} {# grafana_nodes > 0 or alertmanager_nodes > 0 #}
+{% endif %}{# grafana_nodes > 0 or alertmanager_nodes > 0 #}
 
 {% if rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring %}
 
@@ -214,16 +232,20 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('rgw') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('rgw') #}
 {% endfor %}
 EOF
-{% endif %} {# rgw_nodes > 0 #}
+{% endif %}{# rgw_nodes > 0 #}
 
 # pre-create pool for IGW if needed
 {% if igw_nodes > 0 %}
 ceph osd pool create rbd
-{% endif %} {# igw_nodes > 0 #}
+{% endif %}{# igw_nodes > 0 #}
 
 {% if igw_nodes > 0 %}
 ceph osd pool application enable rbd rbd --yes-i-really-mean-it
@@ -241,8 +263,12 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('igw') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('igw') #}
 {% endfor %}
 spec:
     pool: rbd
@@ -252,7 +278,7 @@ spec:
     api_password: admin2
     api_secure: False
 EOF
-{% endif %} {# igw_nodes > 0 #}
+{% endif %}{# igw_nodes > 0 #}
 
 {% if prometheus_nodes > 0 %}
 cat >> {{ service_spec_gw }} << 'EOF'
@@ -263,11 +289,15 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('prometheus') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('prometheus') #}
 {% endfor %}
 EOF
-{% endif %} {# prometheus_nodes > 0 #}
+{% endif %}{# prometheus_nodes > 0 #}
 
 {% if grafana_nodes > 0 %}
 cat >> {{ service_spec_gw }} << 'EOF'
@@ -278,11 +308,15 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('grafana') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('grafana') #}
 {% endfor %}
 EOF
-{% endif %} {# grafana_nodes > 0 #}
+{% endif %}{# grafana_nodes > 0 #}
 
 {% if alertmanager_nodes > 0 %}
 cat >> {{ service_spec_gw }} << 'EOF'
@@ -293,11 +327,15 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('alertmanager') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('alertmanager') #}
 {% endfor %}
 EOF
-{% endif %} {# alertmanager_nodes > 0 #}
+{% endif %}{# alertmanager_nodes > 0 #}
 
 {% if node_exporter_nodes > 0 %}
 cat >> {{ service_spec_gw }} << 'EOF'
@@ -308,15 +346,19 @@ placement:
     hosts:
 {% for node in nodes %}
 {% if node.has_role('node-exporter') %}
+{% if fqdn %}
+        - '{{ node.fqdn }}'
+{% else %}
         - '{{ node.name }}'
-{% endif %}
+{% endif %}{# fqdn #}
+{% endif %}{# node.has_role('node-exporter') #}
 {% endfor %}
 EOF
-{% endif %} {# node_exporter_nodes > 0 #}
+{% endif %}{# node_exporter_nodes > 0 #}
 
 cat {{ service_spec_gw }}
 ceph orch apply -i {{ service_spec_gw }}
 
-{% endif %} {# rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring #}
+{% endif %}{# rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring #}
 
-{% endif %} {# storage_nodes > 0 #}
+{% endif %}{# storage_nodes > 0 #}
