@@ -7,8 +7,46 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.8.0] - 2020-10-08
+
+### Added
+- Add support for IPv6 (PR #56)
+- contrib/deepsea_drive_replace.sh: new test script (PR #306)
+- ceph_salt: deploy and smoke-test Prometheus (PR #418)
+- ceph-salt: deploy and smoke-test Grafana (PR #475) 
+- ceph-salt: deploy and smoke-test alertmanager (PR #480)
+- ceph-salt: deploy and smoke-test node-exporter (PR #496)
+- Support official Vagrant boxes from Vagrant Cloud (PR #476)
+- new msgr2 secure options (PR #481)
+- Add ability to deploy Ceph on Ubuntu "Bionic Beaver" 18.04 (PR #486)
+- add label for ses deployment on caasp (PR #488)
+- Implement --no-provision option to deploy "bare" VMs (PR #490)
+- Implement "sesdev link" for linking two clusters (PR #498)
+- Implement "sesdev status" subcommand (PR #502)
+- Implement "sesdev show DEP_ID --nodes-with-role=ROLE" (PR #506)
+- Make "sesdev box list" and "sesdev box remove" accept globs (PR #517)
+- create: implement --fqdn option, specify FQDN when appropriate (PR #519, PR #522)
+
 ### Removed
 - replace --deploy/--no-deploy option with --provision/--no-provision (PR #490)
+- caasp4: remove anti-affinity for mons for single node (PR #495) 
+- Revert "ceph_salt_deployment: add 1-minute grace period" (PR #521)
+
+### Fixed
+- ceph-salt: set some network-related config params explicitly (PR #482)
+- deployment: do not assert if starting an existing deployment (PR #493)
+- deployment: do not populate public_network with "0/24" (PR #512)
+- qa: wait for grafanas to show up before counting them (PR #514)
+- qa: wait longer for cluster to become healthy (PR #515)
+- Add makecheck-specific repos only in "sesdev create makecheck" (PR #520)
+
+### Changed
+- zypper: install rbd-nbd on all Leap 15.2/SLE-15-SP2 nodes (PR #484)
+- Update pacific repos (PR #489)
+- qa/nfs: do not attempt to mount NFS export on "pacific" (PR #492)
+- deployment: use "vagrant up --provision" to start cluster (PR #501)
+- cleanup: move cephadm Day 2 provisioner to its own subdirectory (PR #513) 
+- tox: run pip with --use-feature=2020-resolver (PR #516)
 
 ## [1.7.0] - 2020-09-13
 
@@ -530,7 +568,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.7.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/SUSE/sesdev/releases/tag/v1.8.0
 [1.7.0]: https://github.com/SUSE/sesdev/releases/tag/v1.7.0
 [1.6.1]: https://github.com/SUSE/sesdev/releases/tag/v1.6.1
 [1.6.0]: https://github.com/SUSE/sesdev/releases/tag/v1.6.0
