@@ -3,6 +3,9 @@
 # do not exclude documentation files when installing RPM packages
 sed -i 's/^rpm\.install\.excludedocs.*$/# rpm.install.excludedocs = no/' /etc/zypp/zypp.conf
 
+# do not ignore "Recommends" and "Supplements" when resolving dependencies of RPM packages
+sed -i 's/^solver\.onlyRequires.*$/# solver.onlyRequires = false/' /etc/zypp/zypp.conf
+
 # enable autorefresh on all zypper repos
 find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/' {} \;
 
@@ -131,7 +134,6 @@ zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony 
 {% set sle_pkgs_to_install = [
        'ca-certificates-suse',
        'supportutils',
-       'supportutils-plugin-ses',
    ] %}
 zypper --non-interactive install {{ sle_pkgs_to_install | join(' ') }}
 {% endif %}{# os.startswith("sle") #}
