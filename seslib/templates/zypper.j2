@@ -11,14 +11,14 @@ find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/
 # known, allowing them to be explicitly declared
 {% if version != 'ses5' %}
 zypper --non-interactive remove curl || true
-{% endif %} {# version != 'ses5' #}
+{% endif %}{# version != 'ses5' #}
 zypper --non-interactive remove rsync || true
 zypper --non-interactive remove which || true
 
 # remove Python 2 so it doesn't pollute the environment
 {% if os != 'sles-12-sp3' %}
 zypper --non-interactive remove python-base || true
-{% endif %} {# os != 'sles-12-sp3' #}
+{% endif %}{# os != 'sles-12-sp3' #}
 
 # remove Non-OSS repos in openSUSE
 {% if os.startswith('leap') or os == "tumbleweed" %}
@@ -27,7 +27,7 @@ zypper --non-interactive removerepo repo-update-non-oss || true
 zypper --non-interactive removerepo repo-debug-non-oss || true
 zypper --non-interactive removerepo repo-debug-update-non-oss || true
 zypper --non-interactive removerepo repo-source-non-oss || true
-{% endif %} {# os.startswith('leap') or os == "tumbleweed" #}
+{% endif %}{# os.startswith('leap') or os == "tumbleweed" #}
 
 # base repos
 {% for os_repo_name, os_repo_url in os_base_repos %}
@@ -39,7 +39,7 @@ zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% for os_repo_name, os_repo_url in os_makecheck_repos %}
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
-{% endif %} {# version == 'makecheck' #}
+{% endif %}{# version == 'makecheck' #}
 
 # devel repos
 {% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
@@ -78,7 +78,7 @@ else
     echo "{{ devel_repo_script }} failed! Bailing out."
     false
 fi
-{% endif %} {# devel_repo or not core_version #}
+{% endif %}{# devel_repo or not core_version #}
 
 # custom repos
 {% for _repo in node.custom_repos %}
@@ -99,7 +99,7 @@ zypper addrepo --refresh
 {%- elif os == 'sles-12-sp3' %}
  http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo
 {% endif %}
-{% endif %} {# os.startswith("sle") #}
+{% endif %}{# os.startswith("sle") #}
 
 zypper --gpg-auto-import-keys refresh
 zypper repos --details
@@ -107,7 +107,7 @@ zypper repos --details
 {% if os == "sles-12-sp3" %}
 zypper --non-interactive install --from storage-update --force python-base python-xml
 zypper --non-interactive install --from update --force libncurses5 libncurses6
-{% endif %} {# os == "sles-12-sp3" #}
+{% endif %}{# os == "sles-12-sp3" #}
 
 {% set basic_pkgs_to_install = [
        'vim',
@@ -125,7 +125,7 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
 zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} ntp
 {% else %}
 zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
-{% endif %} {# os == 'sles-12-sp3' #}
+{% endif %}{# os == 'sles-12-sp3' #}
 
 {% if os.startswith("sle") %}
 {% set sle_pkgs_to_install = [
@@ -134,10 +134,10 @@ zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony 
        'supportutils-plugin-ses',
    ] %}
 zypper --non-interactive install {{ sle_pkgs_to_install | join(' ') }}
-{% endif %} {# os.startswith("sle") #}
+{% endif %}{# os.startswith("sle") #}
 
 {% if os in ['leap-15.2', 'sles-15-sp2'] %}
 # install rbd-nbd on all nodes: on SLE-15-SP2 it should be in the Base System
 # module
 zypper --non-interactive install rbd-nbd
-{% endif %} {# os in ['leap-15.2', 'sles-15-sp2'] #}
+{% endif %}{# os in ['leap-15.2', 'sles-15-sp2'] #}
