@@ -19,7 +19,7 @@ cat /etc/salt/minion
 systemctl enable salt-minion
 systemctl start salt-minion
 
-{% endif %} {# deploy_salt #}
+{% endif %}{# deploy_salt #}
 
 touch /tmp/ready
 
@@ -30,11 +30,16 @@ zypper --non-interactive install salt-master
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/master
 sed -i -e '/^#/d' /etc/salt/master
 sed -i -e '/^\s*$/d' /etc/salt/master
+{% if version in ['octopus', 'ses7', 'pacific'] %}
 cat >> /etc/salt/master <<EOF
+file_roots:
+  base:
+    - /usr/share/ceph-salt
 pillar_roots:
   base:
     - /usr/share/ceph-salt
 EOF
+{% endif %}{# version in ['octopus', 'ses7', 'pacific'] #}
 
 # dump /etc/salt/master for the sake of the log
 cat /etc/salt/master
@@ -43,7 +48,7 @@ systemctl enable salt-master
 systemctl start salt-master
 sleep 5
 systemctl restart salt-minion
-{% endif %} {# node == master #}
+{% endif %}{# node == master #}
 
 set +x
 rm -f /tmp/ready-*
@@ -75,16 +80,16 @@ IPV6_CMD="ip -6 addr | grep 'scope global dynamic mngtmpaddr' | sed -e 's/.*inet
 IPV6_HOST="$(bash -c "$IPV6_CMD") {{ _node.fqdn }} {{ _node.name }}"
 {% else %}
 IPV6_HOST="$(ssh {{ _node.name }} $IPV6_CMD) {{ _node.fqdn }} {{ _node.name }}"
-{% endif %} {# _node == node #}
+{% endif %}{# _node == node #}
 {% for __node in nodes %}
 {% if __node == node %}
 echo $IPV6_HOST >> /etc/hosts
 {% else %}
 ssh {{ __node.name }} "echo \"$IPV6_HOST\" >> /etc/hosts"
-{% endif %} {# _node == node #}
+{% endif %}{# _node == node #}
 {% endfor %}
 {% endfor %}
-{% endif %} {# ipv6 #}
+{% endif %}{# ipv6 #}
 
 {% if node == master %}
 set +x
@@ -104,6 +109,6 @@ set -x
 salt-key -Ay
 
 {% include "salt/wait_for_minions.j2" %}
-{% endif %} {# node == master #}
+{% endif %}{# node == master #}
 
-{% endif %} {# node == master or node == suma #}
+{% endif %}{# node == master or node == suma #}
