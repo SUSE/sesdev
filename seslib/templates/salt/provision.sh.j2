@@ -6,12 +6,27 @@
 
 {% if deploy_salt %}
 zypper --non-interactive install salt-minion
+
+# point minion at master
 sed -i 's/^#master:.*/master: {{ master.name }}/g' /etc/salt/minion
-sed -i -e '/^#/d' /etc/salt/minion
-sed -i -e '/^\s*$/d' /etc/salt/minion
 
 # change salt log level to info
 sed -i 's/^#log_level: warning/log_level: info/g' /etc/salt/minion
+
+# remove comments and empty lines
+sed -i -e '/^#/d' /etc/salt/minion
+sed -i -e '/^\s*$/d' /etc/salt/minion
+
+{% if version in ['octopus', 'ses7', 'pacific'] %}
+cat >> /etc/salt/minion <<EOF
+file_roots:
+  base:
+    - /usr/share/ceph-salt
+pillar_roots:
+  base:
+    - /usr/share/ceph-salt
+EOF
+{% endif %}{# version in ['octopus', 'ses7', 'pacific'] #}
 
 # dump /etc/salt/minion for the sake of the log
 cat /etc/salt/minion
