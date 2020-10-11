@@ -147,6 +147,8 @@ class Constant():
         'sles-15-sp1': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/'
                        'product/',
+            'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP1/'
+                              'x86_64/update/',
             'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/'
                     'x86_64/product/',
             'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/'
@@ -161,6 +163,8 @@ class Constant():
         'sles-15-sp2': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP2/x86_64/'
                        'product/',
+            'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP2/'
+                              'x86_64/update/',
             'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP2/'
                     'x86_64/product/',
             'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP2/'
