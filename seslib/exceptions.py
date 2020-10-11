@@ -352,6 +352,14 @@ class UnsupportedVMEngine(SesDevException):
         )
 
 
+class UpgradeNotSupported(SesDevException):
+    def __init__(self, from_version, to_version):
+        super().__init__(
+            "You asked to upgrade a '{}' node to '{}', but this combination "
+            "is not supported".format(from_version, to_version)
+        )
+
+
 class YouMustProvide(SesDevException):
     def __init__(self, what):
         super().__init__(
