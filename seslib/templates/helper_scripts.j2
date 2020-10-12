@@ -1,0 +1,31 @@
+
+# populate helper scripts
+{% set is_os_script = "/home/vagrant/is_os.sh" %}
+cat > {{ is_os_script }} << 'EOF'
+#!/bin/bash -e
+[[ "$*" =~ "sles-15.2" ]] && OS="sles-15.2"
+[[ "$*" =~ "sles-15.1" ]] && OS="sles-15.1"
+[[ "$*" =~ "leap-15.2" ]] && OS="leap-15.2"
+[[ "$*" =~ "leap-15.1" ]] && OS="leap-15.1"
+if [ -z "$OS" ] ; then
+    echo "is_os.sh: ERROR: unsupported OS"
+    exit 1
+fi
+
+function check_os {
+    local id_should_be="$1"
+    local version_id_should_be="$2"
+    source /etc/os-release
+    if [ "$ID" = "$id_should_be" ] && [ "$VERSION_ID" = "$version_id_should_be" ] ; then
+        exit 0
+    else
+        exit 1
+    fi
+}
+
+[ "$OS" = "sles-15.2" ] && check_os sles 15.2
+[ "$OS" = "sles-15.1" ] && check_os sles 15.1
+[ "$OS" = "leap-15.1" ] && check_os opensuse-leap 15.1
+[ "$OS" = "leap-15.1" ] && check_os opensuse-leap 15.1
+EOF
+chmod 755 {{ is_os_script }}
