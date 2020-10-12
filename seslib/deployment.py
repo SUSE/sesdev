@@ -30,6 +30,7 @@ from .exceptions import \
                         NoStorageRolesCephadm, \
                         NoSupportConfigTarballFound, \
                         ProductOptionOnlyOnSES, \
+                        RebootDidNotSucceed, \
                         RoleNotKnown, \
                         RoleNotSupported, \
                         ScpInvalidSourceOrDestination, \
@@ -722,13 +723,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             seconds_to_wait -= interval_seconds
             if seconds_to_wait <= 0:
                 log_handler("ERROR: node '{}' did not come back from reboot!\n".format(node))
-                return False
+                raise RebootDidNotSucceed(node, self.dep_id)
             log_handler("=> waiting up to {} more seconds for node '{}' to come back from reboot\n"
                         .format(seconds_to_wait, node)
                        )
             time.sleep(interval_seconds)
         log_handler("=> node '{}' is back from reboot!\n".format(node))
-        return True
 
     def destroy(self, log_handler, destroy_networks=False):
 

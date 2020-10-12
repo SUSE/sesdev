@@ -239,6 +239,14 @@ class ProductOptionOnlyOnSES(SesDevException):
         )
 
 
+class RebootDidNotSucceed(SesDevException):
+    def __init__(self, node, deployment_id):
+        super().__init__(
+            "Attempted to reboot node '{}' of deployment '{}', but ran into problems"
+            .format(node, deployment_id)
+        )
+
+
 class RoleNotKnown(SesDevException):
     def __init__(self, role):
         super().__init__(
