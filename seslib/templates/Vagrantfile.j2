@@ -47,6 +47,23 @@ Vagrant.configure("2") do |config|
     node.vm.provision "add-devel-repo-and-update", type: "shell", run: "never" do |s|
       s.inline = "/home/vagrant/add-devel-repo.sh --update"
     end
+
+    node.vm.provision "upgrade-from-nautilus-to-octopus-devel", type: "shell", run: "never" do |s|
+      s.inline = "/home/vagrant/upgrade.sh --from nautilus --to octopus --devel"
+    end
+
+    node.vm.provision "upgrade-from-nautilus-to-octopus-product", type: "shell", run: "never" do |s|
+      s.inline = "/home/vagrant/upgrade.sh --from nautilus --to octopus"
+    end
+
+    node.vm.provision "upgrade-from-ses6-to-ses7-devel", type: "shell", run: "never" do |s|
+      s.inline = "/home/vagrant/upgrade.sh --from ses6 --to ses7 --devel"
+    end
+
+    node.vm.provision "upgrade-from-ses6-to-ses7-product", type: "shell", run: "never" do |s|
+      s.inline = "/home/vagrant/upgrade.sh --from ses6 --to ses7"
+    end
+
   end
 {% endfor %}
 

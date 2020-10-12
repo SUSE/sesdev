@@ -63,6 +63,13 @@ class Constant():
 
     METADATA_FILENAME = ".metadata"
 
+    OPENSUSE_REPOS = {
+        'leap-15.2': {
+            'repo-oss': 'http://download.opensuse.org/distribution/leap/15.2/repo/oss/',
+            'repo-update': 'http://download.opensuse.org/update/leap/15.2/oss/',
+        },
+    }
+
     OS_ALIASED_BOXES = {
         'opensuse/Leap-15.2.x86_64': 'leap-15.2',
         'opensuse/Tumbleweed.x86_64': 'tumbleweed',

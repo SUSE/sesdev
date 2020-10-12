@@ -39,7 +39,8 @@ from .exceptions import \
                         VagrantSshConfigNoHostName, \
                         VersionOSNotSupported, \
                         UniqueRoleViolation, \
-                        UnsupportedVMEngine
+                        UnsupportedVMEngine, \
+                        UpgradeNotSupported
 from .log import Log
 from .node import Node, NodeManager
 from .settings import Settings, SettingsEncoder
@@ -100,6 +101,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.version_devel_repos = None
         self.os_base_repos = None
         self.os_makecheck_repos = None
+        self.os_upgrade_repos = None
+        self.upgrade_devel_repos = None
         self.ceph_salt_fetch_github_pr_heads = None
         self.ceph_salt_fetch_github_pr_merges = None
         self.cephadm_bootstrap_node = None
@@ -398,6 +401,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             version = self.settings.version
             os_setting = self.settings.os
             version_devel_repos = self.settings.version_devel_repos[version][os_setting]
+            if version == 'nautilus':
+                upgrade_devel_repos = self.settings.version_devel_repos['octopus']['leap-15.2']
+            elif version == 'ses6':
+                upgrade_devel_repos = self.settings.version_devel_repos['ses7']['sles-15-sp2']
+            else:
+                upgrade_devel_repos = []
         except KeyError as exc:
             raise VersionOSNotSupported(self.settings.version, self.settings.os) from exc
         #
@@ -418,6 +427,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                     "priority": 0,
                 }
             self.version_devel_repos.append(version_devel_repos_dict)
+        self.upgrade_devel_repos = upgrade_devel_repos
         Log.debug("_set_version_devel_repos: self.version_devel_repos: {}"
                   .format(self.version_devel_repos))
 
@@ -426,6 +436,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             self.os_base_repos = list(self.settings.os_repos[self.settings.os].items())
         else:
             self.os_base_repos = []
+        if self.settings.version == 'nautilus':
+            self.os_upgrade_repos = list(Constant.OPENSUSE_REPOS['leap-15.2'].items())
+        elif self.settings.version == 'ses6':
+            self.os_upgrade_repos = list(self.settings.os_repos['sles-15-sp2'].items())
+        else:
+            self.os_upgrade_repos = []
 
     def __set_os_makecheck_repos(self):
         if self.settings.os in self.settings.os_makecheck_repos:
@@ -569,6 +585,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'bootstrap_mon_ip': self.bootstrap_mon_ip,
             'msgr2_secure_mode': self.settings.msgr2_secure_mode,
             'msgr2_prefer_secure': self.settings.msgr2_prefer_secure,
+            'upgrade_devel_repos': self.upgrade_devel_repos,
+            'os_upgrade_repos': self.os_upgrade_repos,
         }
 
         scripts = {}
@@ -1172,6 +1190,29 @@ deployment might not be completely destroyed.
         log_handler("=> Deleting the tarball from the cluster node\n")
         ssh_cmd = ('rm', '/var/log/{}'.format(glob_to_get),)
         self.ssh(name, ssh_cmd)
+
+    def upgrade(self, log_handler, node, devel_repos=True, to_version='octopus'):
+        if node not in self.nodes:
+            raise NodeDoesNotExist(node, self.dep_id)
+        from_version = self.settings.version
+        if devel_repos:
+            devel_product = 'devel'
+        else:
+            devel_product = 'product'
+        version_combo_ok = False
+        if from_version == 'nautilus' and to_version == 'octopus':
+            version_combo_ok = True
+        if from_version == 'ses6' and to_version == 'ses7':
+            version_combo_ok = True
+        if version_combo_ok:
+            tools.run_async(
+                ["vagrant", "provision", node, "--provision-with",
+                 'upgrade-from-{}-to-{}-{}'.format(from_version, to_version, devel_product)],
+                log_handler,
+                self._dep_dir
+            )
+        else:
+            raise UpgradeNotSupported(from_version, to_version)
 
     def qa_test(self, log_handler):
         tools.run_async(

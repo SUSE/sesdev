@@ -47,7 +47,7 @@ zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 # devel repos
 {% set devel_repo_script = "/home/vagrant/add-devel-repo.sh" %}
 cat > {{ devel_repo_script }} << 'EOF'
-#!/bin/bash
+#!/bin/bash -x
 [[ "$*" =~ "--update" ]] && UPDATE="yes"
 set -x
 {% set devel_repo_count = version_devel_repos|length %}
@@ -91,6 +91,85 @@ zypper addrepo --no-gpgcheck --refresh
 {%- endif %}
  {{ _repo.url }} {{ _repo.name }}
 {% endfor %}
+
+# populate upgrade script
+{% set upgrade_script = "/home/vagrant/upgrade.sh" %}
+cat > {{ upgrade_script }} << 'EOF'
+#!/bin/bash -x
+TEMP=$(getopt -o h --long "to:,from:,devel" -n 'upgrade.sh' -- "$@") || ( echo "Terminating..." >&2 ; exit 1 )
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+        --devel) DEVEL="--devel" ; shift ;;
+        --from) shift ; FROM_VERSION="$1" ; shift ;;
+        --to) shift ; TO_VERSION="$1" ; shift ;;
+        --) shift ; break ;;
+        *) echo "Internal error" ; exit 1 ;;
+    esac
+done
+source /etc/os-release
+if [ "$FROM_VERSION" = "nautilus" ] ; then
+    if [ "$ID" = "opensuse-leap" ] && [ "$VERSION_ID" = "15.1" ] ; then
+        echo "Upgrading from Ceph Nautilus (openSUSE Leap 15.1)"
+    else
+        echo "ID is ->$ID<-"
+        echo "VERSION_ID is ->$VERSION_ID<-"
+        echo "Does not match ->opensuse-leap<- and ->15.1<-"
+        echo "Yet we were asked to upgrade from Ceph Nautilus"
+        exit 1
+    fi
+    if [ "$TO_VERSION" = "octopus" ] ; then
+        echo "Upgrading to Ceph Octopus (openSUSE Leap 15.2)"
+    else
+        echo "TO_VERSION is ->$TO_VERSION<-"
+        echo "Does not match ->octopus<-"
+        echo "Yet we only support upgrading Nautilus to Octopus"
+        exit 1
+    fi
+elif [ "$FROM_VERSION" = "ses6" ] ; then
+    if [ "$ID" = "sles" ] && [ "$VERSION_ID" = "15.1" ] ; then
+        echo "Upgrading from SES6 (SLE-15-SP1)"
+    else
+        echo "ID is ->$ID<-"
+        echo "VERSION_ID is ->$VERSION_ID<-"
+        echo "Does not match ->sles<- and ->15.1<-"
+        echo "Yet we were asked to upgrade from SES6"
+        exit 1
+    fi
+    if [ "$TO_VERSION" = "ses7" ] ; then
+        echo "Upgrading to SES7 (SLE-15-SP2)"
+    else
+        echo "TO_VERSION is ->$TO_VERSION<-"
+        echo "Does not match ->ses7<-"
+        echo "Yet we only support upgrading SES6 to SES7"
+        exit 1
+    fi
+fi
+echo "=> clobber existing repos" > /dev/null
+cp -a /etc/zypp/repos.d /etc/zypp/repos.d.bck
+rm -f /etc/zypp/repos.d/*
+echo "=> add os repos for $TO_VERSION" > /dev/null
+{% for os_repo_name, os_repo_url in os_upgrade_repos %}
+zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
+{% endfor %}
+echo "=> add devel repos for $TO_VERSION" > /dev/null
+if [ "$DEVEL" ] ; then
+{% set devel_repo_count = upgrade_devel_repos|length %}
+{% for _repo in upgrade_devel_repos %}
+{% set devel_repo_name = "devel-repo-" ~ loop.index %}
+    zypper addrepo --refresh {{ _repo }} {{ devel_repo_name }}
+{% endfor %}
+fi
+echo "=> refresh local metadata cache" > /dev/null
+zypper --non-interactive --no-gpg-checks refresh
+echo "=> dist-upgrade" > /dev/null
+zypper dist-upgrade \
+    --allow-vendor-change \
+    --auto-agree-with-licenses \
+    --no-confirm
+EOF
+chmod 755 {{ upgrade_script }}
+cat {{ upgrade_script }}
 
 # SUSE:CA repo on SLE
 {% if os.startswith("sle") %}
