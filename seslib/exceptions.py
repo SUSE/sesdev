@@ -1,5 +1,14 @@
 class SesDevException(Exception):
-    pass
+
+    def __init__(self, message, code=None):
+        self.message = message
+        self.code = code
+        super().__init__(self.code)
+
+    def __str__(self):
+        if self.code is None:
+            return self.message
+        return "{} (code: {})".format(self.message, self.code)
 
 
 class AddRepoNoUpdateWithExplicitRepo(SesDevException):
@@ -295,6 +304,14 @@ class SettingTypeError(SesDevException):
         super().__init__(
             "Wrong value type for setting '{}': expected type: '{}', actual value='{}' ('{}')"
             .format(setting, expected_type, value, type(value))
+        )
+
+
+class SSHCommandReturnedNonZero(SesDevException):
+    def __init__(self, exitcode):
+        super().__init__(
+            "SSH command returned non-zero exit code",
+            code=exitcode
         )
 
 
