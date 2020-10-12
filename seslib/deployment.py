@@ -4,6 +4,7 @@ import os
 import random
 import re
 import shutil
+import time
 
 from Cryptodome.PublicKey import RSA
 
@@ -699,6 +700,35 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         if Constant.VAGRANT_DEBUG:
             cmd.append('--debug')
         tools.run_async(cmd, log_handler, self._dep_dir)
+
+    def reboot_one_node(self, log_handler, node):
+        if node not in self.nodes:
+            raise NodeDoesNotExist(node, self.dep_id)
+        log_handler("=> running 'reboot' via SSH on node '{}'\n".format(node))
+        ssh_cmd = ("bash -x -c 'reboot'",)
+        retval = self.ssh(node, ssh_cmd)
+        log_handler("=> interactive SSH command returned {}\n".format(retval))
+        seconds_to_wait = 300
+        log_handler("=> waiting up to {} seconds for node '{}' to come back from reboot\n"
+                    .format(seconds_to_wait, node)
+                   )
+        interval_seconds = 15
+        while True:
+            ssh_cmd = ("bash -x -c 'echo I am back'",)
+            retval = self.ssh(node, ssh_cmd)
+            if retval == 0:
+                break
+            log_handler("=> interactive SSH command returned {}\n".format(retval))
+            seconds_to_wait -= interval_seconds
+            if seconds_to_wait <= 0:
+                log_handler("ERROR: node '{}' did not come back from reboot!\n".format(node))
+                return False
+            log_handler("=> waiting up to {} more seconds for node '{}' to come back from reboot\n"
+                        .format(seconds_to_wait, node)
+                       )
+            time.sleep(interval_seconds)
+        log_handler("=> node '{}' is back from reboot!\n".format(node))
+        return True
 
     def destroy(self, log_handler, destroy_networks=False):
 

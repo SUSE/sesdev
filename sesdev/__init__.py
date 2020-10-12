@@ -1064,6 +1064,14 @@ def qa_test(deployment_id):
 
 @cli.command()
 @click.argument('deployment_id')
+@click.argument('node')
+def reboot(deployment_id, node):
+    dep = Deployment.load(deployment_id)
+    dep.reboot_one_node(_print_log, node)
+
+
+@cli.command()
+@click.argument('deployment_id')
 @click.option('--non-interactive', '-n', '--force', '-f',
               is_flag=True,
               callback=_abort_if_false,
