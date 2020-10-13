@@ -55,14 +55,14 @@ systemctl restart systemd-journald
 set +x
 echo "Stopping the deployment now because the --no-provision option was given"
 exit 0
-{% endif %} {# not provision #}
+{% endif %}{# not provision #}
 
 # if --ssd option was given, set rotational flag on first additional disk
 {% if ssd %}
 if [ -f /sys/block/vdb/queue/rotational ] ; then
     echo "0" > /sys/block/vdb/queue/rotational
 fi
-{% endif %} {# ssd #}
+{% endif %}{# ssd #}
 
 {% if package_manager == 'zypper' %}
 {% include "zypper.j2" ignore missing %}
@@ -72,7 +72,10 @@ fi
 {% include "yum.j2" ignore missing %}
 {% elif package_manager == 'dnf' %}
 {% include "dnf.j2" ignore missing %}
-{% endif %} {# package_manager == 'zypper' #}
+{% endif %}{# package_manager == 'zypper' #}
+
+# include helper scripts
+{% include "helper_scripts.j2" %}
 
 # sync clocks if needed
 {% include "sync_clocks.j2" %}
@@ -85,7 +88,7 @@ fi
 {% if node == master %}
 {% include "salt/deepsea/deepsea_deployment.sh.j2" %}
 {% include "salt/qa_test.j2" %}
-{% endif %} {# node == master #}
+{% endif %}{# node == master #}
 
 # SUMA
 {% elif suma and node == suma %}
@@ -99,7 +102,7 @@ fi
 {% include "salt/ceph-salt/deployment_day_1.sh.j2" %}
 {% include "cephadm/deployment_day_2.sh.j2" %}
 {% include "salt/qa_test.j2" %}
-{% endif %} {# node == master #}
+{% endif %}{# node == master #}
 
 # caasp4
 {% elif version == 'caasp4' %}
@@ -113,4 +116,4 @@ fi
 {% elif os.startswith('ubuntu') %}
 {% include "ubuntu/provision.sh.j2" %}
 
-{% endif %} {# end of deploy state machine #}
+{% endif %}{# end of deploy state machine #}
