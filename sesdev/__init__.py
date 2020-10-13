@@ -26,6 +26,7 @@ from seslib.exceptions import \
                               OptionNotSupportedInContext, \
                               OptionNotSupportedInVersion, \
                               OptionValueError, \
+                              SSHCommandReturnedNonZero, \
                               VersionNotKnown, \
                               YouMustProvide
 from seslib.log import Log
@@ -45,6 +46,8 @@ def sesdev_main():
     except SesDevException as ex:
         logger.exception(ex)
         click.echo(str(ex))
+        if ex.args[0]:
+            return int(ex.args[0])
         return 1
     return 0
 
@@ -1239,7 +1242,10 @@ def ssh(deployment_id, node=None, command=None):
     node_name = 'master' if node is None else node
     if command:
         Log.info("Running SSH command on {}: {}".format(node_name, command))
-    dep.ssh(node_name, command)
+    retval = dep.ssh(node_name, command)
+    assert isinstance(retval, int), "ssh method returned non-integer"
+    if retval != 0:
+        raise SSHCommandReturnedNonZero(retval)
 
 
 @cli.command()
