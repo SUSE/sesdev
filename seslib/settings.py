@@ -10,6 +10,11 @@ from .log import Log
 
 SETTINGS = {
     # RESERVED KEY, DO NOT USE: 'strict'
+    'apparmor': {
+        'type': bool,
+        'help': 'Enable/disable AppArmor',
+        'default': True,
+    },
     'caasp_deploy_ses': {
         'type': bool,
         'help': 'Deploy SES using rook in CaasP',
