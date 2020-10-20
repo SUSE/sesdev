@@ -441,11 +441,13 @@ def _gen_settings_dict(
         settings_dict['disk_size'] = disk_size
 
     if bluestore is not None:
-        settings_dict['filestore_osds'] = False
-    else:
-        settings_dict['filestore_osds'] = True
-        if not disk_size:
-            settings_dict['disk_size'] = 15  # default 8 GB disk size is too small for FileStore
+        if bluestore:
+            settings_dict['filestore_osds'] = False
+        else:
+            settings_dict['filestore_osds'] = True
+            if not disk_size:
+                # default 8 GB disk size is too small for FileStore
+                settings_dict['disk_size'] = 15
 
     if libvirt_host is not None:
         settings_dict['libvirt_host'] = libvirt_host
