@@ -73,7 +73,7 @@ EOF
 
 {% if ceph_orch_apply_needed %}
 cat {{ service_spec_core }}
-ceph orch apply -i {{ service_spec_core }} --dry-run
+ceph orch apply -i {{ service_spec_core }} --dry-run || true
 ceph orch apply -i {{ service_spec_core }}
 {% endif %}{# ceph_orch_apply_needed #}
 
