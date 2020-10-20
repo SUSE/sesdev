@@ -67,7 +67,7 @@ ceph-salt config /cephadm_bootstrap/mon_ip set {{ bootstrap_mon_ip }}
 {% endif %}
 
 ceph-salt config /ssh/ generate
-ceph-salt config /time_server/server_hostname set {{ master.fqdn }}
+ceph-salt config /time_server/servers add {{ master.fqdn }}
 {% set external_timeserver = "pool.ntp.org" %}
 ceph-salt config /time_server/external_servers add {{ external_timeserver }}
 ceph-salt config /time_server/subnet set {{ public_network }}
