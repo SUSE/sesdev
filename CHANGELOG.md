@@ -7,6 +7,28 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.9.0] - 2020-10-23
+
+### Added
+- constant: add missing SLE-15-SP[12] Product repos (PR #530)
+- Implement "sesdev upgrade" subcommand (PR #531)
+- Implement "sesdev reboot DEP_ID NODE" command (PR #532)
+- contrib/upgrade-demo-ses6-to-ses7.sh: add upgrade demo script (PR #535)
+- provision.sh: add helper_scripts Jinja template (PR #540)
+
+### Fixed
+- exceptions: have SesDevException return optional exit code (PR #538)
+- deployment: wait for rebooted node to complete boot sequence (PR #539)
+- sesdev: fix --filestore regression (PR #545)
+- cephadm/deployment_day_2.sh.j2: do not fail on defective --dry-run (PR #546)
+- setup.cfg: include seslib/templates/cephadm/ directory in packaging (PR #548)
+
+### Changed
+- templates/zypper: do not install supportutils-plugin-ses in SES{5,6,7} (PR #526)
+
+### Removed
+- deepsea/nautilus_pre_stage_0.sh: refrain from patching DeepSea (PR #547)
+
 ## [1.8.0] - 2020-10-08
 
 ### Added
@@ -568,7 +590,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.8.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/SUSE/sesdev/releases/tag/v1.9.0
 [1.8.0]: https://github.com/SUSE/sesdev/releases/tag/v1.8.0
 [1.7.0]: https://github.com/SUSE/sesdev/releases/tag/v1.7.0
 [1.6.1]: https://github.com/SUSE/sesdev/releases/tag/v1.6.1
