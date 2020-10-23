@@ -1490,7 +1490,7 @@ def tunnel(deployment_id, service=None, node=None, remote_port=None, local_port=
 @cli.command()
 @click.argument('deployment_id')
 @click.argument('node')
-@click.option('--devel/--product', 'devel_repos', default=True, type=bool, is_flag=True,
+@click.option('--devel/--product', 'devel_repos', default=True, is_flag=True,
               help="Upgrade to devel or product repos (default: devel)")
 @click.option('--to', 'to_version', default='octopus', type=str, show_default=True,
               help='The local address to bind the tunnel')
