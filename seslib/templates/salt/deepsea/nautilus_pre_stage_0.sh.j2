@@ -7,23 +7,3 @@ cp /srv/salt/ceph/updates/nop.sls /srv/salt/ceph/updates/restart
 echo "updates_init: nop" >> /srv/pillar/ceph/stack/global.yml
 
 echo "updates_restart: nop" >> /srv/pillar/ceph/stack/global.yml
-
-# cp /srv/salt/ceph/updates/default_my.sls /srv/salt/ceph/time
-# sed -i 's/default/default_my/g' /srv/salt/ceph/time/init.sls
-
-cat > /root/mds-get-name.patch <<EOF
---- /srv/salt/_modules/mds.py
-+++ /srv/salt/_modules/mds.py
-@@ -17,6 +17,6 @@ def get_name(host):
-     MDS names must not start with a digit, so filter those out and prefix them
-     with "mds.".
-     """
--    if host[0].isdigit():
-+    if host[0].isdigit() or host == 'master':
-         return 'mds.{}'.format(host)
-     return host
-EOF
-
-pushd /
-patch -p0 < /root/mds-get-name.patch
-popd
