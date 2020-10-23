@@ -7,6 +7,11 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.9.1] - 2020-10-23
+
+### Fixed
+- sesdev --devel flag: let click deduct type (PR #550)
+
 ## [1.9.0] - 2020-10-23
 
 ### Added
@@ -590,7 +595,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.9.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/SUSE/sesdev/releases/tag/v1.9.1
 [1.9.0]: https://github.com/SUSE/sesdev/releases/tag/v1.9.0
 [1.8.0]: https://github.com/SUSE/sesdev/releases/tag/v1.8.0
 [1.7.0]: https://github.com/SUSE/sesdev/releases/tag/v1.7.0
