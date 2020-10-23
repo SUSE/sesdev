@@ -50,7 +50,7 @@ Requires:       python3-pycryptodomex >= 3.4.6
 Requires:       python3-setuptools
 Requires:       vagrant > 2.2.2
 Requires:       vagrant-libvirt
-Requires:       sesdev-qa
+Requires:       sesdev-qa = %{version}-%{release}
 
 %if 0%{?el8} || 0%{?fedora}
 %{?python_disable_dependency_generator}
