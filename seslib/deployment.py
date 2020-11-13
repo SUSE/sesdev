@@ -589,6 +589,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'msgr2_prefer_secure': self.settings.msgr2_prefer_secure,
             'upgrade_devel_repos': self.upgrade_devel_repos,
             'os_upgrade_repos': self.os_upgrade_repos,
+            'apparmor': self.settings.apparmor,
         }
 
         scripts = {}

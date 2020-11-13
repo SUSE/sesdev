@@ -164,7 +164,9 @@ def common_create_options(func):
         click.option('--ssd', is_flag=True, default=False,
                      help='On VMS with additional disks, make one disk non-rotational'),
         click.option('--fqdn', is_flag=True, default=False,
-                     help='Make \'hostname\' command return FQDN')
+                     help='Make \'hostname\' command return FQDN'),
+        click.option('--apparmor/--no-apparmor', is_flag=True, default=True,
+                     help='Enable/disable AppArmor'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -337,6 +339,7 @@ def create():
 
 def _gen_settings_dict(
         version,
+        apparmor=None,
         bluestore=None,
         ceph_branch=None,
         ceph_repo=None,
@@ -614,6 +617,9 @@ def _gen_settings_dict(
         settings_dict['msgr2_secure_mode'] = True
     if msgr2_prefer_secure:
         settings_dict['msgr2_prefer_secure'] = True
+
+    if apparmor is not None:
+        settings_dict['apparmor'] = apparmor
 
     return settings_dict
 

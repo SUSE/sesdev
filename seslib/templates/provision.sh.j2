@@ -80,7 +80,24 @@ fi
 # sync clocks if needed
 {% include "sync_clocks.j2" %}
 
-# deploy state machine
+# apparmor
+{% if apparmor %}
+aa-status || true
+{% else %}
+aa-teardown
+echo "Possibly changing GRUB configuration to disable apparmor persistently"
+GRUB_APPARMOR_BEFORE="$(grep ^GRUB_CMDLINE_LINUX_DEFAULT /etc/default/grub)"
+sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=""$/GRUB_CMDLINE_LINUX_DEFAULT="apparmor=0"/' /etc/default/grub
+GRUB_APPARMOR_AFTER="$(grep ^GRUB_CMDLINE_LINUX_DEFAULT /etc/default/grub)"
+if [ "$GRUB_APPARMOR_AFTER" ] && [ "$GRUB_APPARMOR_BEFORE" != "$GRUB_APPARMOR_AFTER" ] ; then
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+else
+    echo "GRUB configuration did not change; not persisting it"
+fi
+aa-status || true
+{% endif %}{# apparmor #}
+
+# deployment state machine
 
 # DeepSea
 {% if deploy_salt and deployment_tool == "deepsea" %}
