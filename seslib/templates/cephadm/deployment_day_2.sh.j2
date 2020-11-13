@@ -130,11 +130,18 @@ NFS_NODES_COMMA_SEPARATED_LIST="${NFS_NODES_COMMA_SEPARATED_LIST%,*}"
 {% if mds_nodes > 0 %}
 
 {% set service_spec_mds = "/root/service_spec_mds.yml" %}
-{% set fs_volume = "sesdev_fs" %}
+{% set fs_name = "sesdev_fs" %}
+{% set fs_pool_prefix = "cephfs." %}
+{% set fs_meta_pool = fs_pool_prefix + fs_name + ".meta" %}
+{% set fs_data_pool = fs_pool_prefix + fs_name + ".data" %}
+
+ceph osd pool create {{ fs_meta_pool }}
+ceph osd pool create {{ fs_data_pool }}
+
 cat >> {{ service_spec_mds }} << 'EOF'
 ---
 service_type: mds
-service_id: {{ fs_volume }}
+service_id: {{ fs_name }}
 placement:
     hosts:
 {% for node in nodes %}
@@ -187,8 +194,7 @@ while true ; do
 done
 set -x
 
-# create the volume
-ceph fs volume create {{ fs_volume }}
+ceph fs new {{ fs_name }} {{ fs_meta_pool }} {{ fs_data_pool }}
 sleep 10
 ceph fs status
 sleep 5
