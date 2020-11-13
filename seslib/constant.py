@@ -165,8 +165,8 @@ class Constant():
             'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
             'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/6/x86_64/product/',
-            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/6/x86_64/',
-                              'update/'
+            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/6/x86_64/'
+                              'update/',
         },
         'sles-15-sp2': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP2/x86_64/'
