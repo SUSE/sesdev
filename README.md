@@ -95,6 +95,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [mount.nfs: Unknown error 521](#mountnfs-unknown-error-521)
    * [Problems accessing dashboard on remote sesdev](#problems-accessing-dashboard-on-remote-sesdev)
    * [Error creating IPv6 cluster](#error-creating-ipv6-cluster)
+   * [Failed to initialize libnetcontrol](#failed-to-initialize-libnetcontrol)
 * [Contributing](#contributing)
 
 
@@ -1429,11 +1430,55 @@ sysctl -w net.ipv6.conf.<if>.accept_ra=2
 Where `<if>` is the network interface from the error, or `all` if you want to apply
 the config to all network interfaces.
 
+### Failed to initialize libnetcontrol
+
+#### Symptom
+
+After starting `libvirtd.service`, `systemctl status libvirtd.service` says
+
+```
+Failed to intialize libnetcontrol.  Management of interface devices is disabled
+```
+
+(Yes, it really says "intialize" instead of "initialize".)
+
+#### Analysis
+
+At present, `libvirtd` works together well with the `wicked` network management
+system. It does not work so well with `NetworkManager`, so if you see this
+message it probably means you are using `NetworkManager`.
+
+These two - `wicked` and `NetworkManager` - are mutually exclusive: you must
+have one or the other, and you cannot have both at the same time.
+
+#### Resolution
+
+The resolution is to disable `NetworkManager` by enabling `wicked` and
+configuring it properly (i.e. so you don't experience any loss in network
+connectivity).
+
+Refer to your operating system's documentation to learn how to configure
+networking with `wicked`. For example, for openSUSE Leap 15.2 you can refer
+to Reference -> System -> Basic Networking:
+
+https://doc.opensuse.org/documentation/leap/reference/html/book-opensuse-reference/cha-network.html
+
+Once you have `wicked` running without any loss of network connectivity, proceed
+to restart libvirtd:
+
+```
+# systemctl restart libvirtd.service
+```
+
+After this, the `Failed to intialize libnetcontrol` message should no longer
+appear in the journal (log) of `libvirtd.service`.
+
 ## Contributing
 
-If you would like to submit a patch to sesdev, please read the file
-`CONTRIBUTING.rst` in the top-level directory of the source code distribution.
-It can be found on-line here:
+If you would like to submit a patch to sesdev, or otherwise participate in the
+sesdev community, please read the files `CONTRIBUTING.rst` and
+`CODE_OF_CONDUCT.md` in the top-level directory of the source code
+distribution. These files can also be found on-line:
 
 https://github.com/SUSE/sesdev/blob/master/CONTRIBUTING.rst
-
+https://github.com/SUSE/sesdev/blob/master/CODE_OF_CONDUCT.md
