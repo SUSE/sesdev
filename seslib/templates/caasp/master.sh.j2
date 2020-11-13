@@ -49,6 +49,29 @@ function wait_for_workers_ready {
     set -ex
 }
 
+function wait_for_rook_ceph {
+    set +ex
+    timeout_seconds="900"
+    remaining_seconds="$timeout_seconds"
+    interval_seconds="10"
+    while true ; do
+        echo "Waiting for $1 $2 to be ready"
+        set -x
+        kubectl get $1 $2 -n rook-ceph 2>/dev/null
+        status=$?
+        set +x
+        remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+        [ "$status" = "0" ] && break
+        if [ "$remaining_seconds" -le "0" ] ; then
+            echo "It seems unlikely that $1 $2 will ever appear. Bailing out!"
+            set -e
+            false
+        fi
+        sleep "$interval_seconds"
+    done
+    set -ex
+}
+
 zypper --non-interactive install skuba
 
 touch /tmp/ready
@@ -215,6 +238,18 @@ kubectl apply -f common.yaml -f operator.yaml
 sleep 15
 kubectl apply -f cluster.yaml -f toolbox.yaml
 echo "Verify the installation by running 'kubectl get pods -n rook-ceph'"
+
+# expose ceph dashboard
+wait_for_rook_ceph service rook-ceph-mgr-dashboard
+kubectl create -f dashboard-loadbalancer.yaml
+wait_for_rook_ceph service rook-ceph-mgr-dashboard-loadbalancer
+export CEPH_DASHBOARD_PORT=$(kubectl get -o jsonpath="{.spec.ports[0].port}" services rook-ceph-mgr-dashboard-loadbalancer -n rook-ceph)
+export CEPH_DASHBOARD_IP=$(kubectl get -o jsonpath="{.status.loadBalancer.ingress[0].ip}" services rook-ceph-mgr-dashboard-loadbalancer -n rook-ceph)
+wait_for_rook_ceph secret rook-ceph-dashboard-password
+export CEPH_DASHBOARD_PASSWORD=$(kubectl -n rook-ceph get secret rook-ceph-dashboard-password -o jsonpath="{['data']['password']}" | base64 --decode && echo)
+echo "Access ceph dashboard at: https://$CEPH_DASHBOARD_IP:$CEPH_DASHBOARD_PORT/"
+echo "    Ceph dashboard username: admin"
+echo "    Ceph dashboard password: $CEPH_DASHBOARD_PASSWORD"
 
 {% endif %} {# caasp_deploy_ses #}
 
