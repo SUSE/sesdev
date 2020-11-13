@@ -7,6 +7,21 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.10.0] - 2020-11-13
+
+### Added
+- contrib/standalone.sh: add --fqdn test cases (PR #523)
+- Implement --no-apparmor option (PR #543)
+- Expose Ceph Dashboard on CaaSP SES deployment (PR #553)
+- doc/README.md: add common pitfall "Failed to intialize libnetcontrol"
+  (PR #554) 
+
+### Changed
+- spec: pin sesdev-qa version to sesdev version (PR #551)
+- constant,zypper: use download.nue.suse.com instead of download.suse.de
+  (PR #552)
+- deployment_day_2.sh: create CephFS using documented procedure (PR #555)
+
 ## [1.9.1] - 2020-10-23
 
 ### Fixed
@@ -595,7 +610,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.9.1...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/SUSE/sesdev/releases/tag/v1.10.0
 [1.9.1]: https://github.com/SUSE/sesdev/releases/tag/v1.9.1
 [1.9.0]: https://github.com/SUSE/sesdev/releases/tag/v1.9.0
 [1.8.0]: https://github.com/SUSE/sesdev/releases/tag/v1.8.0
