@@ -165,7 +165,8 @@ class Constant():
             'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
             'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/6/x86_64/product/',
-            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/6/x86_64/update/'
+            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/6/x86_64/',
+                              'update/'
         },
         'sles-15-sp2': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP2/x86_64/'
@@ -180,8 +181,9 @@ class Constant():
                            'SLE-Module-Server-Applications/15-SP2/x86_64/product/',
             'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
-            'storage7-media': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/'
-                              'SES7/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
+            'storage7-media': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/Update:/'
+                              'Products:/SES7/images/repo/'
+                              'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
         },
     }
 
@@ -307,16 +309,16 @@ class Constant():
         },
         'caasp4': {
             'sles-15-sp2': [
-                'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/x86_64/'
-                'product/',
+                'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
+                'x86_64/product/',
                 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Containers/15-SP2/x86_64/'
                 'update/',
-                'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Public-Cloud/15-SP2/x86_64/'
-                'product/',
-                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP2/x86_64/'
-                'update/',
-                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP1/x86_64/'
-                'update/',
+                'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Public-Cloud/15-SP2/'
+                'x86_64/product/',
+                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP2/'
+                'x86_64/update/',
+                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP1/'
+                'x86_64/update/',
                 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/CaaSP:/4.5/'
                 'standard/',
                 'http://download.nue.suse.com/ibs/SUSE/Updates/SUSE-CAASP/4.5/x86_64/update/'
