@@ -86,16 +86,16 @@ class Constant():
                       'Appliances:/Images:/openSUSE-Tumbleweed/openSUSE_Tumbleweed/'
                       'Tumbleweed.x86_64-libvirt.box',
         'opensuse/Tumbleweed.x86_64': 'opensuse/Tumbleweed.x86_64',
-        'sles-15-sp1': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP1/images/'
-                       'SLES15-SP1-Vagrant.x86_64-libvirt.box',
-        'sles-12-sp3': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/vagrant/'
+        'sles-15-sp1': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP1/'
+                       'images/SLES15-SP1-Vagrant.x86_64-libvirt.box',
+        'sles-12-sp3': 'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/vagrant/'
                        'sle12sp3.x86_64.box',
         'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.2/images/'
                      'Leap-15.2.x86_64-libvirt.box',
         'opensuse/Leap-15.2.x86_64': 'opensuse/Leap-15.2.x86_64',
-        'sles-15-sp2': 'http://download.suse.de/ibs/Virtualization:/Vagrant:/SLE-15-SP2/images/'
-                       'SLES15-SP2-Vagrant.x86_64-libvirt.box',
+        'sles-15-sp2': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP2/'
+                       'images/SLES15-SP2-Vagrant.x86_64-libvirt.box',
         'generic/ubuntu1804': 'generic/ubuntu1804',
     }
 
@@ -115,32 +115,32 @@ class Constant():
             'sdk-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/',
         },
         'sles-15-sp1': {
-            'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/'
+            'desktop-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
                             'SLE-Module-Desktop-Applications/15-SP1/x86_64/product/',
-            'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+            'desktop-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                    'SLE-Module-Desktop-Applications/15-SP1/x86_64/update/',
             'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/'
                          'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
             'dev-tools-update': 'http://dist.suse.de/ibs/SUSE/Products/'
                                 'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
-            'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/'
-                           'SLE-15-SP1-Product-WE-POOL-x86_64-Media1/',
-            'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP1/'
-                                  'x86_64/update/',
+            'workstation': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/'
+                           'repo/SLE-15-SP1-Product-WE-POOL-x86_64-Media1/',
+            'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
+                                  '15-SP1/x86_64/update/',
         },
         'sles-15-sp2': {
-            'desktop-apps': 'http://download.suse.de/ibs/SUSE/Products/'
+            'desktop-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
                             'SLE-Module-Desktop-Applications/15-SP2/x86_64/product/',
-            'desktop-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+            'desktop-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                    'SLE-Module-Desktop-Applications/15-SP2/x86_64/update/',
-            'dev-tools': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/'
-                         '15-SP2/x86_64/product/',
-            'dev-tools-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+            'dev-tools': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP2/x86_64/product/',
+            'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                 'SLE-Module-Development-Tools/15-SP2/x86_64/update/',
-            'workstation': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/TEST/images/repo/'
-                           'SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
-            'workstation-update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Product-WE/15-SP2/'
-                                  'x86_64/update/',
+            'workstation': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/GA:/TEST/images/'
+                           'repo/SLE-15-SP2-Product-WE-POOL-x86_64-Media1/',
+            'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
+                                  '15-SP2/x86_64/update/',
         },
     }
 
@@ -156,31 +156,31 @@ class Constant():
                        'product/',
             'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP1/'
                               'x86_64/update/',
-            'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/'
+            'base': 'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/'
                     'x86_64/product/',
-            'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/'
+            'update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/'
                       'x86_64/update/',
-            'server-apps': 'http://download.suse.de/ibs/SUSE/Products/'
+            'server-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
                            'SLE-Module-Server-Applications/15-SP1/x86_64/product/',
-            'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+            'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP1/x86_64/update/',
-            'storage': 'http://download.suse.de/ibs/SUSE/Products/Storage/6/x86_64/product/',
-            'storage-update': 'http://download.suse.de/ibs/SUSE/Updates/Storage/6/x86_64/update/'
+            'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/6/x86_64/product/',
+            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/6/x86_64/update/'
         },
         'sles-15-sp2': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP2/x86_64/'
                        'product/',
             'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP2/'
                               'x86_64/update/',
-            'base': 'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP2/'
+            'base': 'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP2/'
                     'x86_64/product/',
-            'update': 'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP2/'
+            'update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP2/'
                       'x86_64/update/',
-            'server-apps': 'http://download.suse.de/ibs/SUSE/Products/'
+            'server-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
                            'SLE-Module-Server-Applications/15-SP2/x86_64/product/',
-            'server-apps-update': 'http://download.suse.de/ibs/SUSE/Updates/'
+            'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
-            'storage7-media': 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/'
+            'storage7-media': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/'
                               'SES7/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
         },
     }
@@ -258,7 +258,7 @@ class Constant():
     VERSION_DEVEL_REPOS = {
         'ses5': {
             'sles-12-sp3': [
-                'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/images/repo/'
                 'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/'
             ],
         },
@@ -270,7 +270,7 @@ class Constant():
         },
         'ses6': {
             'sles-15-sp1': [
-                'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
                 'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/'
             ],
         },
@@ -301,45 +301,45 @@ class Constant():
         },
         'ses7': {
             'sles-15-sp2': [
-                'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0/images/repo/'
                 'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
             ],
         },
         'caasp4': {
             'sles-15-sp2': [
-                'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/x86_64/'
+                'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/x86_64/'
                 'product/',
-                'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/15-SP2/x86_64/'
+                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Containers/15-SP2/x86_64/'
                 'update/',
-                'http://download.suse.de/ibs/SUSE/Products/SLE-Module-Public-Cloud/15-SP2/x86_64/'
+                'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Public-Cloud/15-SP2/x86_64/'
                 'product/',
-                'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP2/x86_64/'
+                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP2/x86_64/'
                 'update/',
-                'http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP1/x86_64/'
+                'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15-SP1/x86_64/'
                 'update/',
-                'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/CaaSP:/4.5/'
+                'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/CaaSP:/4.5/'
                 'standard/',
-                'http://download.suse.de/ibs/SUSE/Updates/SUSE-CAASP/4.5/x86_64/update/'
+                'http://download.nue.suse.com/ibs/SUSE/Updates/SUSE-CAASP/4.5/x86_64/update/'
             ],
         },
         'makecheck': {
             'sles-12-sp3': [
-                'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/images/repo/'
                 'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/',
-                '10000!http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+                '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/images/repo/'
                 'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
             ],
             'sles-15-sp1': [
-                'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
                 'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/',
-                # '10000!http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+                # '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
                 # 'SUSE-Enterprise-Storage-6-POOL-Internal-x86_64-Media/',
             ],
             'leap-15.1': [],
             'sles-15-sp2': [
-                'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0/images/repo/'
                 'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
-                '10000!http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+                '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/7.0/images/repo/'
                 'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
             ],
             'leap-15.2': [],
