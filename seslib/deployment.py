@@ -923,6 +923,10 @@ deployment might not be completely destroyed.
                     result += "  - {}\n".format(repo_obj.url)
             if self.settings.version in Constant.CORE_VERSIONS:
                 result += "- qa_test:          {}\n".format(self.settings.qa_test)
+            if self.settings.fqdn:
+                result += "- FQDN:             {}\n".format(self.settings.fqdn)
+            if self.settings.rgw_ssl:
+                result += "- RGW with SSL:     {}\n".format(self.settings.rgw_ssl)
         if show_individual_vms:
             result += "\n"
             result += "Individual VM parameters:\n"
