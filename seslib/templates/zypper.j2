@@ -37,6 +37,18 @@ zypper --non-interactive removerepo repo-source-non-oss || true
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
+# ses6 deepsea install from source requires:
+# - SES6 Internal Media repo
+# - SLE-15-SP1 Developer Tools Module repos
+{% if version == 'ses6' and deepsea_git_repo and node == master %}
+{% for internal_media_repo_name, internal_media_repo_url in internal_media_repo %}
+zypper addrepo --refresh {{ internal_media_repo_url }} {{ internal_media_repo_name }}
+{% endfor %}
+{% for dev_tools_repo_name, dev_tools_repo_url in developer_tools_repos %}
+zypper addrepo --refresh {{ dev_tools_repo_url }} {{ dev_tools_repo_name }}
+{% endfor %}
+{% endif %}{# version == 'ses6' and deepsea_git_repo #}
+
 # make check repos
 {% if version == 'makecheck' %}
 {% for os_repo_name, os_repo_url in os_makecheck_repos %}

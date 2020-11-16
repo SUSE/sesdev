@@ -18,10 +18,40 @@ class Constant():
 
     DEBUG = False
 
+    DEVELOPER_TOOLS_REPOS = {
+        'sles-15-sp1': {
+            'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
+            'dev-tools-update': 'http://dist.suse.de/ibs/SUSE/Products/'
+                                'SLE-Module-Development-Tools/15-SP1/x86_64/product/',
+        },
+        'sles-15-sp2': {
+            'dev-tools': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP2/x86_64/product/',
+            'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                'SLE-Module-Development-Tools/15-SP2/x86_64/update/',
+        },
+    }
+
     IMAGE_PATHS = {
         'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
         'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
         'pacific': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
+    }
+
+    INTERNAL_MEDIA_REPOS = {
+        'ses5': {
+            'ses5-internal-media': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
+                                   'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
+        },
+        'ses6': {
+            'ses6-internal-media': 'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
+                                   'SUSE-Enterprise-Storage-6-POOL-Internal-x86_64-Media/',
+        },
+        'ses7': {
+            'ses7-internal-media': 'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
+                                   'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
+        },
     }
 
     JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -99,16 +129,6 @@ class Constant():
         'generic/ubuntu1804': 'generic/ubuntu1804',
     }
 
-    OS_PACKAGE_MANAGER_MAPPING = {
-        'sles-12-sp3': 'zypper',
-        'sles-15-sp1': 'zypper',
-        'sles-15-sp2': 'zypper',
-        'leap-15.1': 'zypper',
-        'leap-15.2': 'zypper',
-        'tumbleweed': 'zypper',
-        'ubuntu-bionic': 'apt',
-    }
-
     OS_MAKECHECK_REPOS = {
         'sles-12-sp3': {
             'sdk': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/',
@@ -142,6 +162,16 @@ class Constant():
             'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
                                   '15-SP2/x86_64/update/',
         },
+    }
+
+    OS_PACKAGE_MANAGER_MAPPING = {
+        'sles-12-sp3': 'zypper',
+        'sles-15-sp1': 'zypper',
+        'sles-15-sp2': 'zypper',
+        'leap-15.1': 'zypper',
+        'leap-15.2': 'zypper',
+        'tumbleweed': 'zypper',
+        'ubuntu-bionic': 'apt',
     }
 
     OS_REPOS = {
