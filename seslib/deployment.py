@@ -590,6 +590,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'upgrade_devel_repos': self.upgrade_devel_repos,
             'os_upgrade_repos': self.os_upgrade_repos,
             'apparmor': self.settings.apparmor,
+            'rgw_ssl': self.settings.rgw_ssl,
         }
 
         scripts = {}

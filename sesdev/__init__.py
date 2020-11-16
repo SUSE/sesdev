@@ -167,6 +167,8 @@ def common_create_options(func):
                      help='Make \'hostname\' command return FQDN'),
         click.option('--apparmor/--no-apparmor', is_flag=True, default=True,
                      help='Enable/disable AppArmor'),
+        click.option('--rgw-ssl/--no-rgw-ssl', is_flag=True, default=False,
+                     help='Deploy RGW with SSL'),
     ]
     return _decorator_composer(click_options, func)
 
@@ -371,6 +373,7 @@ def _gen_settings_dict(
         ram=None,
         repo=None,
         repo_priority=None,
+        rgw_ssl=None,
         roles=None,
         salt=None,
         scc_pass=None,
@@ -620,6 +623,11 @@ def _gen_settings_dict(
 
     if apparmor is not None:
         settings_dict['apparmor'] = apparmor
+
+    if rgw_ssl is not None:
+        if rgw_ssl and version not in ['nautilus', 'ses6']:
+            raise OptionNotSupportedInVersion('--rgw-ssl', version)
+        settings_dict['rgw_ssl'] = rgw_ssl
 
     return settings_dict
 
