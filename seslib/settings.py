@@ -120,6 +120,15 @@ SETTINGS = {
         'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
         'default': Constant.IMAGE_PATHS,
     },
+    'ipv6': {
+        'type': bool,
+        'help': 'Configure IPv6 addresses. This option requires "Accept Router '
+                'Advertisements" to be set to 2. You can change it by running '
+                '"sysctl -w net.ipv6.conf.<if>.accept_ra=2" where '
+                '<if> is the network interface used by libvirt for network '
+                'forwarding, or "all" to apply to all interfaces.',
+        'default': False
+    },
     'libvirt_host': {
         'type': str,
         'help': 'Hostname/IP address of the libvirt host',
@@ -220,15 +229,6 @@ SETTINGS = {
         'help': 'Automatically run integration tests on the deployed cluster',
         'default': False,
     },
-    'ipv6': {
-        'type': bool,
-        'help': 'Configure IPv6 addresses. This option requires "Accept Router '
-                'Advertisements" to be set to 2. You can change it by running '
-                '"sysctl -w net.ipv6.conf.<if>.accept_ra=2" where '
-                '<if> is the network interface used by libvirt for network '
-                'forwarding, or "all" to apply to all interfaces.',
-        'default': False
-    },
     'ram': {
         'type': int,
         'help': 'RAM size in gigabytes for each node',
@@ -243,6 +243,11 @@ SETTINGS = {
         'type': list,
         'help': 'DEPRECATED: use custom_repos instead',
         'default': [],
+    },
+    'rgw_ssl': {
+        'type': bool,
+        'help': 'Whether to deploy RGW with SSL enabled',
+        'default': False,
     },
     'roles': {
         'type': list,
