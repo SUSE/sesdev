@@ -120,10 +120,15 @@ SETTINGS = {
         'help': 'Container image path for Ceph daemons',
         'default': '',
     },
-    'image_paths': {
+    'image_paths_devel': {
         'type': dict,
-        'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
-        'default': Constant.IMAGE_PATHS,
+        'help': 'paths to devel container images',
+        'default': Constant.IMAGE_PATHS_DEVEL,
+    },
+    'image_paths_product': {
+        'type': dict,
+        'help': 'paths to product container images',
+        'default': Constant.IMAGE_PATHS_PRODUCT,
     },
     'internal_media_repos': {
         'type': dict,

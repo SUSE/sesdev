@@ -152,9 +152,14 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
     def __populate_image_path(self):
-        if self.settings.deployment_tool == 'cephadm':
-            if not self.settings.image_path:
-                self.settings.image_path = self.settings.image_paths[self.settings.version]
+        if self.settings.deployment_tool == 'cephadm' and not self.settings.image_path:
+            if not self.settings.devel_repo:
+                if self.settings.version in self.settings.image_paths_product:
+                    self.settings.image_path = \
+                        self.settings.image_paths_product[self.settings.version]
+                    return
+            self.settings.image_path = \
+                self.settings.image_paths_devel[self.settings.version]
 
     def __set_up_make_check(self):
         self.settings.override('single_node', True)
