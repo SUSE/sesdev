@@ -65,6 +65,11 @@ SETTINGS = {
         'help': 'Include "devel" zypper repo, if applicable',
         'default': True,
     },
+    'developer_tools_repos': {
+        'type': dict,
+        'help': 'Developer Tools Module repos for various versions of SLE',
+        'default': Constant.DEVELOPER_TOOLS_REPOS,
+    },
     'disk_size': {
         'type': int,
         'help': 'Storage disk size in gigabytes',
@@ -119,6 +124,11 @@ SETTINGS = {
         'type': dict,
         'help': 'paths to container images to be passed to "podman" and "cephadm bootstrap"',
         'default': Constant.IMAGE_PATHS,
+    },
+    'internal_media_repos': {
+        'type': dict,
+        'help': 'Internal Media repos for various versions of SES',
+        'default': Constant.INTERNAL_MEDIA_REPOS,
     },
     'ipv6': {
         'type': bool,

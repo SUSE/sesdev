@@ -102,6 +102,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.bootstrap_mon_ip = None
         self.version_devel_repos = None
         self.os_base_repos = None
+        self.internal_media_repo = None
+        self.developer_tools_repos = None
         self.os_makecheck_repos = None
         self.os_upgrade_repos = None
         self.upgrade_devel_repos = None
@@ -445,6 +447,18 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         else:
             self.os_upgrade_repos = []
 
+    def __set_internal_media_repo(self):
+        if self.settings.version in self.settings.internal_media_repos:
+            self.internal_media_repo = \
+                self.settings.internal_media_repos[self.settings.version].items()
+
+    def __set_developer_tools_repos(self):
+        if self.settings.os in self.settings.developer_tools_repos:
+            self.developer_tools_repos = \
+                list(
+                    self.settings.developer_tools_repos[self.settings.os].items()
+                )
+
     def __set_os_makecheck_repos(self):
         if self.settings.os in self.settings.os_makecheck_repos:
             self.os_makecheck_repos = \
@@ -481,6 +495,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         """
         self.__set_version_devel_repos()
         self.__set_os_base_repos()
+        self.__set_internal_media_repo()
+        self.__set_developer_tools_repos()
         self.__set_os_makecheck_repos()
         self.__analyze_ceph_salt_github_pr_fetching()
         self.__set_cephadm_bootstrap_node()
@@ -591,6 +607,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'os_upgrade_repos': self.os_upgrade_repos,
             'apparmor': self.settings.apparmor,
             'rgw_ssl': self.settings.rgw_ssl,
+            'internal_media_repo': self.internal_media_repo,
+            'developer_tools_repos': self.developer_tools_repos,
         }
 
         scripts = {}
