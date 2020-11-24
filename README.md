@@ -113,6 +113,10 @@ be found on the [openSUSE Build Service](https://software.opensuse.org//download
 
 #### Install KVM/QEMU and Libvirt
 
+First, if on SUSE Linux Enterprise, make sure you have the Server Applications
+Module available on the system. (Links to internal repos are available
+[here](https://confluence.suse.com/display/applications/Vagrant+and+Vagrant+Boxes+for+openSUSE+and+SLE#VagrantandVagrantBoxesforopenSUSEandSLE-openSUSELeap15.2andSLE15SP2).)
+
 Run the following commands as root:
 
 ```
@@ -147,7 +151,8 @@ On very new OSes like these, Vagrant is included in the operating system's base
 repos. Just install the ``vagrant`` and ``vagrant-libvirt`` packages.
 
 For SLE-15-SP2, the packages are available via the
-[SUSE Package Hub](https://packagehub.suse.com/).
+[SUSE Package Hub](https://packagehub.suse.com/). (Links to internal repos are available
+[here](https://confluence.suse.com/display/applications/Vagrant+and+Vagrant+Boxes+for+openSUSE+and+SLE#VagrantandVagrantBoxesforopenSUSEandSLE-openSUSELeap15.2andSLE15SP2).)
 
 ##### Install Vagrant on openSUSE Leap 15.1, SLE-15-SP1
 
