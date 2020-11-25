@@ -431,7 +431,8 @@ class Settings():
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
         __fill_in_config_tree('os_repos', Constant.OS_REPOS)
         __fill_in_config_tree('version_devel_repos', Constant.VERSION_DEVEL_REPOS)
-        __fill_in_config_tree('image_paths', Constant.IMAGE_PATHS)
+        __fill_in_config_tree('image_paths_devel', Constant.IMAGE_PATHS_DEVEL)
+        __fill_in_config_tree('image_paths_product', Constant.IMAGE_PATHS_PRODUCT)
         __fill_in_config_tree('version_default_roles', Constant.ROLES_DEFAULT_BY_VERSION)
         return config_tree
 

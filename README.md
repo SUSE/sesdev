@@ -644,16 +644,16 @@ This would cause the zypper repo to be added at priority 96.
 
 In Ceph versions "octopus" and newer, the Ceph daemons run inside containers.
 When the cluster is bootstrapped, a container image is downloaded from a remote
-registry. The default image paths are set by the internal dictionary
-`IMAGE_PATHS` in `seslib/__init__.py`. You can specify a different image path
-using the `--image-path` option to, e.g., `sesdev create octopus`.
+registry. The default image paths are set by the internal dictionaries
+`IMAGE_PATHS_DEVEL` and `IMAGE_PATHS_PRODUCT`. You can specify a different
+image path using the `--image-path` option to e.g., `sesdev create octopus`.
 
 If you would like to permanently specify a different image path for one or more
 Ceph versions, you can override the defaults by adding a stanza like the
 following to your `~/.sesdev/config.yaml`:
 
 ```
-image_paths:
+image_paths_devel:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 ```
 
@@ -702,7 +702,7 @@ version_devel_repos:
         leap-15.2:
             - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
             - '96!https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/openSUSE_Leap_15.2'
-image_paths:
+image_paths_devel:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph'
 ```
 
@@ -746,7 +746,7 @@ version_devel_repos:
             - 'http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SES7/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
             - 'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
             - '96!http://download.suse.de/ibs/Devel:/Storage:/7.0:/CR/SLE_15_SP2/'
-image_paths:
+image_paths_devel:
     ses7: 'registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph'
 ```
 
