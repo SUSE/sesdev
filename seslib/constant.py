@@ -215,9 +215,9 @@ class Constant():
                            'SLE-Module-Server-Applications/15-SP2/x86_64/product/',
             'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP2/x86_64/update/',
-            'storage7-media': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP2:/Update:/'
-                              'Products:/SES7/images/repo/'
-                              'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
+            'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/7/x86_64/product/',
+            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7/x86_64/'
+                              'update/',
         },
     }
 
