@@ -220,7 +220,7 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
 {% if os == 'sles-12-sp3' %}
 zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} ntp
 {% else %}
-zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
+zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname systemd-coredump
 {% endif %}{# os == 'sles-12-sp3' #}
 
 {% if os.startswith("sle") %}

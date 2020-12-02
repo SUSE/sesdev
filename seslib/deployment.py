@@ -514,6 +514,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'sesdev_path_to_qa': Constant.PATH_TO_QA,
             'dep_id': self.dep_id,
             'os': self.settings.os,
+            'ram': self.settings.ram,
             'package_manager': Constant.OS_PACKAGE_MANAGER_MAPPING[self.settings.os],
             'vm_engine': self.settings.vm_engine,
             'libvirt_host': self.settings.libvirt_host,
