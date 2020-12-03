@@ -7,6 +7,19 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.11.0] - 2020-12-03
+
+### Added
+- Implement --rgw-ssl option for deploying RGWs with SSL enabled (PR #557)
+
+### Fixed
+- zypper: add repos when needed (PR #558)
+- ses7: use product container image when --product given (PR #561)
+- Handle image_paths_product, image_paths_devel overrides in config.yaml (PR #564)
+
+### Changed
+- seslib/constant.py: add SES7 Update repo (PR #565)
+
 ## [1.10.0] - 2020-11-13
 
 ### Added
@@ -610,7 +623,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.10.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/SUSE/sesdev/releases/tag/v1.11.0
 [1.10.0]: https://github.com/SUSE/sesdev/releases/tag/v1.10.0
 [1.9.1]: https://github.com/SUSE/sesdev/releases/tag/v1.9.1
 [1.9.0]: https://github.com/SUSE/sesdev/releases/tag/v1.9.0
