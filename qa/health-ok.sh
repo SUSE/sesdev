@@ -198,6 +198,9 @@ ceph_health_test
 # check that OSDs have the expected objectstore
 osd_objectstore_test
 
+# core dump test
+core_dump_test
+
 # check numbers of daemons and whether they are running on the expected nodes
 number_of_daemons_expected_vs_metadata_test
 number_of_services_expected_vs_orch_ls_test

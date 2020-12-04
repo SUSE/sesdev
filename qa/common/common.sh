@@ -1303,3 +1303,59 @@ function alertmanager_smoke_test {
 function node_exporter_smoke_test {
     _monitoring_smoke_test "node-exporter" "title.Node.Exporter"
 }
+
+function core_dump_test {
+    local skipped
+    local succeeded
+    local osd_0_ps
+    local osd_0_pid
+    echo "WWWW: core_dump_test"
+    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+        echo "Asserting that there are no existing coredumps in the system."
+        set -x
+        coredumpctl list 2>&1 | grep 'No coredumps found'
+        set +x
+        echo "Looking for osd.0 on this node"
+        set -x
+        osd_0_ps="$(pgrep -a ceph-osd | grep osd\.0 | xargs)"
+        set +x
+        if [ "$osd_0_ps" ] ; then
+            echo "Found \"pgrep\" line corresponding to osd.0:"
+            echo "$osd_0_ps"
+            osd_0_pid="${osd_0_ps%% *}"
+            if [ "$osd_0_pid" ] ; then
+                echo "Extracted PID of osd.0: $osd_0_pid"
+                echo "Sending SIGSEGV to process $osd_0_pid"
+                set -x
+                kill -SEGV "$osd_0_pid"
+                sleep 30
+                coredumpctl list
+                set +x
+                if coredumpctl list 2>&1 | grep 'No coredumps found' ; then
+                    echo "ERROR: no core dump collected"
+                else
+                    succeeded="yes"
+                fi
+            else
+                echo "ERROR: could not extract PID from \"pgrep\" line?"
+            fi
+        else
+            echo "osd.0 does not appear to be running on this node."
+            skipped="yes"
+        fi
+    else
+        echo "Test only works on recent SUSE OSes."
+        skipped="yes"
+    fi
+    if [ "$skipped" ] ; then
+        echo "core_dump_test: SKIPPED"
+        echo
+    elif [ "$succeeded" ] ; then
+        echo "core_dump_test: OK"
+        echo
+    else
+        echo "core_dump_test: FAIL"
+        echo
+        false
+    fi
+}
