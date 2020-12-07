@@ -50,9 +50,11 @@ hostnamectl set-hostname {{ node.fqdn }}
 hostnamectl set-hostname {{ node.name }}
 {% endif %}
 
+{% if version in ['octopus', 'ses7', 'pacific'] %}
 # persist the journal
 sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf
 systemctl restart systemd-journald
+{% endif %}{# version in ['octopus', 'ses7', 'pacific'] #}
 
 {% if not provision %}
 set +x
