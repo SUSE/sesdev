@@ -239,6 +239,14 @@ def _maybe_gen_dep_id(version, dep_id, settings_dict):
     return dep_id
 
 
+def _maybe_munge_repo_url(repo_url):
+    retval = repo_url
+    match = re.search(r'(http.+\/).+\.repo$', repo_url)
+    if match:
+        retval = match.group(1)
+    return retval
+
+
 @click.group()
 @click.option('-w', '--work-path', required=False,
               type=click.Path(exists=True, dir_okay=True, file_okay=False),
@@ -501,7 +509,7 @@ def _gen_settings_dict(
             settings_dict['custom_repos'].append(
                 {
                     'name': 'custom-repo-{}'.format(count),
-                    'url': repo_url,
+                    'url': _maybe_munge_repo_url(repo_url),
                     'priority': Constant.ZYPPER_PRIO_ELEVATED if repo_priority else None
                 })
 
@@ -920,7 +928,7 @@ def add_repo(deployment_id, **kwargs):
     if kwargs['custom_repo']:
         custom_repo = ZypperRepo(
             name='custom_repo_{}'.format(tools.gen_random_string(6)),
-            url=kwargs['custom_repo'],
+            url=_maybe_munge_repo_url(kwargs['custom_repo']),
             priority=Constant.ZYPPER_PRIO_ELEVATED if kwargs['repo_priority'] else None
         )
     dep.add_repo_subcommand(custom_repo, kwargs['update'], _print_log)
