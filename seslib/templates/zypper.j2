@@ -80,7 +80,7 @@ if [ "$UPDATE" ] ; then
 {% set devel_repo_name = "devel-repo-" ~ r %}
         --from={{ devel_repo_name }} \
 {% endfor %}
-        --no-confirm
+        --no-confirm \
         --replacefiles  # I strongly assume this should only be used when upgrading from devel repos
 fi
 EOF
@@ -197,7 +197,8 @@ echo "=> dist-upgrade" > /dev/null
 zypper dist-upgrade \
     --allow-vendor-change \
     --auto-agree-with-licenses \
-    --no-confirm
+    --no-confirm \
+    --replacefiles  # I strongly assume this should only be used when upgrading from devel repos
 EOF
 chmod 755 {{ upgrade_script }}
 cat {{ upgrade_script }}
