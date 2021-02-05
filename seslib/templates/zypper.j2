@@ -81,6 +81,7 @@ if [ "$UPDATE" ] ; then
         --from={{ devel_repo_name }} \
 {% endfor %}
         --no-confirm
+        --replacefiles  # I strongly assume this should only be used when upgrading from devel repos
 fi
 EOF
 chmod 755 {{ devel_repo_script }}
@@ -154,6 +155,24 @@ elif [ "$FROM_VERSION" = "ses6" ] ; then
         echo "TO_VERSION is ->$TO_VERSION<-"
         echo "Does not match ->ses7<-"
         echo "Yet we only support upgrading SES6 to SES7"
+        exit 1
+    fi
+elif [ "$FROM_VERSION" = "ses5" ] ; then
+    if [ "$ID" = "sles" ] && [ "$VERSION_ID" = "12.3" ] ; then
+        echo "Upgrading from SES5 (SLE-12-SP3)"
+    else
+        echo "ID is ->$ID<-"
+        echo "VERSION_ID is ->$VERSION_ID<-"
+        echo "Does not match ->sles<- ->12.3<-"
+        echo "Yet we were asked to upgrade from SES5"
+        exit 1
+    fi
+    if [ "$TO_VERSION" = "ses6" ] ; then
+        echo "Upgrading to SES6 (SLE-15-SP1)"
+    else
+        echo "TO_VERSION is ->$TO_VERSION<-"
+        echo "Does not match ->ses6<-"
+        echo "Yet we only support upgrading SES5 to SES6"
         exit 1
     fi
 fi

@@ -414,6 +414,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 upgrade_devel_repos = self.settings.version_devel_repos['octopus']['leap-15.2']
             elif version == 'ses6':
                 upgrade_devel_repos = self.settings.version_devel_repos['ses7']['sles-15-sp2']
+            elif version == 'ses5':
+                upgrade_devel_repos = self.settings.version_devel_repos['ses6']['sles-15-sp1']
             else:
                 upgrade_devel_repos = []
         except KeyError as exc:
@@ -449,6 +451,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             self.os_upgrade_repos = list(Constant.OPENSUSE_REPOS['leap-15.2'].items())
         elif self.settings.version == 'ses6':
             self.os_upgrade_repos = list(self.settings.os_repos['sles-15-sp2'].items())
+        elif self.settings.version == 'ses5':
+            self.os_upgrade_repos = list(self.settings.os_repos['sles-15-sp1'].items())
         else:
             self.os_upgrade_repos = []
 
@@ -1278,11 +1282,15 @@ deployment might not be completely destroyed.
             devel_product = 'devel'
         else:
             devel_product = 'product'
+
         version_combo_ok = False
         if from_version == 'nautilus' and to_version == 'octopus':
             version_combo_ok = True
-        if from_version == 'ses6' and to_version == 'ses7':
+        elif from_version == 'ses6' and to_version == 'ses7':
             version_combo_ok = True
+        elif from_version == 'ses5' and to_version == 'ses6':
+            version_combo_ok = True
+
         if version_combo_ok:
             tools.run_async(
                 ["vagrant", "provision", node, "--provision-with",
