@@ -3,6 +3,7 @@
 {% set is_os_script = "/home/vagrant/is_os.sh" %}
 cat > {{ is_os_script }} << 'EOF'
 #!/bin/bash -e
+[[ "$*" =~ "sles-12.3" ]] && OS="sles-12.3"
 [[ "$*" =~ "sles-15.2" ]] && OS="sles-15.2"
 [[ "$*" =~ "sles-15.1" ]] && OS="sles-15.1"
 [[ "$*" =~ "leap-15.2" ]] && OS="leap-15.2"
@@ -26,6 +27,6 @@ function check_os {
 [ "$OS" = "sles-15.2" ] && check_os sles 15.2
 [ "$OS" = "sles-15.1" ] && check_os sles 15.1
 [ "$OS" = "leap-15.1" ] && check_os opensuse-leap 15.1
-[ "$OS" = "leap-15.1" ] && check_os opensuse-leap 15.1
+[ "$OS" = "sles-12.3" ] && check_os sles 12.3
 EOF
 chmod 755 {{ is_os_script }}

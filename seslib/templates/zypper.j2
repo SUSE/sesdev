@@ -81,7 +81,7 @@ if [ "$UPDATE" ] ; then
         --from={{ devel_repo_name }} \
 {% endfor %}
         --no-confirm \
-        --replacefiles  # I strongly assume this should only be used when upgrading from devel repos
+        --replacefiles  # TODO only use replacefiles when upgrading from devel repos
 fi
 EOF
 chmod 755 {{ devel_repo_script }}
@@ -198,7 +198,7 @@ zypper dist-upgrade \
     --allow-vendor-change \
     --auto-agree-with-licenses \
     --no-confirm \
-    --replacefiles  # I strongly assume this should only be used when upgrading from devel repos
+    --replacefiles  # TODO only use replacefiles when upgrading from devel repos
 EOF
 chmod 755 {{ upgrade_script }}
 cat {{ upgrade_script }}
