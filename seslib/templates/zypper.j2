@@ -193,12 +193,17 @@ if [ "$DEVEL" ] ; then
 fi
 echo "=> refresh local metadata cache" > /dev/null
 zypper --non-interactive --no-gpg-checks refresh
-echo "=> dist-upgrade" > /dev/null
-zypper dist-upgrade \
-    --allow-vendor-change \
-    --auto-agree-with-licenses \
-    --no-confirm \
-    --replacefiles  # TODO only use replacefiles when upgrading from devel repos
+if [ "$TO_VERSION" = "ses6" ] ; then
+    echo "=> Skipping dist-upgrade as this would upgrade node-exporter and lead to an error"
+    # TODO only update master node. Issue:
+    {# salt-run state.apply ceph.stage.0 #}
+else
+    echo "=> dist-upgrade" > /dev/null
+    zypper dist-upgrade \
+        --allow-vendor-change \
+        --auto-agree-with-licenses \
+        --no-confirm
+fi
 EOF
 chmod 755 {{ upgrade_script }}
 cat {{ upgrade_script }}

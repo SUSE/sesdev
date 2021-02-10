@@ -64,16 +64,24 @@ assert_cluster_health_ok
 echo
 echo "=> upgrade the master node to SLE-15-SP1/SES6 (RPMs)" > /dev/null
 sesdev upgrade "$DEP_ID" --to ses6 master
-sesdev reboot "$DEP_ID" master
+# Do NOT reboot at this point or things will start failing (e.g. prometheus or node-exporter services)
+# sesdev reboot "$DEP_ID" master
+# Instead run DS stages through. I assume it should fix those issues.
+sesdev ssh "$DEP_ID" master /home/vagrant/is_os.sh sles-15.1
+sesdev ssh "$DEP_ID" master ceph versions
 
 echo
 echo "=> upgrade node1 to SLE-15-SP1/SES6 (RPMs)" > /dev/null
 sesdev upgrade "$DEP_ID" --to ses6 node1
-sesdev reboot "$DEP_ID" node1
+# sesdev reboot "$DEP_ID" node1
+sesdev ssh "$DEP_ID" node1 /home/vagrant/is_os.sh sles-15.1
+sesdev ssh "$DEP_ID" node1 ceph versions
 
-sesdev ssh "$DEP_ID" master /home/vagrant/is_os.sh sles-12.3
-sesdev ssh "$DEP_ID" master ceph versions
 assert_cluster_health_ok
+
+# TODO test this after next deployment
+# sesdev ssh "$DEP_ID" master 'salt-run state.orch ceph.stage.0'
+# sesdev ssh "$DEP_ID" master 'salt-run state.orch ceph.stage.1'
 
 # TODO implement after upgrade steps before upgrading/migrating ceph
 
