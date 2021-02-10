@@ -156,3 +156,6 @@ fi
 {% include "ubuntu/provision.sh.j2" %}
 
 {% endif %}{# end of deploy state machine #}
+
+# inform user if reboot is needed (should be the very last thing the provisioner does)
+zypper ps -s || true
