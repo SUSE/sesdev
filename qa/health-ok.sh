@@ -178,6 +178,7 @@ test "$DEPLOYMENT_VERSION"
 set -e
 
 # tests that verify basic assumptions
+assert_reboot_not_needed
 support_cop_out_test
 no_non_oss_repos_test
 make_salt_master_an_admin_node_test
