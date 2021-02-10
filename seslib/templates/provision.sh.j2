@@ -56,12 +56,6 @@ sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf
 systemctl restart systemd-journald
 {% endif %}{# version in ['octopus', 'ses7', 'pacific'] #}
 
-{% if not provision %}
-set +x
-echo "Stopping the deployment now because the --no-provision option was given"
-exit 0
-{% endif %}{# not provision #}
-
 # if --ssd option was given, set rotational flag on first additional disk
 {% if ssd %}
 if [ -f /sys/block/vdb/queue/rotational ] ; then
@@ -78,6 +72,12 @@ fi
 {% elif package_manager == 'dnf' %}
 {% include "dnf.j2" ignore missing %}
 {% endif %}{# package_manager == 'zypper' #}
+
+{% if not provision %}
+set +x
+echo "Stopping the deployment now because the --no-provision option was given"
+exit 0
+{% endif %}{# not provision #}
 
 # include helper scripts
 {% include "helper_scripts.j2" %}
