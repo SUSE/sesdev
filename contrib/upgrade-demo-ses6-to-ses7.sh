@@ -72,7 +72,15 @@ echo "=> display cluster upgrade and health status" > /dev/null
 sesdev ssh "$DEP_ID" master salt-run upgrade.status
 # TODO: parse output of upgrade.status and compare actual with expected output
 sesdev ssh "$DEP_ID" master ceph health
-# TODO: assert HEALTH_OK
+
+function assert_health_ok {
+    if sesdev ssh ses6-to-ses7 master ceph health | grep HEALTH_OK ; then
+        echo "=> HEALTH_OK confirmed"
+    else
+        echo "ERROR: cluster not in HEALTH_OK!"
+        false
+    fi
+}
 
 function ping_salt_minion {
     set +x
@@ -105,6 +113,14 @@ function ping_salt_minion {
 
 function upgrade_node {
     local node_short_hostname="$1"
+
+    echo
+    echo "=> BEGIN: upgrade $node_short_hostname"
+
+    echo
+    echo "=> set noout for OSDs on $node_short_hostname"
+    sesdev ssh "$DEP_ID" master ceph osd add-noout "$node_short_hostname"
+
     echo
     echo "=> upgrade $node_short_hostname of the Ceph cluster to SLE-15-SP2/SES7 RPMs" > /dev/null
     sesdev upgrade "$DEP_ID" "$node_short_hostname" --to ses7
@@ -126,37 +142,26 @@ function upgrade_node {
     # TODO: compare actual with expected output
     sesdev ssh "$DEP_ID" master ceph health
     # TODO: compare actual with expected output (probably won't be HEALTH_OK)
+    # TODO: based on the node's roles, assert that mons, mgrs, osds, etc. are
+    # really on octopus code
+
+    echo
+    echo "=> remove noout for $node_short_hostname"
+    sesdev ssh "$DEP_ID" master ceph osd rm-noout "$node_short_hostname"
+
+    echo
+    echo "=> END: upgrade $node_short_hostname"
 }
 
 echo
-echo "=> BEGIN: upgrade node1"
-sesdev ssh "$DEP_ID" master ceph osd add-noout node1
-# TODO: compare actual with expected output
+echo "=> assert HEALTH_OK after Salt Master node upgrade complete"
+assert_health_ok
+
 upgrade_node node1
-sesdev ssh "$DEP_ID" master ceph osd rm-noout node1
-# TODO: compare actual with expected output
-echo
-echo "=> END: upgrade node1"
 
-echo
-echo "=> BEGIN: upgrade node2"
-sesdev ssh "$DEP_ID" master ceph osd add-noout node2
-# TODO: compare actual with expected output
 upgrade_node node2
-sesdev ssh "$DEP_ID" master ceph osd rm-noout node2
-# TODO: compare actual with expected output
-echo
-echo "=> END: upgrade node2"
 
-echo
-echo "=> BEGIN: upgrade node3"
-sesdev ssh "$DEP_ID" master ceph osd add-noout node3
-# TODO: compare actual with expected output
 upgrade_node node3
-sesdev ssh "$DEP_ID" master ceph osd rm-noout node3
-# TODO: compare actual with expected output
-echo
-echo "=> END: upgrade node3"
 
 echo
 echo "=> fully upgraded SES7 cluster" > /dev/null
@@ -180,7 +185,8 @@ echo
 echo "=> import and apply ceph-salt config" > /dev/null
 sesdev ssh "$DEP_ID" master "bash -x -c 'ceph-salt import ceph-salt-config.json'"
 sesdev ssh "$DEP_ID" master "bash -x -c 'ceph-salt config /ssh generate'"
+#sesdev ssh "$DEP_ID" master "bash -x -c 'ceph-salt config /ceph_cluster/roles/bootstrap reset'"
 sesdev ssh "$DEP_ID" master "bash -x -c 'ceph-salt config ls'"
 # TODO: compare actual with expected output
-sesdev ssh "$DEP_ID" master "bash -x -c 'ceph-salt apply'"
+sesdev ssh "$DEP_ID" master "bash -x -c 'ceph-salt apply --non-interactive'"
 # TODO: validation (?)
