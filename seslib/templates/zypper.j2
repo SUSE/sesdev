@@ -216,12 +216,20 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
        'bc',
        'apparmor-utils',
        'apparmor-parser',
+       'lsof',
    ] %}
 {% if os == 'sles-12-sp3' %}
 zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} ntp
 {% else %}
-zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname systemd-coredump
+zypper --non-interactive install {{ basic_pkgs_to_install | join(' ') }} chrony hostname
 {% endif %}{# os == 'sles-12-sp3' #}
+
+{% if os != 'sles-12-sp3' %}
+# install systemd-coredump, ensuring that it has the same exact version as systemd
+# (avoid newer systemd possibly pre-installed by Kiwi in the Vagrant Box)
+zypper --non-interactive install --force systemd systemd-sysvinit udev libudev1
+zypper --non-interactive install systemd-coredump
+{% endif %}{# os != 'sles-12-sp3' #}
 
 {% if os.startswith("sle") %}
 {% set sle_pkgs_to_install = [

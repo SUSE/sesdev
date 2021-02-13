@@ -101,6 +101,57 @@ function ceph_log_grep_enoent_eaccess {
 # core validation tests
 #
 
+function assert_reboot_not_needed {
+    echo
+    echo "WWWW: assert_reboot_not_needed"
+    local success
+    success="yes"
+    local nodes_arr
+    local node_count
+    node_count="0"
+    local node_under_test
+    local n
+    local IFS
+    IFS=","
+    read -r -a nodes_arr <<<"$NODE_LIST"
+    for (( n=0; n<${#nodes_arr[*]}; n++ )) ; do
+        node_under_test="${nodes_arr[n]}"
+        node_under_test="${node_under_test//[$'\t\r\n']}"
+        node_count="$((node_count + 1))"
+        if ssh "$node_under_test" zypper ps -s | grep 'No processes using deleted files found' ; then
+            success="yes"
+        else
+            set +e -x
+            zypper ps -s
+            hostname --fqdn
+            set +x -e
+            success=""
+            break
+        fi
+    done
+    echo
+    echo "WWWW: assert_reboot_not_needed: Checked $node_count of ${#nodes_arr[*]} nodes"
+    echo
+    if [ "$node_count" = "${#nodes_arr[*]}" ] ; then
+        true
+    else
+        success=""
+    fi        
+    if [ "$success" ] ; then
+        echo "WWWW: assert_reboot_not_needed: OK"
+        echo
+    else
+        echo "WARNING: Running processes using deleted files detected!"
+        echo
+        echo "Since the presence of running processes using deleted files can"
+        echo "skew the test results, it would be better to reboot the cluster"
+        echo "before running qa-test."
+        echo
+        echo "WWWW: assert_reboot_not_needed: WARN"
+        echo
+    fi
+}
+
 function support_cop_out_test {
     set +x
     local supported
