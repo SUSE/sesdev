@@ -37,7 +37,7 @@ echo "=> create a SES5 cluster" > /dev/null
 sesdev create ses5 \
     --ram 8 \
     --cpus $(($(nproc)/2))  \
-    --roles="[master], [storage,mon,mgr,mds,igw,rgw,nfs,openattic]" \
+    --roles="[master], [storage,mon,mgr], [storage,mon,mgr], [storage,mon,mgr]" \
     --non-interactive \
     "$DEP_ID"
 
@@ -53,31 +53,51 @@ sesdev ssh "$DEP_ID" master /home/vagrant/is_os.sh sles-12.3
 sesdev ssh "$DEP_ID" master ceph versions
 assert_cluster_health_ok
 
+# 6.4.3 Patch the Whole Cluster to the Latest Patches
+#
 # Packages should only be updated through DeepSea, as only DeepSea is configured to prevent the
 # installation of an updated node-exporter package that's not compatible with the stack.
 # See https://github.com/SUSE/DeepSea/pull/1843/files for more info.
 echo "=> running DeepSea stage 0"
 sesdev ssh "$DEP_ID" master salt-run state.orch ceph.stage.0
 
-assert_cluster_health_ok
+# 6.8.2.2 Upgrading Nodes
+sesdev ssh "$DEP_ID" master "zypper -n install SLES15-SES-Migration suse-migration-sle15-activation"
+sesdev ssh "$DEP_ID" node1  "zypper -n install SLES15-SES-Migration suse-migration-sle15-activation"
+sesdev ssh "$DEP_ID" node2  "zypper -n install SLES15-SES-Migration suse-migration-sle15-activation"
+sesdev ssh "$DEP_ID" node3  "zypper -n install SLES15-SES-Migration suse-migration-sle15-activation"
+# Create `/etc/sle-migration-service.yml`
+sesdev ssh "$DEP_ID" master "echo -e \"use_zypper_migration: false\npreserve:\n  rules:\n    - /etc/udev/rules.d/70-persistent-net.rules\" > /etc/sle-migration-service.yml"
+sesdev ssh "$DEP_ID" node1  "echo -e \"use_zypper_migration: false\npreserve:\n  rules:\n    - /etc/udev/rules.d/70-persistent-net.rules\" > /etc/sle-migration-service.yml"
+sesdev ssh "$DEP_ID" node2  "echo -e \"use_zypper_migration: false\npreserve:\n  rules:\n    - /etc/udev/rules.d/70-persistent-net.rules\" > /etc/sle-migration-service.yml"
+sesdev ssh "$DEP_ID" node3  "echo -e \"use_zypper_migration: false\npreserve:\n  rules:\n    - /etc/udev/rules.d/70-persistent-net.rules\" > /etc/sle-migration-service.yml"
 
-echo
-echo "=> upgrade the master node to SLE-15-SP1/SES6 (RPMs)" > /dev/null
-sesdev upgrade "$DEP_ID" --to ses6 master
-# Do NOT reboot at this point or things will start failing (e.g. prometheus or node-exporter services)
-# sesdev reboot "$DEP_ID" master
-# Instead run DS stages through. I assume it should fix those issues.
-sesdev ssh "$DEP_ID" master /home/vagrant/is_os.sh sles-15.1
-sesdev ssh "$DEP_ID" master ceph versions
+exit 0
+# Reboot
+sesdev reboot "$DEP_ID" master
+sesdev reboot "$DEP_ID" node1
+sesdev reboot "$DEP_ID" node2
+sesdev reboot "$DEP_ID" node3
 
-echo
-echo "=> upgrade node1 to SLE-15-SP1/SES6 (RPMs)" > /dev/null
-sesdev upgrade "$DEP_ID" --to ses6 node1
-# sesdev reboot "$DEP_ID" node1
-sesdev ssh "$DEP_ID" node1 /home/vagrant/is_os.sh sles-15.1
-sesdev ssh "$DEP_ID" node1 ceph versions
-
-assert_cluster_health_ok
+# assert_cluster_health_ok
+#
+# echo
+# echo "=> upgrade the master node to SLE-15-SP1/SES6 (RPMs)" > /dev/null
+# sesdev upgrade "$DEP_ID" --to ses6 master
+# # Do NOT reboot at this point or things will start failing (e.g. prometheus or node-exporter services)
+# # sesdev reboot "$DEP_ID" master
+# # Instead run DS stages through. I assume it should fix those issues.
+# sesdev ssh "$DEP_ID" master /home/vagrant/is_os.sh sles-15.1
+# sesdev ssh "$DEP_ID" master ceph versions
+#
+# echo
+# echo "=> upgrade node1 to SLE-15-SP1/SES6 (RPMs)" > /dev/null
+# sesdev upgrade "$DEP_ID" --to ses6 node1
+# # sesdev reboot "$DEP_ID" node1
+# sesdev ssh "$DEP_ID" node1 /home/vagrant/is_os.sh sles-15.1
+# sesdev ssh "$DEP_ID" node1 ceph versions
+#
+# assert_cluster_health_ok
 
 # TODO test this after next deployment
 # sesdev ssh "$DEP_ID" master 'salt-run state.orch ceph.stage.0'

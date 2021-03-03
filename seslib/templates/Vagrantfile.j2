@@ -7,6 +7,8 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
   config.vm.box = "{{ vagrant_box }}"
 
+  {# config.proxy.http = "http://192.168.1.140:3128" #}
+
 {% include "engine/" + vm_engine + "/vagrant.provider.j2" %}
 
 {% for node in nodes %}
