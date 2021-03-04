@@ -1269,6 +1269,49 @@ deployment might not be completely destroyed.
         ssh_cmd = ('rm', '/var/log/{}'.format(glob_to_get),)
         self.ssh(name, ssh_cmd)
 
+    def user_provision(self, node=None):
+        custom_provision_dir = os.path.join(Constant.A_WORKING_DIR, '.user_provision')
+
+        def copy_root_home_config(node):
+            """Copy files from ~/.sesdev/.user_provision/config/* to /root on the VM"""
+            custom_config_dir = os.path.join(custom_provision_dir, 'config')
+            if not os.path.exists(custom_config_dir):
+                msg = '{} does not exist, not copying any custom configs'
+                Log.info(msg.format(custom_config_dir))
+                return
+            Log.info("=> Copying {} to {}:/root/".format(custom_provision_dir, node))
+            self.rsync(
+                '{}/'.format(custom_config_dir),
+                '{}:/root/'.format(node),
+                recurse=True,
+            )
+
+        def call_provision_script(node):
+            """Copy ~/.sesdev/.user_provision/provision.sh on the VM and run it"""
+            provision_script = os.path.join(custom_provision_dir, 'provision.sh')
+            tmp_dir = '/tmp'
+            target_path = '{}/provision.sh'.format(tmp_dir)
+            if not os.path.exists(provision_script):
+                msg = "{} does not exist, not running custom provisioning"
+                Log.info(msg.format(provision_script))
+                return
+            Log.info("=> Copying {} to {}:{}".format(provision_script, node, target_path))
+            self.rsync(
+                provision_script,
+                '{}:{}/'.format(node, tmp_dir),
+            )
+            Log.info("=> Executing {}".format(target_path))
+            self.sync_ssh(node, ('bash', target_path))
+
+        if not os.path.exists(custom_provision_dir):
+            print("nothing to provision, {} does not exist".format(custom_provision_dir))
+            return
+
+        nodes = [node] if node else self.nodes
+        for _node in nodes:
+            copy_root_home_config(_node)
+            call_provision_script(_node)
+
     def upgrade(self, log_handler, node, devel_repos=True, to_version='octopus'):
         if node not in self.nodes:
             raise NodeDoesNotExist(node, self.dep_id)
