@@ -412,7 +412,9 @@ def _gen_settings_dict(
         raise NoExplicitRolesWithSingleNode()
     elif single_node:
         roles_string = ""
-        if version in ['ses7', 'octopus', 'pacific']:
+        if version in ['ses7']:
+            roles_string = Constant.ROLES_SINGLE_NODE['ses7']
+        elif version in ['octopus', 'pacific']:
             roles_string = Constant.ROLES_SINGLE_NODE['octopus']
         elif version in ['ses6', 'nautilus']:
             roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
