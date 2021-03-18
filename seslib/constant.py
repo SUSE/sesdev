@@ -18,6 +18,8 @@ class Constant():
 
     DEBUG = False
 
+    DEEPSEA_REPO = "https://github.com/SUSE/DeepSea"
+
     DEVELOPER_TOOLS_REPOS = {
         'sles-15-sp1': {
             'dev-tools': 'http://dist.suse.de/ibs/SUSE/Products/'

@@ -951,6 +951,9 @@ deployment might not be completely destroyed.
                 result += "- FQDN:             {}\n".format(self.settings.fqdn)
             if self.settings.rgw_ssl:
                 result += "- RGW with SSL:     {}\n".format(self.settings.rgw_ssl)
+            if self.settings.deepsea_git_repo and self.settings.deepsea_git_branch:
+                result += "- DeepSea repo:     {}\n".format(self.settings.deepsea_git_repo)
+                result += "- DeepSea branch:   {}\n".format(self.settings.deepsea_git_branch)
         if show_individual_vms:
             result += "\n"
             result += "Individual VM parameters:\n"
