@@ -610,18 +610,25 @@ def _gen_settings_dict(
     for folder in synced_folder:
         try:
             src, dst = folder.split(':')
-            if not all([path.isabs(x) for x in [src, dst]]):
-                raise OptionValueError('--synced-folder',
-                                       "Please provide absolute paths for "
-                                       "synced folder paths",
-                                       folder)
-            if not path.exists(src):
-                raise OptionValueError('--synced-folder',
-                                       "Path to the source synced folder must exist",
-                                       src)
-
+            if path.isabs(src) and path.isabs(dst):
+                pass
+            else:
+                raise OptionValueError(
+                    "--synced-folder",
+                    "Please provide absolute paths for synced folder paths",
+                    folder
+                    )
+            if path.exists(src):
+                pass
+            else:
+                raise OptionValueError(
+                    "--synced-folder",
+                    "Path to the source synced folder must exist",
+                    src
+                    )
         except ValueError as exc:
             raise OptionFormatError('--synced-folder', "src:dst", folder) from exc
+
     settings_dict['synced_folder'] = [folder.split(':') for folder in synced_folder]
 
     if msgr2_secure_mode:
