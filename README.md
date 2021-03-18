@@ -318,12 +318,9 @@ instructions from [here](#install-sesdev-from-source).
 
 Second, make sure your virtualenv is active (`source venv/bin/activate`).
 
-Third, execute the following command in the top-level of your local git clone
-to install the dependencies, including test dependencies:
-
-```
-pip3 --use-feature=2020-resolver install --editable "./[dev]"
-```
+At this point, run `tox --version` to check if tox is already installed on your
+system. If it is not, then run `pip3 install tox` to install it in the Python
+virtual environment.
 
 Finally, inspect the list of testing environments in `tox.ini` and choose one or
 more that you are interested in. Here is an example, but the actual output might
@@ -331,25 +328,21 @@ be different:
 
 ```
 $ tox --listenvs
-py36
+py3
 lint
 ```
 
-(This means you have three testing environments to choose from: `py36`, `py37`,
-and `lint`.)
+(This means you have two testing environments to choose from: `py3` and `lint`.)
 
 Finally, run your chosen test environment(s):
 
 ```
-tox -e py36
+tox -e py3
 tox -e lint
 ```
 
 If you don't know which testing environment to choose, the command `tox` will
-run *all* the testing environments.
-
-CAVEAT: environments like `py36` will only run if that exact version of Python
-is installed on your system.
+run _all_ the testing environments.
 
 ## Usage
 
