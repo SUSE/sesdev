@@ -255,7 +255,7 @@ if [ "$SES5" ] ; then
     # deploy ses5 without igw, so as not to hit https://github.com/SUSE/sesdev/issues/239
     run_cmd sesdev --verbose create ses5 --product --non-interactive --roles "[master,storage,mon,mgr,mds,rgw,nfs]" ses5-1node
     run_cmd sesdev --verbose qa-test ses5-1node
-    run_cmd sesdev --verbose add-repo --update ses5-1node
+    # run_cmd sesdev --verbose add-repo --update ses5-1node
     run_cmd sesdev --verbose destroy --non-interactive ses5-1node
     run_cmd sesdev --verbose create ses5 --non-interactive --roles "[master,client,openattic],[storage,mon,mgr,rgw],[storage,mon,mgr,mds,nfs],[storage,mon,mgr,mds,rgw,nfs]" ses5-4node
     run_cmd sesdev --verbose qa-test ses5-4node
