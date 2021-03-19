@@ -19,9 +19,8 @@ zypper --non-interactive remove rsync || true
 zypper --non-interactive remove which || true
 
 # remove Python 2 so it doesn't pollute the environment
-{% if os != 'sles-12-sp3' %}
 zypper --non-interactive remove python-base || true
-{% endif %}{# os != 'sles-12-sp3' #}
+zypper --non-interactive remove libpython2_7-1_0 || true
 
 # remove Non-OSS repos in openSUSE
 {% if os.startswith('leap') or os == "tumbleweed" %}
