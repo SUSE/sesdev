@@ -90,8 +90,12 @@ function json_total_mons {
     local ceph_status_json
     if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         json_ses7_orch_ls mon
-    elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
-        # SES6, SES5
+    elif [ "$VERSION_ID" = "15.1" ] ; then
+        # SES6
+        ceph_status_json="$(ceph status --format json)"
+        echo "$ceph_status_json" | jq -r ".monmap.num_mons"
+    elif [ "$VERSION_ID" = "12.3" ] ; then
+        # SES5
         ceph_status_json="$(ceph status --format json)"
         echo "$ceph_status_json" | jq -r ".monmap.mons | length"
     else
