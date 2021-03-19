@@ -242,10 +242,10 @@ class Constant():
                     ["storage", "mon", "mgr", "mds", "igw", "node-exporter"],
                     ["storage", "mon", "mgr", "mds", "rgw", "node-exporter"]],
         "ses7": [["admin", "master", "client", "prometheus", "grafana", "alertmanager",
-                     "node-exporter"],
-                    ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
-                    ["storage", "mon", "mgr", "mds", "igw", "node-exporter"],
-                    ["storage", "mon", "mgr", "mds", "rgw", "nfs", "node-exporter"]]
+                  "node-exporter"],
+                 ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
+                 ["storage", "mon", "mgr", "mds", "igw", "node-exporter"],
+                 ["storage", "mon", "mgr", "mds", "rgw", "nfs", "node-exporter"]]
     }
 
     ROLES_DEFAULT_BY_VERSION = {
