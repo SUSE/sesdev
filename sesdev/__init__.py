@@ -489,6 +489,8 @@ def _gen_settings_dict(
 
     if deepsea_branch is not None:
         settings_dict['deepsea_git_branch'] = deepsea_branch
+        if not deepsea_repo:
+            settings_dict['deepsea_git_repo'] = Constant.DEEPSEA_REPO
 
     if version is not None:
         settings_dict['version'] = version
