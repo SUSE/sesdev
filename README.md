@@ -374,7 +374,7 @@ The following roles can be assigned:
 * `admin` - signifying that the node should get ceph.conf and keyring [1]
 * `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
-* `nfs` - NFS (Ganesha) gateway [2]
+* `nfs` - NFS (Ganesha) gateway [2] [5]
 * `grafana` - Grafana metrics visualization (requires Prometheus) [3]
 * `igw` - iSCSI target gateway
 * `mds` - CephFS MDS
@@ -400,6 +400,8 @@ roles in `policy.cfg`.
 [4] Do not use the `storage` role when deploying Rook/Ceph over CaaSP. See
 [Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster) for more
 information.
+
+[5] Not currently supported by the `octopus`, `pacific`, or `master` roles.
 
 The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that

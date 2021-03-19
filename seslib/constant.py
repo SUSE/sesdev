@@ -239,7 +239,12 @@ class Constant():
         "octopus": [["admin", "master", "client", "prometheus", "grafana", "alertmanager",
                      "node-exporter"],
                     ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
-                    ["storage", "mon", "mgr", "mds", "igw", "nfs", "node-exporter"],
+                    ["storage", "mon", "mgr", "mds", "igw", "node-exporter"],
+                    ["storage", "mon", "mgr", "mds", "rgw", "node-exporter"]],
+        "ses7": [["admin", "master", "client", "prometheus", "grafana", "alertmanager",
+                     "node-exporter"],
+                    ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
+                    ["storage", "mon", "mgr", "mds", "igw", "node-exporter"],
                     ["storage", "mon", "mgr", "mds", "rgw", "nfs", "node-exporter"]]
     }
 
@@ -251,7 +256,7 @@ class Constant():
         'pacific': ROLES_DEFAULT["octopus"],
         'ses5': ROLES_DEFAULT["luminous"],
         'ses6': ROLES_DEFAULT["nautilus"],
-        'ses7': ROLES_DEFAULT["octopus"],
+        'ses7': ROLES_DEFAULT["ses7"],
     }
 
     ROLES_KNOWN = [
@@ -284,7 +289,9 @@ class Constant():
         "nautilus": "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
                     "nfs ]",
         "octopus": "[ master, admin, bootstrap, storage, mon, mgr, mds, igw, rgw, "
-                   "nfs, prometheus, grafana, alertmanager, node-exporter ]",
+                   "prometheus, grafana, alertmanager, node-exporter ]",
+        "ses7": "[ master, admin, bootstrap, storage, mon, mgr, mds, igw, rgw, "
+                   "prometheus, grafana, alertmanager, node-exporter ]",
     }
 
     SSH_KEY_NAME = 'sesdev'  # do NOT use 'id_rsa'
