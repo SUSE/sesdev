@@ -22,6 +22,10 @@ zypper --non-interactive remove which || true
 zypper --non-interactive remove python-base || true
 zypper --non-interactive remove libpython2_7-1_0 || true
 
+# remove Python 3 (large portions of which are preinstalled on the image) so we
+# get the Python 3 that is actually shipping
+zypper --non-interactive remove python3-base || true
+
 # remove Non-OSS repos in openSUSE
 {% if os.startswith('leap') or os == "tumbleweed" %}
 zypper --non-interactive removerepo repo-non-oss || true
