@@ -180,4 +180,6 @@ deepsea stage run --simple-output ceph.stage.4
 sleep 5
 {% endif %} {# deepsea_need_stage_4 #}
 
+ceph config set mon auth_allow_insecure_global_id_reclaim false || true
+
 echo "deployment complete!"
