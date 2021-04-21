@@ -192,7 +192,7 @@ if [ "$FULL" ] || [ "$NORMAL_OPERATION" ] ; then
     fi
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
-    PACIFIC="--pacific"
+    # PACIFIC="--pacific"
     SES5="--ses5"
     SES6="--ses6"
     SES7="--ses7"
