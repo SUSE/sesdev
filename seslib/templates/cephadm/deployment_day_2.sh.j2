@@ -369,3 +369,5 @@ ceph orch apply -i {{ service_spec_gw }}
 {% endif %}{# rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring #}
 
 {% endif %}{# storage_nodes > 0 #}
+
+ceph config set mon auth_allow_insecure_global_id_reclaim false || true
