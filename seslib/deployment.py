@@ -318,12 +318,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             else:
                 if 'master' in node_roles or 'suma' in node_roles:
                     public_address = '{}{}'.format(self.settings.public_network, 200)
-                    networks = ('node.vm.network :private_network, autostart: true, ip:'
-                                '"{}"').format(public_address)
                 else:
                     public_address = '{}{}'.format(self.settings.public_network, 200 + node_id)
-                    networks = ('node.vm.network :private_network, autostart: true, ip:'
-                                '"{}"').format(public_address)
                 networks = ('node.vm.network :private_network, autostart: true, ip:'
                             '"{}"').format(public_address)
                 if self.settings.ipv6:
