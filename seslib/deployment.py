@@ -6,6 +6,11 @@ import re
 import shutil
 import time
 
+try:
+    from typing import Iterable, List
+except ImportError:
+    pass
+
 from Cryptodome.PublicKey import RSA
 
 from . import tools
@@ -1155,6 +1160,7 @@ deployment might not be completely destroyed.
         return retval
 
     def _ssh_cmd(self, name, command=None):
+        # type: (str, Iterable[str]) -> List[str]
         (address, proxycmd, dep_private_key) = self._vagrant_ssh_config(name)
         _cmd = [
             "ssh",
@@ -1173,6 +1179,7 @@ deployment might not be completely destroyed.
         return tools.run_interactive(self._ssh_cmd(name, command))
 
     def sync_ssh(self, name, command):
+        # type: (str, Iterable[str]) -> str
         return tools.run_sync(
             self._ssh_cmd(name, command),
             self._dep_dir
