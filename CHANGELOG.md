@@ -7,6 +7,18 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.12.1] - 2021-04-26
+
+### Added
+- contrib/nukevolz.sh: primitive script to recover wasted disk space (PR #593)
+
+### Fixed
+- zypper: remove python3-base if it's installed (PR #594)
+- templates: disallow global ID reclaim (PR #596)
+
+### Removed
+- deployment: Remove redundant node network code (PR #592)
+
 ## [1.12.0] - 2021-03-22
 
 ### Added
@@ -647,7 +659,8 @@ and this project aspires to adhere to [Semantic Versioning](https://semver.org/s
 - Minimal README with a few usage instructions.
 - The CHANGELOG file.
 
-[unreleased]: https://github.com/SUSE/sesdev/compare/v1.12.0...HEAD
+[unreleased]: https://github.com/SUSE/sesdev/compare/v1.12.1...HEAD
+[1.12.1]: https://github.com/SUSE/sesdev/releases/tag/v1.12.1
 [1.12.0]: https://github.com/SUSE/sesdev/releases/tag/v1.12.0
 [1.11.0]: https://github.com/SUSE/sesdev/releases/tag/v1.11.0
 [1.10.0]: https://github.com/SUSE/sesdev/releases/tag/v1.10.0
