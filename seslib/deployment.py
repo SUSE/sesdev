@@ -349,8 +349,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             if self.settings.version == 'caasp4':
                 single_node = self.settings.single_node or len(self.settings.roles) == 1
                 if 'master' in node_roles or 'worker' in node_roles:
-                    if node.cpus < 2:
-                        node.cpus = 2
+                    node.cpus = max(node.cpus, 2)
                     if self.settings.ram < 2:
                         node.ram = 2 * 2**10
                 if self.settings.caasp_deploy_ses or self.settings.explicit_num_disks:
@@ -382,8 +381,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             if 'suma' in node_roles:
                 if self.settings.ram < 4:
                     node.ram = 4096
-                if self.settings.cpus < 4:
-                    node.cpus = 4
+                node.cpus = max(self.settings.cpus, 4)
                 # disk for /var/spacewalk
                 node.storage_disks.append(Disk(101))
                 # disk for /var/lib/pgsql
