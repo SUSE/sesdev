@@ -188,13 +188,8 @@ cat {{ upgrade_script }}
 
 # SUSE:CA repo on SLE
 {% if os.startswith("sle") %}
-zypper addrepo --refresh
-{%- if os == 'sles-15-sp2' %}
- http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo
-{%- elif os == 'sles-15-sp1' %}
- http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo
-{%- elif os == 'sles-12-sp3' %}
- http://download.nue.suse.com/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo
+{% if os_ca_repo %}
+zypper addrepo --refresh {{ os_ca_repo }}
 {% endif %}
 {% endif %}{# os.startswith("sle") #}
 

@@ -72,6 +72,10 @@ ceph-salt config /time_server/servers add {{ master.fqdn }}
 ceph-salt config /time_server/external_servers add {{ external_timeserver }}
 ceph-salt config /time_server/subnet set {{ public_network }}
 
+{% if reg %}
+ceph-salt config /containers/registries_conf/registries add prefix={{ reg.prefix }} location={{ reg.location }} insecure={{ reg.insecure }}
+{% endif %}
+
 {% if image_path %}
 ceph-salt config /cephadm_bootstrap/ceph_image_path set {{ image_path }}
 {% endif %}

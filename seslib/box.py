@@ -22,7 +22,7 @@ class Box():
         self.libvirt_conn = None
         self.libvirt_uri = None
         self.pool = None
-        self.all_possible_boxes = list(Constant.OS_BOX_MAPPING.keys()) + \
+        self.all_possible_boxes = list(settings.os_box.keys()) + \
             list(Constant.OS_ALIASED_BOXES.keys())
         self._populate_box_list()
 
