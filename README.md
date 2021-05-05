@@ -86,6 +86,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [Run "make check" on openSUSE Leap 15.2 from upstream "octopus" branch](#run-make-check-on-opensuse-leap-152-from-upstream-octopus-branch)
       * [Run "make check" on SLE-15-SP2 from downstream "ses7" branch](#run-make-check-on-sle-15-sp2-from-downstream-ses7-branch)
       * [Other "make check" scenarios](#other-make-check-scenarios)
+   * [Custom provisioning](#custom-provisioning)
 * [Common pitfalls](#common-pitfalls)
    * [Domain about to create is already taken](#domain-about-to-create-is-already-taken)
    * [Storage pool not found: no storage pool with matching name 'default'](#storage-pool-not-found-no-storage-pool-with-matching-name-default)
@@ -1054,6 +1055,40 @@ $ sesdev create makecheck --os sles-15-sp2 \
 More combinations are supported than are described here. Compiling
 the respective `sesdev create makecheck` commands for these environments is left
 as an exercise for the reader.
+
+### Custom provisioning
+
+If you like to add configuration files or run arbitrary commands on each VM on
+deployment, you can do so by providing these files in the
+`~/.sesdev/.user_provision` directory.
+
+Note that all configuration files are copied to all the VMs on deployment, as
+well as the `provision.sh` file is executed on all VMs on deployment.
+
+#### Configuration files
+
+To have configuration added automatically to each VM, simply put them into the
+`~/.sesdev/.user_provision/config` directory. All files in this directory will be
+copied to `/root` on the hosts.
+
+##### Example
+
+Create a file `~/.sesdev/.user_provision/config/.vimrc` and it will be copied to
+`/root/.vimrc` on each host on deployment, so you will always have your personal
+Vim configuration on all hosts across all deployments.
+
+#### Running arbitrary commands
+
+Running any commands is achieved by creating a
+`~/.sesdev/.user_provision/provision.sh` file. The script will be executed after
+the deployment of a VM has been successfully completed.
+
+#### Triggering custom provisioning manually
+
+Custom provisioning can be triggered manually by issuing `sesdev user-provision
+<deployment-id>` or `sesdev user-provision <deployment-id> <host>` respectively.
+The former command applies the custom provisioning to all VMs in the deployment,
+whereas the latter variant only to a single VM.
 
 
 ## Common pitfalls

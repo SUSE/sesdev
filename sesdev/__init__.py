@@ -708,6 +708,7 @@ def _create_command(deployment_id, settings_dict):
                 click.echo("Dry run. Stopping now, before creating any VMs.")
                 raise click.Abort()
             dep.start(_print_log)
+            dep.user_provision()
             click.echo("=== Deployment Finished ===")
             click.echo()
             click.echo("You can login into the cluster with:")
@@ -1539,3 +1540,11 @@ def upgrade(deployment_id, node, devel_repos, to_version):
     """
     dep = Deployment.load(deployment_id)
     dep.upgrade(_print_log, node, devel_repos, to_version)
+
+
+@cli.command()
+@click.argument('deployment_id')
+@click.argument('node', required=False)
+def user_provision(deployment_id, node):
+    dep = Deployment.load(deployment_id)
+    dep.user_provision(node)
