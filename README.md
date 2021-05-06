@@ -1,4 +1,4 @@
-# sesdev - deploy and manage SES/Ceph clusters<br/>
+# sesdev - whack SES/Ceph clusters with a wet noodle<br/>
 
 `sesdev` is a CLI tool to deploy Ceph clusters (both the upstream and SUSE
 downstream versions).
