@@ -107,6 +107,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.bootstrap_mon_ip = None
         self.version_devel_repos = None
         self.os_base_repos = None
+        self.os_ca_repo = None
         self.internal_media_repo = None
         self.developer_tools_repos = None
         self.os_makecheck_repos = None
@@ -119,6 +120,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.__count_roles()
         self.__populate_os()
         self.__populate_deployment_tool()
+        self.__populate_container_registry()
         self.__populate_image_path()
         if not self.settings.libvirt_networks and not existing:
             self.__generate_static_networks()
@@ -155,6 +157,17 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 and self.settings.version not in ['caasp4', 'makecheck']:
             self.settings.deployment_tool = \
                 Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
+
+    def __populate_container_registry(self):
+        if self.settings.container_registry:
+            reg = dict(
+                prefix=self.settings.container_registry.get('prefix'),
+                location=self.settings.container_registry.get('location'),
+                insecure=self.settings.container_registry.get('insecure'),
+            )
+            self.settings.reg = reg
+        else:
+            self.settings.reg = None
 
     def __populate_image_path(self):
         if self.settings.deployment_tool == 'cephadm' and not self.settings.image_path:
@@ -451,6 +464,12 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         else:
             self.os_upgrade_repos = []
 
+    def __set_os_ca_repo(self):
+        if self.settings.os in self.settings.os_ca_repo:
+            self.os_ca_repo = self.settings.os_ca_repo[self.settings.os]
+        else:
+            self.os_ca_repo = None
+
     def __set_internal_media_repo(self):
         if self.settings.version in self.settings.internal_media_repos:
             self.internal_media_repo = \
@@ -499,6 +518,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         """
         self.__set_version_devel_repos()
         self.__set_os_base_repos()
+        self.__set_os_ca_repo()
         self.__set_internal_media_repo()
         self.__set_developer_tools_repos()
         self.__set_os_makecheck_repos()
@@ -545,6 +565,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deployment_tool': self.settings.deployment_tool,
             'version_devel_repos': self.version_devel_repos,
             'os_base_repos': self.os_base_repos,
+            'os_ca_repo': self.os_ca_repo,
             'os_makecheck_repos': self.os_makecheck_repos,
             'devel_repo': self.settings.devel_repo,
             'core_version': self.settings.version in Constant.CORE_VERSIONS,
@@ -589,6 +610,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_apply': self.settings.stop_before_ceph_salt_apply,
             'stop_before_ceph_orch_apply': self.settings.stop_before_ceph_orch_apply,
+            'reg': self.settings.reg,
             'image_path': self.settings.image_path,
             'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
@@ -711,7 +733,10 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 box_path = self.vagrant_box
             else:
                 cmd += ["--name", self.settings.os]
-                box_path = Constant.OS_BOX_MAPPING[self.settings.os]
+                if self.settings.os in self.settings.os_box:
+                    box_path = self.settings.os_box[self.settings.os]
+                else:
+                    box_path = Constant.OS_BOX_MAPPING[self.settings.os]
             cmd += [box_path]
             tools.run_async(cmd, log_handler)
 

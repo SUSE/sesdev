@@ -1,0 +1,33 @@
+os_repos:
+    sles-15-sp2:
+            basesystem: 'http://1.2.3.4/mirror/SLE-15-SP2-Module-Basesystem-POOL-x86_64-Build209.2'
+            server: 'http://1.2.3.4/mirror/SLE-15-SP2-Module-Server-Applications-POOL-x86_64-Build209.2'
+            product: 'http://1.2.3.4/mirror/SLE-15-SP2-Product-SLES-POOL-x86_64-Build209.2'
+            basesystem_update: 'http://1.2.3.4/mirror/SLE-15-SP2-Basesystem-update'
+            server_update: 'http://1.2.3.4/mirror/SLE-15-SP2-Server-Applications-update'
+
+
+os_ca_repo:
+    sles-15-sp2: 'https://download.opensuse.org/repositories/openSUSE:/infrastructure/SLE_15_SP2/openSUSE:infrastructure.repo'
+
+os_box:
+    sles-15-sp2: 'http://1.2.3.4/mirror/SLE-15-SP2/images/SLES15-SP2-Vagrant.x86_64-libvirt.box'
+
+
+internal_media_repos:
+    ses7:
+        ses-7-internal-media: 'http://1.2.3.4/mirror/SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Build88.36'
+
+version_devel_repos:
+    ses7:
+        sles-15-sp2:
+            - 'http://1.2.3.4/mirror/SUSE-Enterprise-Storage-7-POOL-x86_64-Build88.46'
+
+image_paths_devel:
+    ses7: 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
+
+container_registry:
+    prefix: 'registry.suse.de'
+    location: '1.2.3.4:5000'
+    insecure: True
+

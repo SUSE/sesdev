@@ -653,6 +653,29 @@ image_paths_devel:
     octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 ```
 
+#### With custom registry
+
+In case there is a need to use some container registry mirror, it is possible
+to override registry location, and disable ssl if required. For example,
+similar record can be add to the `~/.sesdev/config.yaml`.
+
+
+```
+container_registry:
+    prefix: 'registry.suse.de'
+    location: '1.2.3.4:5000'
+    insecure: True
+```
+
+#### With custom vagrant boxes
+
+Custom libvirt image vagrant box can be provided using `os_box` record for each `os`:
+
+```
+os_box:
+    sles-15-sp2: 'http://1.2.3.4/mirror/SLE-15-SP2/images/SLES15-SP2-Vagrant.x86_64-libvirt.box'
+```
+
 #### With custom default roles
 
 When the user does not give the `--roles` option on the command line, `sesdev`

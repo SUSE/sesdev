@@ -180,6 +180,12 @@ class Constant():
         'ubuntu-bionic': 'apt',
     }
 
+    OS_CA_REPO = {
+        'sles-12-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo',
+        'sles-15-sp1': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo',
+        'sles-15-sp2': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo',
+    }
+
     OS_REPOS = {
         'sles-12-sp3': {
             'base': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/',

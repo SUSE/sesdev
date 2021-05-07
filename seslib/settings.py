@@ -35,6 +35,11 @@ SETTINGS = {
         'help': 'The network address prefix for the cluster network',
         'default': '',
     },
+    'container_registry': {
+        'type': dict,
+        'help': 'Container registry data [prefix, location, insecure]',
+        'default': None,
+    },
     'cpus': {
         'type': int,
         'help': 'Number of virtual CPUs in each node',
@@ -223,6 +228,16 @@ SETTINGS = {
         'type': dict,
         'help': 'repos to add to VMs in "makecheck" environments',
         'default': Constant.OS_MAKECHECK_REPOS,
+    },
+    'os_box': {
+        'type': dict,
+        'help': 'vagrant box to be used for a given operating system (os)',
+        'default': Constant.OS_BOX_MAPPING,
+    },
+    'os_ca_repo': {
+        'type': dict,
+        'help': 'ca repo to add on all VMs of a given operating system (os)',
+        'default': Constant.OS_CA_REPO,
     },
     'os_repos': {
         'type': dict,
