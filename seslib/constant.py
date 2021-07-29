@@ -14,7 +14,7 @@ class Constant():
 
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
 
-    CORE_VERSIONS = ['ses5', 'nautilus', 'ses6', 'octopus', 'ses7', 'pacific']
+    CORE_VERSIONS = ['ses5', 'nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific']
 
     DEBUG = False
 
@@ -37,6 +37,7 @@ class Constant():
 
     IMAGE_PATHS_DEVEL = {
         'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
+        'ses7p': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7/ceph/ceph',
         'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
         'pacific': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
     }
@@ -58,6 +59,12 @@ class Constant():
             'ses7-internal-media': 'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/'
                                    'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
         },
+        'ses7p': {
+            'ses7-internal-media': (
+                'http://download.suse.de/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
+                'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/'
+            ),
+        },
     }
 
     JINJA_ENV = Environment(loader=PackageLoader('seslib', 'templates'), trim_blocks=True)
@@ -78,6 +85,10 @@ class Constant():
         'sles-15-sp2': {
             'repo': 'https://github.com/SUSE/ceph',
             'branch': 'ses7',
+        },
+        'sles-15-sp3': {
+            'repo': 'https://github.com/SUSE/ceph',
+            'branch': 'ses7p',
         },
         'leap-15.1': {
             'repo': 'https://github.com/ceph/ceph',
@@ -142,6 +153,8 @@ class Constant():
         'opensuse/Leap-15.3.x86_64': 'opensuse/Leap-15.3.x86_64',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP2/'
                        'images/SLES15-SP2-Vagrant.x86_64-libvirt.box',
+        'sles-15-sp3': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP3/'
+                       'images/SLES15-SP3-Vagrant.x86_64-libvirt.box',
         'generic/ubuntu1804': 'generic/ubuntu1804',
     }
 
@@ -178,12 +191,27 @@ class Constant():
             'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
                                   '15-SP2/x86_64/update/',
         },
+        'sles-15-sp3': {
+            'desktop-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                            'SLE-Module-Desktop-Applications/15-SP3/x86_64/product/',
+            'desktop-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                   'SLE-Module-Desktop-Applications/15-SP3/x86_64/update/',
+            'dev-tools': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP3/x86_64/product/',
+            'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                'SLE-Module-Development-Tools/15-SP3/x86_64/update/',
+            'workstation': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP3:/GA:/TEST/images/'
+                           'repo/SLE-15-SP3-Product-WE-POOL-x86_64-Media1/',
+            'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
+                                  '15-SP3/x86_64/update/',
+        },
     }
 
     OS_PACKAGE_MANAGER_MAPPING = {
         'sles-12-sp3': 'zypper',
         'sles-15-sp1': 'zypper',
         'sles-15-sp2': 'zypper',
+        'sles-15-sp3': 'zypper',
         'leap-15.1': 'zypper',
         'leap-15.2': 'zypper',
         'leap-15.3': 'zypper',
@@ -195,6 +223,7 @@ class Constant():
         'sles-12-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo',
         'sles-15-sp1': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo',
+        'sles-15-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP3/SUSE:CA.repo',
     }
 
     OS_REPOS = {
@@ -238,6 +267,23 @@ class Constant():
             'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7/x86_64/'
                               'update/',
         },
+        'sles-15-sp3': {
+            'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP3/x86_64/'
+                       'product/',
+            'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3/'
+                              'x86_64/update/',
+            'base': 'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP3/'
+                    'x86_64/product/',
+            'update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP3/'
+                      'x86_64/update/',
+            'server-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                           'SLE-Module-Server-Applications/15-SP3/x86_64/product/',
+            'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                  'SLE-Module-Server-Applications/15-SP3/x86_64/update/',
+            # 'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/7/x86_64/product/',
+            # 'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7/x86_64/'
+            #                   'update/',
+        },
     }
 
     REASONABLE_TIMEOUT_IN_SECONDS = 1800
@@ -274,6 +320,7 @@ class Constant():
         'ses5': ROLES_DEFAULT["luminous"],
         'ses6': ROLES_DEFAULT["nautilus"],
         'ses7': ROLES_DEFAULT["ses7"],
+        'ses7p': ROLES_DEFAULT["ses7"],
     }
 
     ROLES_KNOWN = [
@@ -371,6 +418,12 @@ class Constant():
                 'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
             ],
         },
+        'ses7p': {
+            'sles-15-sp3': [
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
+                'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
+            ],
+        },
         'caasp4': {
             'sles-15-sp2': [
                 'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Containers/15-SP2/'
@@ -408,6 +461,12 @@ class Constant():
                 '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/7.0/images/repo/'
                 'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
             ],
+            'sles-15-sp3': [
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
+                'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
+                '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
+                'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
+            ],
             'leap-15.2': [],
             'leap-15.3': [],
             'tumbleweed': [],
@@ -418,6 +477,7 @@ class Constant():
         'ses5': 'deepsea',
         'ses6': 'deepsea',
         'ses7': 'cephadm',
+        'ses7p': 'cephadm',
         'nautilus': 'deepsea',
         'octopus': 'cephadm',
         'pacific': 'cephadm',
@@ -429,6 +489,7 @@ class Constant():
         'ses5': 'sles-12-sp3',
         'ses6': 'sles-15-sp1',
         'ses7': 'sles-15-sp2',
+        'ses7p': 'sles-15-sp3',
         'nautilus': 'leap-15.1',
         'octopus': 'leap-15.2',
         'pacific': 'leap-15.3',
