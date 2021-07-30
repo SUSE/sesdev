@@ -48,7 +48,7 @@ set -x
 exit 0
 {% endif %} {# makecheck_stop_before_install_deps #}
 
-su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; sed -i -e "s/^set -e$/set -ex/" install-deps.sh ; FOR_MAKE_CHECK=true ./install-deps.sh'
+su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; FOR_MAKE_CHECK=true bash -x install-deps.sh'
 
 {% if makecheck_stop_before_run_make_check %}
 set +x
@@ -57,4 +57,4 @@ set -x
 exit 0
 {% endif %} {# makecheck_stop_before_run_make_check #}
 
-su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; sed -i -e "s/^set -e$/set -ex/" run-make-check.sh ; ./run-make-check.sh'
+su {{ makecheck_username }} -c 'cd /home/{{ makecheck_username }}/ceph ; bash -x run-make-check.sh'
