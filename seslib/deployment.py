@@ -741,7 +741,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             tools.run_async(cmd, log_handler)
 
     def _vagrant_up(self, node, log_handler):
-        cmd = ["vagrant", "up"]
+        cmd = ["vagrant", "up", "--no-destroy-on-error"]
         if self.existing:
             cmd.extend(["--no-provision"])
         else:
