@@ -75,17 +75,21 @@ class Constant():
             'repo': 'https://github.com/SUSE/ceph',
             'branch': 'ses6-downstream-commits',
         },
-        'leap-15.1': {
-            'repo': 'https://github.com/ceph/ceph',
-            'branch': 'nautilus',
-        },
         'sles-15-sp2': {
             'repo': 'https://github.com/SUSE/ceph',
             'branch': 'ses7',
         },
+        'leap-15.1': {
+            'repo': 'https://github.com/ceph/ceph',
+            'branch': 'nautilus',
+        },
         'leap-15.2': {
             'repo': 'https://github.com/ceph/ceph',
             'branch': 'octopus',
+        },
+        'leap-15.3': {
+            'repo': 'https://github.com/ceph/ceph',
+            'branch': 'pacific',
         },
         'tumbleweed': {
             'repo': 'https://github.com/ceph/ceph',
@@ -104,10 +108,15 @@ class Constant():
             'repo-oss': 'http://download.opensuse.org/distribution/leap/15.2/repo/oss/',
             'repo-update': 'http://download.opensuse.org/update/leap/15.2/oss/',
         },
+        'leap-15.3': {
+            'repo-oss': 'http://download.opensuse.org/distribution/leap/15.3/repo/oss/',
+            'repo-update': 'http://download.opensuse.org/update/leap/15.3/oss/',
+        },
     }
 
     OS_ALIASED_BOXES = {
         'opensuse/Leap-15.2.x86_64': 'leap-15.2',
+        'opensuse/Leap-15.3.x86_64': 'leap-15.3',
         'opensuse/Tumbleweed.x86_64': 'tumbleweed',
         'generic/ubuntu1804': 'ubuntu-bionic',
     }
@@ -130,6 +139,7 @@ class Constant():
                      'Appliances:/Images:/openSUSE-Leap-15.2/images/'
                      'Leap-15.2.x86_64-libvirt.box',
         'opensuse/Leap-15.2.x86_64': 'opensuse/Leap-15.2.x86_64',
+        'opensuse/Leap-15.3.x86_64': 'opensuse/Leap-15.3.x86_64',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP2/'
                        'images/SLES15-SP2-Vagrant.x86_64-libvirt.box',
         'generic/ubuntu1804': 'generic/ubuntu1804',
@@ -176,6 +186,7 @@ class Constant():
         'sles-15-sp2': 'zypper',
         'leap-15.1': 'zypper',
         'leap-15.2': 'zypper',
+        'leap-15.3': 'zypper',
         'tumbleweed': 'zypper',
         'ubuntu-bionic': 'apt',
     }
@@ -313,16 +324,16 @@ class Constant():
                 'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/'
             ],
         },
-        'nautilus': {
-            'leap-15.1': [
-                'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
-                'openSUSE_Leap_15.1/'
-            ],
-        },
         'ses6': {
             'sles-15-sp1': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
                 'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/'
+            ],
+        },
+        'nautilus': {
+            'leap-15.1': [
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/nautilus/'
+                'openSUSE_Leap_15.1/'
             ],
         },
         'octopus': {
@@ -344,6 +355,10 @@ class Constant():
             'leap-15.2': [
                 'https://download.opensuse.org/repositories/filesystems:/ceph:/pacific/'
                 'openSUSE_Leap_15.2'
+            ],
+            'leap-15.3': [
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/pacific/'
+                'openSUSE_Leap_15.3'
             ],
             'tumbleweed': [
                 'https://download.opensuse.org/repositories/filesystems:/ceph:/pacific/'
@@ -394,6 +409,7 @@ class Constant():
                 'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
             ],
             'leap-15.2': [],
+            'leap-15.3': [],
             'tumbleweed': [],
         },
     }
@@ -415,7 +431,7 @@ class Constant():
         'ses7': 'sles-15-sp2',
         'nautilus': 'leap-15.1',
         'octopus': 'leap-15.2',
-        'pacific': 'leap-15.2',
+        'pacific': 'leap-15.3',
         'caasp4': 'sles-15-sp2',
         'makecheck': 'tumbleweed',
     }
