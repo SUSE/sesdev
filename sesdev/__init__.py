@@ -118,7 +118,8 @@ def common_create_options(func):
         click.option('--roles', type=str, default=None,
                      help='List of roles for each node. Example for two nodes: '
                           '[master, client, prometheus],[storage, mon, mgr]'),
-        click.option('--os', type=click.Choice(['leap-15.1', 'leap-15.2', 'tumbleweed',
+        click.option('--os', type=click.Choice(['leap-15.1', 'leap-15.2', 'leap-15.3',
+                                                'tumbleweed',
                                                 'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2',
                                                 'ubuntu-bionic']),
                      default=None, help='OS (open)SUSE distro'),
