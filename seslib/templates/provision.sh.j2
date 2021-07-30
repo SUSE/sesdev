@@ -1,19 +1,39 @@
-set -ex
+set -e
 
 DEPLOYMENT_SCRIPT="$0"
 
 function err_report {
+    local hn
     set +x
+    if hostname >/dev/null 2>&1 ; then
+        hn="$(hostname)"
+    else
+        hn="(cannot determine: hostname binary appears to be missing)"
+    fi
     local line_number="$1"
-    echo "Error in sesdev deployment script trapped!"
-    echo "=> hostname: $(hostname)"
+    echo "Error in provisioner script trapped!"
+    echo "=> hostname: $hn"
     echo "=> script: $DEPLOYMENT_SCRIPT"
     echo "=> line number: $line_number"
     echo "Bailing out!"
-    exit 0
+    exit 1
 }
 
-# ensure Vagrant doesn't destroy the master node when the script fails
+# We run hostname in err_report. Blindly try to make sure it's installed.
+if hostname >/dev/null 2>&1 ; then
+    echo "hostname binary is present. Good."
+else
+    if zypper >/dev/null 2>&1 ; then
+        echo "hostname binary is not present. Attempting to install it using \"zypper\"..."
+        set -x
+        zypper --non-interactive install hostname || true
+        set +x
+    fi
+fi
+
+set -x
+
+# display error report when this provisioner script fails
 trap 'err_report $LINENO' ERR
 
 # do not limit coredump size
