@@ -610,6 +610,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'stop_before_ceph_salt_config': self.settings.stop_before_ceph_salt_config,
             'stop_before_ceph_salt_apply': self.settings.stop_before_ceph_salt_apply,
             'stop_before_ceph_orch_apply': self.settings.stop_before_ceph_orch_apply,
+            'stop_before_cephadm_bootstrap': self.settings.stop_before_cephadm_bootstrap,
             'reg': self.settings.reg,
             'image_path': self.settings.image_path,
             'use_salt': self.settings.use_salt,

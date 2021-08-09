@@ -420,7 +420,7 @@ class Settings():
 
         config_tree = {}
 
-        def __fill_in_config_tree(config_param, global_param):
+        def _fill_in_config_tree(config_param, global_param):
             """
             fill in missing parts of config_tree[config_param]
             from global_param
@@ -444,11 +444,11 @@ class Settings():
             config_tree = {}
         Log.debug("_load_config_file: config_tree: {}".format(config_tree))
         assert isinstance(config_tree, dict), "yaml.load() of config file misbehaved!"
-        __fill_in_config_tree('os_repos', Constant.OS_REPOS)
-        __fill_in_config_tree('version_devel_repos', Constant.VERSION_DEVEL_REPOS)
-        __fill_in_config_tree('image_paths_devel', Constant.IMAGE_PATHS_DEVEL)
-        __fill_in_config_tree('image_paths_product', Constant.IMAGE_PATHS_PRODUCT)
-        __fill_in_config_tree('version_default_roles', Constant.ROLES_DEFAULT_BY_VERSION)
+        _fill_in_config_tree('os_repos', Constant.OS_REPOS)
+        _fill_in_config_tree('version_devel_repos', Constant.VERSION_DEVEL_REPOS)
+        _fill_in_config_tree('image_paths_devel', Constant.IMAGE_PATHS_DEVEL)
+        _fill_in_config_tree('image_paths_product', Constant.IMAGE_PATHS_PRODUCT)
+        _fill_in_config_tree('version_default_roles', Constant.ROLES_DEFAULT_BY_VERSION)
         return config_tree
 
 
