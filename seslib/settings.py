@@ -435,7 +435,7 @@ class Settings():
         if not os.path.exists(Constant.CONFIG_FILE) \
                 or not os.path.isfile(Constant.CONFIG_FILE):
             return config_tree
-        with open(Constant.CONFIG_FILE, 'r') as file:
+        with open(Constant.CONFIG_FILE, 'r', encoding='utf-8') as file:
             try:
                 config_tree = yaml.load(file, Loader=yaml.FullLoader)
             except AttributeError:  # older versions of pyyaml does not have FullLoader

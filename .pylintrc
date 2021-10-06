@@ -101,7 +101,8 @@ disable=print-statement,
         too-many-instance-attributes,
         too-many-statements,
         too-many-lines,
-        too-many-public-methods
+        too-many-public-methods,
+        consider-using-f-string
 
 enable=c-extension-no-member
 
