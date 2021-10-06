@@ -230,6 +230,7 @@ touch {{ service_spec_gw }}
 radosgw-admin realm create --rgw-realm=default --default
 radosgw-admin zonegroup create --rgw-zonegroup=default --master --default
 radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=default --master --default
+sleep 1  # might fail if started immediately after zone create
 radosgw-admin period update --rgw-realm=default --commit
 cat >> {{ service_spec_gw }} << 'EOF'
 ---
