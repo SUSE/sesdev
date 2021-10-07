@@ -15,7 +15,6 @@ find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/
 {% if version != 'ses5' %}
 zypper --non-interactive remove curl || true
 {% endif %}{# version != 'ses5' #}
-zypper --non-interactive remove rsync || true
 zypper --non-interactive remove which || true
 
 # remove Python 2 so it doesn't pollute the environment
@@ -242,3 +241,6 @@ zypper --non-interactive install {{ sle_pkgs_to_install | join(' ') }}
 # module
 zypper --non-interactive install rbd-nbd
 {% endif %}{# os in ['leap-15.2', 'sles-15-sp2'] #}
+
+# rsync is required for user-provision feature
+zypper --non-interactive install rsync
