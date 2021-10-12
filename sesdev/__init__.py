@@ -413,7 +413,7 @@ def _gen_settings_dict(
         raise NoExplicitRolesWithSingleNode()
     elif single_node:
         roles_string = ""
-        if version in ['ses7']:
+        if version in ['ses7', 'ses7p']:
             roles_string = Constant.ROLES_SINGLE_NODE['ses7']
         elif version in ['octopus', 'pacific']:
             roles_string = Constant.ROLES_SINGLE_NODE['octopus']
@@ -790,12 +790,30 @@ def ses6(deployment_id, **kwargs):
 @ipv6_options
 def ses7(deployment_id, **kwargs):
     """
-    Creates a SES7 cluster using SLES-15-SP2 and packages (and container image)
+    Creates a SES7 Octopus cluster using SLES-15-SP2 and packages (and container image)
     from the Devel:Storage:7.0 IBS project
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('ses7', **kwargs)
     deployment_id = _maybe_gen_dep_id('ses7', deployment_id, settings_dict)
+    _create_command(deployment_id, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id', required=False)
+@common_create_options
+@deepsea_options
+@ceph_salt_options
+@libvirt_options
+@ipv6_options
+def ses7p(deployment_id, **kwargs):
+    """
+    Creates a SES7 Pacific cluster using SLES-15-SP3 and packages (and container image)
+    from the Devel:Storage:7.0:Pacific IBS project
+    """
+    _prep_kwargs(kwargs)
+    settings_dict = _gen_settings_dict('ses7p', **kwargs)
+    deployment_id = _maybe_gen_dep_id('ses7p', deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
 
 

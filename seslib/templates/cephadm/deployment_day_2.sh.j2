@@ -202,7 +202,7 @@ ceph fs status --format json-pretty
 
 {% if nfs_nodes > 0 %}
 {% set nfs_cluster = "sesdev_nfs" %}
-ceph nfs cluster create cephfs {{ nfs_cluster }} "$NFS_NODES_COMMA_SEPARATED_LIST"
+ceph nfs cluster create {{ nfs_cluster }} "$NFS_NODES_COMMA_SEPARATED_LIST"
 sleep 10
 ceph nfs cluster ls
 {% endif %}{# nfs_nodes > 0 #}
@@ -230,6 +230,7 @@ touch {{ service_spec_gw }}
 radosgw-admin realm create --rgw-realm=default --default
 radosgw-admin zonegroup create --rgw-zonegroup=default --master --default
 radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=default --master --default
+sleep 1  # might fail if started immediately after zone create
 radosgw-admin period update --rgw-realm=default --commit
 cat >> {{ service_spec_gw }} << 'EOF'
 ---

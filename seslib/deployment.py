@@ -667,7 +667,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         # write settings to metadata file
         os.makedirs(self._dep_dir, exist_ok=False)
         metadata_file = os.path.join(self._dep_dir, Constant.METADATA_FILENAME)
-        with open(metadata_file, 'w') as file:
+        with open(metadata_file, 'w', encoding='utf-8') as file:
             json.dump({
                 'id': self.dep_id,
                 'settings': self.settings
@@ -676,18 +676,20 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         # write "scripts" to files inside the _dep_dir
         for filename, script in scripts.items():
             full_path = os.path.join(self._dep_dir, filename)
-            with open(full_path, 'w') as file:
+            with open(full_path, 'w', encoding='utf-8') as file:
                 file.write(script)
         #
         # generate and write deployment-specific ssh key pair
         keys_dir = os.path.join(self._dep_dir, 'keys')
         os.makedirs(keys_dir)
-        with open(os.path.join(keys_dir, Constant.SSH_KEY_NAME), 'w') as file:
-            file.write(private_key.decode('utf-8'))
-        os.chmod(os.path.join(keys_dir, Constant.SSH_KEY_NAME), 0o600)
-        with open(os.path.join(keys_dir, str(Constant.SSH_KEY_NAME + '.pub')), 'w') as file:
-            file.write(str(public_key.decode('utf-8') + " sesdev\n"))
-        os.chmod(os.path.join(keys_dir, str(Constant.SSH_KEY_NAME + '.pub')), 0o600)
+        priv_key = os.path.join(keys_dir, Constant.SSH_KEY_NAME)
+        pub_key = f"{priv_key}.pub"
+        with open(priv_key, 'wb') as file:
+            file.write(private_key)
+        os.chmod(priv_key, 0o600)
+        with open(pub_key, 'wb') as file:
+            file.write(public_key + b" sesdev\n")
+        os.chmod(pub_key, 0o600)
         #
         # create bin dir for helper scripts
         bin_dir = os.path.join(self._dep_dir, 'bin')
@@ -1734,7 +1736,7 @@ deployment might not be completely destroyed.
                       .format(metadata_file))
             raise DeploymentDoesNotExists(dep_id)
 
-        with open(metadata_file, 'r') as file:
+        with open(metadata_file, 'r', encoding='utf-8') as file:
             metadata = json.load(file)
 
         dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']), existing=True)

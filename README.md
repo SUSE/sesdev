@@ -62,6 +62,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [octopus from filesystems:ceph:octopus](#octopus-from-filesystemscephoctopus)
          * [octopus from filesystems:ceph:octopus&#8203;:upstream](#octopus-from-filesystemscephoctopusupstream)
          * [ses7 from Devel:Storage:7.0](#ses7-from-develstorage70)
+         * [ses7 from Devel:Storage:7.0:Pacific](#ses7p-from-develstorage70pacific)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
       * [With wire encryption](#with-wire-encryption)
       * [Deploying non-SUSE environments](#deploying-non-suse-environments)
@@ -429,11 +430,11 @@ Some caveats apply:
 2. For `ses5`, `nautilus`, and `ses6`, the only role required is `master` and
    you can use `--stop-before-deepsea-stage` to control how many DeepSea stages
    are run.
-3. For `octopus`, `ses7`, and `pacific`, the only roles required are `master`
-   and `bootstrap`. While it is possible to stop the deployment script at
-   various stages (see `sesdev create octopus --help` for details), in general
-   sesdev will try to deploy Ceph services/daemons according to the roles
-   given by the user.
+3. For `octopus`, `ses7`, `ses7p`, and `pacific`, the only roles required are
+   `master` and `bootstrap`. While it is possible to stop the deployment script
+   at various stages (see `sesdev create octopus --help` for details), in
+   general sesdev will try to deploy Ceph services/daemons according to the
+   roles given by the user.
 4. You can specify a node with no roles like so: `[]`
 5. Ordinarily, a node gets extra disks ("OSD disks") only when the `storage`
    role is specified. However, to facilitate deployment of "bare bone" clusters,
@@ -742,6 +743,18 @@ Note that this will work even if there is no ceph package visible at
 https://build.suse.de/project/show/Devel:Storage:7.0 since it uses the
 installation media repo, not the "SLE_15_SP2" repo.
 
+##### ses7p from Devel:Storage:7.0:Pacific
+
+This is the default, so no tweaking of config.yaml is necessary. Just:
+
+```
+sesdev create ses7p
+```
+
+Note that this will work even if there is no ceph package visible at
+https://build.suse.de/project/show/Devel:Storage:7.0:Pacific since it uses the
+installation media repo, not the "SLE_15_SP3" repo.
+
 ##### ses7 from Devel:Storage:7.0:CR
 
 The ceph package in `Devel:Storage:7.0:CR` has the same version as
@@ -776,9 +789,9 @@ SES7 Product and `Devel:Storage:7.0` repos.
 
 #### With wire encryption
 
-The "octopus", "ses7", and "pacific" deployment versions can be told to use wire
-encryption (a feature of the Ceph Messenger v2), where Ceph encrypts its own
-network traffic.
+The "octopus", "ses7", "ses7p", and "pacific" deployment versions can be told to
+use wire encryption (a feature of the Ceph Messenger v2), where Ceph encrypts
+its own network traffic.
 
 In order to deploy a cluster with Messenger v2 encryption, we need to
 either prioritise 'secure' over 'crc' mode, or only provide 'secure' mode.
