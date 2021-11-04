@@ -202,7 +202,11 @@ ceph fs status --format json-pretty
 
 {% if nfs_nodes > 0 %}
 {% set nfs_cluster = "sesdev_nfs" %}
+{% if version in ['octopus', 'ses7'] %}
+ceph nfs cluster create cephfs {{ nfs_cluster }} "$NFS_NODES_COMMA_SEPARATED_LIST"
+{% else %}
 ceph nfs cluster create {{ nfs_cluster }} "$NFS_NODES_COMMA_SEPARATED_LIST"
+{% endif %}{# if version in ['octopus', 'ses7'] #}
 sleep 10
 ceph nfs cluster ls
 {% endif %}{# nfs_nodes > 0 #}
