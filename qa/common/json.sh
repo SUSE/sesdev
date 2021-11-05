@@ -8,7 +8,7 @@ set -e
 
 function json_ses7_orch_ls {
     # returns number of deployed services of a given type, according to "ceph orch ls"
-    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local service_type="$1"
         local ceph_orch_ls
         local running
@@ -26,7 +26,7 @@ function json_ses7_orch_ls {
 
 function json_ses7_orch_ps {
     # returns number of running daemons of a given type, according to "ceph orch ps"
-    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local daemon_type="$1"
         local ceph_orch_ps
         local running
@@ -66,7 +66,7 @@ function json_metadata_mgrs {
 function json_total_mgrs {
     local ceph_status_json
     local active_mgrs
-    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         json_ses7_orch_ls mgr
     elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
         # SES6, SES5
@@ -88,7 +88,7 @@ function json_metadata_mons {
 
 function json_total_mons {
     local ceph_status_json
-    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         json_ses7_orch_ls mon
     elif [ "$VERSION_ID" = "15.1" ] ; then
         # SES6
@@ -113,7 +113,7 @@ function json_total_mdss {
     local ups
     local standbys
     local actives
-    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         json_ses7_orch_ls mds
     elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
         # SES6, SES5
