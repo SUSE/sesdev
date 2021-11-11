@@ -256,7 +256,8 @@ EOF
 
 # pre-create pool for IGW if needed
 {% if igw_nodes > 0 %}
-ceph osd pool create rbd
+EXPONENT="$(({{ storage_nodes }} + 2))"
+ceph osd pool create rbd "$((2 ** EXPONENT))"
 {% endif %}{# igw_nodes > 0 #}
 
 {% if igw_nodes > 0 %}

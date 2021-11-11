@@ -20,7 +20,7 @@
 #     contrib/run-standalone.sh
 #
 
-SCRIPTNAME="$(basename "${0}")"
+SCRIPTNAME="$(basename "$0")"
 CONFIG_YAML="$HOME/.sesdev/config.yaml"
 FINAL_REPORT="$(mktemp)"
 TEMP_FILE="$(mktemp)"
@@ -65,7 +65,6 @@ function usage {
     echo "    --ses7                   Run ses7 deployment tests"
     echo "    --ubuntu-bionic          Run Ubuntu Bionic tests"
     echo
-    exit 1
 }
 
 function expect_fail {
@@ -137,11 +136,11 @@ function tunnel_gone {
     fi
 }
 
-TEMP=$(getopt -o h \
+GETOPT=$(getopt -o h \
 --long "help,caasp4,ceph-salt-branch:,ceph-salt-repo:,full,makecheck,nautilus,no-stop-on-failure,octopus,pacific,ses5,ses6,ses7,ubuntu-bionic" \
 -n 'standalone.sh' -- "$@")
 set +e
-eval set -- "$TEMP"
+eval set -- "$GETOPT"
 
 # process command-line options
 NORMAL_OPERATION="not_empty"
@@ -174,11 +173,17 @@ while true ; do
         --ses6)                  SES6="$1" ; shift ;;
         --ses7)                  SES7="$1" ; shift ;;
         --ubuntu-bionic)         UBUNTU_BIONIC="$1" ; shift ;;
-        -h|--help)               usage ;; # does not return
+        -h|--help)               usage ; exit 0 ;;
         --) shift ; break ;;
         *) echo "Internal error" ; exit 1 ;;
     esac
 done
+
+if [ "$*" ] ; then
+    usage
+    echo "ERROR: unrecognized parameters \"$*\""
+    exit 1
+fi
 
 if [ "$CAASP4" ] || [ "$FULL" ] || [ "$MAKECHECK" ] || [ "$NAUTILUS" ] || [ "$OCTOPUS" ] || [ "$PACIFIC" ] || [ "$SES5" ] || [ "$SES6" ] || [ "$SES7" ] || [ "$UBUNTU_BIONIC" ] ; then
     NORMAL_OPERATION=""
@@ -192,7 +197,7 @@ if [ "$FULL" ] || [ "$NORMAL_OPERATION" ] ; then
     fi
     NAUTILUS="--nautilus"
     OCTOPUS="--octopus"
-    # PACIFIC="--pacific"
+    PACIFIC="--pacific"
     SES5="--ses5"
     SES6="--ses6"
     SES7="--ses7"
@@ -348,7 +353,7 @@ if [ "$SES7" ] ; then
 fi
 
 if [ "$PACIFIC" ] ; then
-    sesdev --verbose box remove --non-interactive leap-15.2
+    sesdev --verbose box remove --non-interactive leap-15.3
     # dry run
     run_cmd sesdev create pacific --dry-run
     run_cmd sesdev --verbose create pacific --non-interactive "${CEPH_SALT_OPTIONS[@]}" --single-node pacific-1node

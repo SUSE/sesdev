@@ -77,7 +77,7 @@ function _extract_ceph_version {
 }
 
 function _fsid {
-    if [ "$VERSION_ID" = "15.2" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
+    if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         ceph status --format=json | jq -r '.fsid'
     else
         echo "ERROR: _fsid needs Octopus or newer"
