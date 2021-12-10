@@ -32,7 +32,7 @@ systemctl restart salt-minion
 set +x
 rm -f /tmp/ready-*
 count="0"
-max_count_we_tolerate="50"
+max_count_we_tolerate="500"
 echo "Waiting for {{ nodes | length }} nodes to complete initial provisioning..."
 while true ; do
   count="$((count + 1))"
