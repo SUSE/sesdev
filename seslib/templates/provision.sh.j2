@@ -48,11 +48,11 @@ echo "{{ _node.public_address }} {{ _node.fqdn }} {{ _node.name }}" >> /etc/host
 {% endif %}
 {% endfor %}
 
-# Vagrant sometimes adds a bogus 127.0.0.1 line at the beginning of /etc/hosts:
+# Vagrant sometimes adds a bogus 127.0.0.1 to /etc/hosts:
 # If it's there, delete it!
 echo "State of /etc/hosts loopback assignments (BEFORE sed)" >/dev/null
 grep -E '^127\.[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' /etc/hosts
-sed -i -e '1,1 {/^127\.[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+\t{{ node.fqdn }}\t{{ node.name }}/ d}' /etc/hosts
+sed -i -e '/^127\.[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+\s\+{{ node.fqdn }}\s\+{{ node.name }}/ d' /etc/hosts
 echo "State of /etc/hosts loopback assignments (AFTER sed)" >/dev/null
 grep -E '^127\.[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' /etc/hosts
 
