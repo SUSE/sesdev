@@ -47,6 +47,10 @@ class Node():
             raise RoleNotKnown(role)
         return self.roles == [role]
 
+    def has_address(self, address):
+        return address in \
+            (self.fqdn, self.public_address, self.cluster_address)
+
     def add_custom_repo(self, zypper_repo):
         """
         Takes a ZypperRepo object
