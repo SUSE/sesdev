@@ -1532,7 +1532,7 @@ deployment might not be completely destroyed.
         tools.run_sync(ssh_cmd)
 
     def replace_mgr_modules(self, local=None, pr=None, branch=None, repo=None, langs=None):
-        if self.settings.version in ['nautilus', 'ses6', 'octopus', 'ses7', 'pacific']:
+        if self.settings.version in ['nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific']:
             pass  # replace-mgr-modules is expected to work with these
         else:
             raise SubcommandNotSupportedInVersion('replace-mgr-modules', self.settings.version)
