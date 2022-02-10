@@ -1406,6 +1406,12 @@ deployment might not be completely destroyed.
         nodes = [name for name, node in self.nodes.items() if service in node.roles]
         return nodes[0] if nodes else None
 
+    def _find_node_by_address(self, address):
+        for name, node in self.nodes.items():
+            if node.has_address(address):
+                return name
+        return None
+
     def start_port_forwarding(self, service=None, node=None, remote_port=None, local_port=None,
                               local_address=None):
         if local_address is None:
@@ -1448,7 +1454,11 @@ deployment might not be completely destroyed.
                     Log.debug("Decoded json: {}".format(decoded_json))
                     dashboard_url = decoded_json['dashboard']
                     Log.debug("Dashboard URL: {}".format(dashboard_url))
-                    node = re.match(r"https://([^.]*).*", dashboard_url).group(1)
+                    dashboard_address = re.match(
+                        r"https://([^:]+)", dashboard_url).group(1)
+                    node = self._find_node_by_address(dashboard_address)
+                    if not node and dashboard_address:
+                        node = re.match(r"^([^.]+)", dashboard_address).group(1)
                     Log.debug("Extracted node: {}".format(node))
                 except (CmdException, AttributeError, KeyError):
                     node = 'null'
