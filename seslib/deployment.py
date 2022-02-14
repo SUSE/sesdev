@@ -170,14 +170,28 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             self.settings.reg = None
 
     def __populate_image_path(self):
-        if self.settings.deployment_tool == 'cephadm' and not self.settings.image_path:
-            if not self.settings.devel_repo:
-                if self.settings.version in self.settings.image_paths_product:
-                    self.settings.image_path = \
-                        self.settings.image_paths_product[self.settings.version]
-                    return
-            self.settings.image_path = \
-                self.settings.image_paths_devel[self.settings.version]
+        """
+        Set the image paths based on the `devel_repo` setting to either devel or
+        product.
+        """
+        if self.settings.deployment_tool != 'cephadm' or self.settings.image_path != '':
+            return
+
+        version = self.settings.version
+        # product
+        if not self.settings.devel_repo:
+            if (
+                version in self.settings.image_paths_product
+                and 'ceph' in self.settings.image_paths_product[version]
+            ):
+                self.settings.image_path = self.settings.image_paths_product[version]['ceph']
+                return
+
+            Log.warning('--product was selected but no product image was found for ceph. '
+                        'Using devel image instead.')
+
+        # devel
+        self.settings.image_path = self.settings.image_paths_devel[version]['ceph']
 
     def __set_up_make_check(self):
         self.settings.override('single_node', True)

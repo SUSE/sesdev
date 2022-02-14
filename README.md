@@ -651,7 +651,8 @@ following to your `~/.sesdev/config.yaml`:
 
 ```
 image_paths_devel:
-    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
+    octopus:
+        ceph: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 ```
 
 #### With custom registry
@@ -723,7 +724,8 @@ version_devel_repos:
             - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
             - '96!https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/openSUSE_Leap_15.2'
 image_paths_devel:
-    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph'
+    octopus:
+        ceph: 'registry.opensuse.org/filesystems/ceph/octopus/upstream/images/ceph/ceph'
 ```
 
 Note: The elevated priority on the `filesystems:ceph:octopus:upstream`
@@ -779,7 +781,8 @@ version_devel_repos:
             - 'http://download.suse.de/ibs/Devel:/Storage:/7.0/images/repo/SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
             - '96!http://download.suse.de/ibs/Devel:/Storage:/7.0:/CR/SLE_15_SP2/'
 image_paths_devel:
-    ses7: 'registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph'
+    ses7:
+        ceph: 'registry.suse.de/devel/storage/7.0/cr/containers/ses/7/ceph/ceph'
 ```
 
 Note: The elevated priority on the `Devel:Storage:7.0:CR` repo is needed to

@@ -36,14 +36,27 @@ class Constant():
     }
 
     IMAGE_PATHS_DEVEL = {
-        'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
-        'ses7p': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph',
-        'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
-        'pacific': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
+        'ses7': {
+            'ceph': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
+        },
+        'ses7p': {
+            'ceph': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph'
+        },
+        'octopus': {
+            'ceph': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
+        },
+        'pacific': {
+            'ceph': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph'
+        },
     }
 
     IMAGE_PATHS_PRODUCT = {
-        'ses7': 'registry.suse.com/ses/7/ceph/ceph',
+        'ses7': {
+            'ceph': 'registry.suse.com/ses/7/ceph/ceph',
+        },
+        'ses7p': {
+            'ceph': 'registry.suse.com/ses/7.1/ceph/ceph',
+        }
     }
 
     INTERNAL_MEDIA_REPOS = {

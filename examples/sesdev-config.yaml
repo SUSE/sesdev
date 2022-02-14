@@ -24,7 +24,8 @@ version_devel_repos:
             - 'http://1.2.3.4/mirror/SUSE-Enterprise-Storage-7-POOL-x86_64-Build88.46'
 
 image_paths_devel:
-    ses7: 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
+    ses7:
+        ceph: 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph'
 
 container_registry:
     prefix: 'registry.suse.de'

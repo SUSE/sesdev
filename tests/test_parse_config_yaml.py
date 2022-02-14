@@ -24,7 +24,8 @@ version_devel_repos:
       leap-15.2:
           - 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus/openSUSE_Leap_15.2'
 image_paths_devel:
-    octopus: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
+    octopus:
+        ceph: 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
 container_registry:
     prefix: 'registry.suse.de'
     location: '1.2.3.4:5000'
