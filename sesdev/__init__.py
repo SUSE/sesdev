@@ -143,7 +143,8 @@ def common_create_options(func):
         click.option('--repo-priority/--no-repo-priority', default=False,
                      help="Automatically set priority on custom zypper repos"),
         click.option('--devel/--product', default=True,
-                     help="Include devel repo, if applicable"),
+                     help=("Include devel repo, if applicable. By default, the devel repos will be "
+                           "used.")),
         click.option('--qa-test/--no-qa-test', 'qa_test_opt', default=False,
                      help="Automatically run integration tests on the deployed cluster"),
         click.option('--scc-user', type=str, default=None,
