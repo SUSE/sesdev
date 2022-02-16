@@ -566,12 +566,12 @@ create`.
 
 #### Without the devel repo
 
-The "core" deployment targets (ses5, nautilus, ses6, octopus, ses7, pacific)
-all have a concept of a "devel" repo where updates to the Ceph/storage-related
-packages are staged. Since users frequently want to install the "latest,
-greatest" packages, the "devel" repo is added to all nodes by default. However,
-there are times when this is not desired: when using sesdev to simulate
-update/upgrade scenarios, for example.
+The "core" deployment targets (ses5, nautilus, ses6, octopus, ses7, ses7p,
+pacific) all have a concept of a "devel" repo where updates to the
+Ceph/storage-related packages are staged. Since users frequently want to install
+the "latest, greatest" packages, the "devel" repo is added to all nodes by
+default. However, there are times when this is not desired: when using sesdev to
+simulate update/upgrade scenarios, for example.
 
 To deploy a Ceph cluster without the "devel" repo, give the `--product` option
 on the `sesdev create` command line.
