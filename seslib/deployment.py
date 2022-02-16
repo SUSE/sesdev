@@ -974,7 +974,7 @@ deployment might not be completely destroyed.
                            .format(self.settings.makecheck_ceph_repo))
                 result += ("- git branch:       {}\n"
                            .format(self.settings.makecheck_ceph_branch))
-            if self.settings.version in ['octopus', 'ses7', 'pacific']:
+            if self.settings.version in ['octopus', 'ses7', 'pacific', 'ses7p']:
                 result += "- image_path:       {}\n".format(self.settings.image_path)
             for synced_folder in self.settings.synced_folder:
                 result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
