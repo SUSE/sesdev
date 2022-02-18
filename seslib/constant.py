@@ -40,7 +40,15 @@ class Constant():
             'ceph': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
         },
         'ses7p': {
-            'ceph': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph'
+            'ceph': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph',
+            'grafana': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                       'ceph/grafana:7.5.12',
+            'prometheus': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                          'prometheus/prometheus-server:2.27.1',
+            'alertmanager': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                            'prometheus/prometheus-alertmanager:0.21.0',
+            'node-exporter': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                             'prometheus/prometheus-node-exporter:1.1.2',
         },
         'octopus': {
             'ceph': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
