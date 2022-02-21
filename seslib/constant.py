@@ -37,7 +37,7 @@ class Constant():
 
     IMAGE_PATHS_DEVEL = {
         'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
-        'ses7p': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7/ceph/ceph',
+        'ses7p': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph',
         'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
         'pacific': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
     }
