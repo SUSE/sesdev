@@ -21,6 +21,7 @@ from .exceptions import \
                         CmdException, \
                         DeploymentAlreadyExists, \
                         DeploymentDoesNotExists, \
+                        DeploymentIncompatible, \
                         DepIDWrongLength, \
                         DepIDIllegalChars, \
                         DuplicateRolesNotSupported, \
@@ -121,7 +122,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.__populate_os()
         self.__populate_deployment_tool()
         self.__populate_container_registry()
-        self.__populate_image_path()
+        self.__populate_image_paths()
         if not self.settings.libvirt_networks and not existing:
             self.__generate_static_networks()
         if self.settings.version in ['makecheck']:
@@ -169,29 +170,29 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         else:
             self.settings.reg = None
 
-    def __populate_image_path(self):
+    def __populate_image_paths(self):
         """
-        Set the image paths based on the `devel_repo` setting to either devel or
-        product.
+        Set the image paths based on the `devel_repo` setting to either "devel"
+        or "product".
         """
-        if self.settings.deployment_tool != 'cephadm' or self.settings.image_path != '':
+        if self.settings.deployment_tool != 'cephadm':
             return
 
-        version = self.settings.version
-        # product
-        if not self.settings.devel_repo:
-            if (
-                version in self.settings.image_paths_product
-                and 'ceph' in self.settings.image_paths_product[version]
-            ):
-                self.settings.image_path = self.settings.image_paths_product[version]['ceph']
-                return
+        if self.settings.devel_repo:
+            image_paths = self.settings.image_paths_devel[self.settings.version]
+        else:
+            image_paths = self.settings.image_paths_product[self.settings.version]
 
-            Log.warning('--product was selected but no product image was found for ceph. '
-                        'Using devel image instead.')
-
-        # devel
-        self.settings.image_path = self.settings.image_paths_devel[version]['ceph']
+        if self.settings.ceph_image_path == '':
+            self.settings.ceph_image_path = image_paths['ceph']  # must be specified
+        if self.settings.grafana_image_path == '':
+            self.settings.grafana_image_path = image_paths.get('grafana')
+        if self.settings.prometheus_image_path == '':
+            self.settings.prometheus_image_path = image_paths.get('prometheus')
+        if self.settings.node_exporter_image_path == '':
+            self.settings.node_exporter_image_path = image_paths.get('node-exporter')
+        if self.settings.alertmanager_image_path == '':
+            self.settings.alertmanager_image_path = image_paths.get('alertmanager')
 
     def __set_up_make_check(self):
         self.settings.override('single_node', True)
@@ -627,7 +628,11 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'stop_before_ceph_orch_apply': self.settings.stop_before_ceph_orch_apply,
             'stop_before_cephadm_bootstrap': self.settings.stop_before_cephadm_bootstrap,
             'reg': self.settings.reg,
-            'image_path': self.settings.image_path,
+            'ceph_image_path': self.settings.ceph_image_path,
+            'grafana_image_path': self.settings.grafana_image_path,
+            'prometheus_image_path': self.settings.prometheus_image_path,
+            'node_exporter_image_path': self.settings.node_exporter_image_path,
+            'alertmanager_image_path': self.settings.alertmanager_image_path,
             'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
@@ -975,7 +980,7 @@ deployment might not be completely destroyed.
                 result += ("- git branch:       {}\n"
                            .format(self.settings.makecheck_ceph_branch))
             if self.settings.version in ['octopus', 'ses7', 'pacific', 'ses7p']:
-                result += "- image_path:       {}\n".format(self.settings.image_path)
+                result += "- ceph_image_path:       {}\n".format(self.settings.ceph_image_path)
             for synced_folder in self.settings.synced_folder:
                 result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
             if self.settings.custom_repos:
@@ -1749,28 +1754,32 @@ deployment might not be completely destroyed.
         return dep
 
     @classmethod
-    def load(cls, dep_id, load_status=True):
+    def load(cls, dep_id, load_status=True) -> 'Deployment':
         dep_dir = os.path.join(Constant.A_WORKING_DIR, dep_id)
         if not os.path.exists(dep_dir) or not os.path.isdir(dep_dir):
             Log.debug("->{}<- does not exist or is not a directory"
                       .format(dep_dir))
             raise DeploymentDoesNotExists(dep_id)
+
         metadata_file = os.path.join(dep_dir, Constant.METADATA_FILENAME)
         if not os.path.exists(metadata_file) or not os.path.isfile(metadata_file):
             Log.debug("metadata file ->{}<- does not exist or is not a file"
                       .format(metadata_file))
             raise DeploymentDoesNotExists(dep_id)
-
         with open(metadata_file, 'r', encoding='utf-8') as file:
             metadata = json.load(file)
+        try:
+            dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']), existing=True)
+            if load_status:
+                dep.load_status()
+            return dep
 
-        dep = cls(metadata['id'], Settings(strict=False, **metadata['settings']), existing=True)
-        if load_status:
-            dep.load_status()
-        return dep
+        except (AttributeError, TypeError) as error:
+            Log.debug(error)
+            raise DeploymentIncompatible(dep_id) from error
 
     @classmethod
-    def list(cls, load_status=False):
+    def list(cls, load_status=False) -> List['Deployment']:
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         Log.debug("Entering deployment.list (called from ->{}<-)".format(calframe[1][3]))
@@ -1791,4 +1800,8 @@ deployment might not be completely destroyed.
                 deps.append(Deployment.load(dep_id, load_status))
             except DeploymentDoesNotExists:
                 continue
+            except DeploymentIncompatible:
+                Log.warning(
+                    f'Deployment {dep_id} is incompatible with the current version of sesdev'
+                )
         return deps

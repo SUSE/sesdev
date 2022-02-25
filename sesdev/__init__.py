@@ -97,12 +97,26 @@ def ceph_salt_options(func):
                      help='Stop deployment before running "cephadm bootstrap"'),
         click.option('--stop-before-ceph-orch-apply', is_flag=True, default=False,
                      help='Stop deployment before applying ceph orch service spec'),
+
         click.option('--ceph-salt-repo', type=str, default=None,
                      help='ceph-salt Git repo URL'),
         click.option('--ceph-salt-branch', type=str, default=None,
                      help='ceph-salt Git branch'),
+
         click.option('--image-path', type=str, default=None,
+                     help='registry path from which to download Ceph base container image '
+                          '(deprecated)'),
+        click.option('--ceph-image-path', type=str, default=None,
                      help='registry path from which to download Ceph base container image'),
+        click.option('--grafana-image-path', type=str, default=None,
+                     help='registry path from which to download Grafana container image'),
+        click.option('--prometheus-image-path', type=str, default=None,
+                     help='registry path from which to download Prometheus container image'),
+        click.option('--node-exporter-image-path', type=str, default=None,
+                     help='registry path from which to download Node-Exporter container image'),
+        click.option('--alertmanager-image-path', type=str, default=None,
+                     help='registry path from which to download Alertmanager container image'),
+
         click.option('--salt/--ceph-salt', default=False,
                      help='Use "salt" (instead of "ceph-salt") to run ceph-salt formula'),
         click.option('--msgr2-secure-mode', is_flag=True, default=False,
@@ -368,7 +382,12 @@ def _gen_settings_dict(
         encrypted_osds=None,
         force=None,
         fqdn=None,
-        image_path=None,
+        image_path=None,  # kept for backwards compatibility
+        ceph_image_path=None,
+        grafana_image_path=None,
+        prometheus_image_path=None,
+        node_exporter_image_path=None,
+        alertmanager_image_path=None,
         ipv6=None,
         libvirt_host=None,
         libvirt_networks=None,
@@ -585,8 +604,16 @@ def _gen_settings_dict(
     if stop_before_ceph_orch_apply is not None:
         settings_dict['stop_before_ceph_orch_apply'] = stop_before_ceph_orch_apply
 
-    if image_path is not None:
-        settings_dict['image_path'] = image_path
+    if image_path is not None or ceph_image_path is not None:
+        settings_dict['ceph_image_path'] = ceph_image_path or image_path
+    if grafana_image_path is not None:
+        settings_dict['grafana_image_path'] = grafana_image_path
+    if node_exporter_image_path is not None:
+        settings_dict['node_exporter_image_path'] = node_exporter_image_path
+    if prometheus_image_path is not None:
+        settings_dict['prometheus_image_path'] = prometheus_image_path
+    if alertmanager_image_path is not None:
+        settings_dict['alertmanager_image_path'] = alertmanager_image_path
 
     if ceph_repo is not None:
         match = re.search(r'github\.com', ceph_repo)

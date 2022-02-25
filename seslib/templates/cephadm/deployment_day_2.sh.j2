@@ -226,6 +226,11 @@ ceph mgr module enable prometheus
 
 {% if rgw_nodes > 0 or igw_nodes > 0 or deploy_monitoring %}
 
+ceph config set mgr mgr/cephadm/container_image_prometheus {{prometheus_image_path}}
+ceph config set mgr mgr/cephadm/container_image_grafana {{grafana_image_path}}
+ceph config set mgr mgr/cephadm/container_image_alertmanager {{alertmanager_image_path}}
+ceph config set mgr mgr/cephadm/container_image_node_exporter {{node_exporter_image_path}}
+
 {% set service_spec_gw = "/root/service_spec_gw.yml" %}
 rm -f {{ service_spec_gw }}
 touch {{ service_spec_gw }}
