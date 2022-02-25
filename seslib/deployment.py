@@ -980,7 +980,16 @@ deployment might not be completely destroyed.
                 result += ("- git branch:       {}\n"
                            .format(self.settings.makecheck_ceph_branch))
             if self.settings.version in ['octopus', 'ses7', 'pacific', 'ses7p']:
-                result += "- ceph_image_path:       {}\n".format(self.settings.ceph_image_path)
+                result += "- ceph_image_path:          {}\n".format(
+                    self.settings.ceph_image_path)
+                result += "- prometheus_image_path:    {}\n".format(
+                    self.settings.prometheus_image_path)
+                result += "- alertmanager_image_path:  {}\n".format(
+                    self.settings.alertmanager_image_path)
+                result += "- grafana_image_path:       {}\n".format(
+                    self.settings.grafana_image_path)
+                result += "- node_exporter_image_path: {}\n".format(
+                    self.settings.node_exporter_image_path)
             for synced_folder in self.settings.synced_folder:
                 result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
             if self.settings.custom_repos:
