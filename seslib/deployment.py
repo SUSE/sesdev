@@ -183,16 +183,24 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         else:
             image_paths = self.settings.image_paths_product[self.settings.version]
 
-        if self.settings.ceph_image_path == '':
-            self.settings.ceph_image_path = image_paths['ceph']  # must be specified
-        if self.settings.grafana_image_path == '':
-            self.settings.grafana_image_path = image_paths.get('grafana')
-        if self.settings.prometheus_image_path == '':
-            self.settings.prometheus_image_path = image_paths.get('prometheus')
-        if self.settings.node_exporter_image_path == '':
-            self.settings.node_exporter_image_path = image_paths.get('node-exporter')
-        if self.settings.alertmanager_image_path == '':
-            self.settings.alertmanager_image_path = image_paths.get('alertmanager')
+        if isinstance(image_paths, str):
+            # preserves compatibility to start, stop and destroy older deployments
+            self.settings.ceph_image_path = image_paths
+            Log.info(
+                f'Loaded outdated deployment {self.dep_id}. '
+                f'No issues are to be expected because of that.'
+            )
+        else:
+            if self.settings.ceph_image_path == '':
+                self.settings.ceph_image_path = image_paths['ceph']  # must be specified
+            if self.settings.grafana_image_path == '':
+                self.settings.grafana_image_path = image_paths.get('grafana')
+            if self.settings.prometheus_image_path == '':
+                self.settings.prometheus_image_path = image_paths.get('prometheus')
+            if self.settings.node_exporter_image_path == '':
+                self.settings.node_exporter_image_path = image_paths.get('node-exporter')
+            if self.settings.alertmanager_image_path == '':
+                self.settings.alertmanager_image_path = image_paths.get('alertmanager')
 
     def __set_up_make_check(self):
         self.settings.override('single_node', True)
