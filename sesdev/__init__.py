@@ -116,6 +116,10 @@ def ceph_salt_options(func):
                      help='registry path from which to download Node-Exporter container image'),
         click.option('--alertmanager-image-path', type=str, default=None,
                      help='registry path from which to download Alertmanager container image'),
+        click.option('--keepalived-image-path', type=str, default=None,
+                     help='registry path from which to download Keepalived container image'),
+        click.option('--haproxy-image-path', type=str, default=None,
+                     help='registry path from which to download HAProxy container image'),
 
         click.option('--salt/--ceph-salt', default=False,
                      help='Use "salt" (instead of "ceph-salt") to run ceph-salt formula'),
@@ -388,6 +392,8 @@ def _gen_settings_dict(
         prometheus_image_path=None,
         node_exporter_image_path=None,
         alertmanager_image_path=None,
+        haproxy_image_path=None,
+        keepalived_image_path=None,
         ipv6=None,
         libvirt_host=None,
         libvirt_networks=None,
@@ -614,6 +620,10 @@ def _gen_settings_dict(
         settings_dict['prometheus_image_path'] = prometheus_image_path
     if alertmanager_image_path is not None:
         settings_dict['alertmanager_image_path'] = alertmanager_image_path
+    if keepalived_image_path is not None:
+        settings_dict['keepalived_image_path'] = keepalived_image_path
+    if haproxy_image_path is not None:
+        settings_dict['haproxy_image_path'] = haproxy_image_path
 
     if ceph_repo is not None:
         match = re.search(r'github\.com', ceph_repo)

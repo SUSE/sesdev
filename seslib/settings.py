@@ -150,6 +150,16 @@ SETTINGS = {
         'help': 'Container image path for Alertmanager daemons',
         'default': '',
     },
+    'keepalived_image_path': {
+        'type': str,
+        'help': 'Container image path for Keepalived daemons',
+        'default': '',
+    },
+    'haproxy_image_path': {
+        'type': str,
+        'help': 'Container image path for HAProxy daemons',
+        'default': '',
+    },
     'image_paths_devel': {
         'type': dict,
         'help': 'Paths to devel container images',

@@ -201,6 +201,10 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 self.settings.node_exporter_image_path = image_paths.get('node-exporter')
             if self.settings.alertmanager_image_path == '':
                 self.settings.alertmanager_image_path = image_paths.get('alertmanager')
+            if self.settings.haproxy_image_path == '':
+                self.settings.haproxy_image_path = image_paths.get('haproxy')
+            if self.settings.keepalived_image_path == '':
+                self.settings.keepalived_image_path = image_paths.get('keepalived')
 
     def __set_up_make_check(self):
         self.settings.override('single_node', True)
@@ -641,6 +645,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'prometheus_image_path': self.settings.prometheus_image_path,
             'node_exporter_image_path': self.settings.node_exporter_image_path,
             'alertmanager_image_path': self.settings.alertmanager_image_path,
+            'haproxy_image_path': self.settings.haproxy_image_path,
+            'keepalived_image_path': self.settings.keepalived_image_path,
             'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
@@ -998,6 +1004,10 @@ deployment might not be completely destroyed.
                     self.settings.grafana_image_path)
                 result += "- node_exporter_image_path: {}\n".format(
                     self.settings.node_exporter_image_path)
+                result += "- haproxy_image_path:       {}\n".format(
+                    self.settings.haproxy_image_path)
+                result += "- keepalived_image_path:    {}\n".format(
+                    self.settings.keepalived_image_path)
             for synced_folder in self.settings.synced_folder:
                 result += "- synced_folder:    {}\n".format(' -> '.join(synced_folder))
             if self.settings.custom_repos:

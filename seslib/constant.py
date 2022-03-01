@@ -49,6 +49,10 @@ class Constant():
                             'prometheus/prometheus-alertmanager:0.21.0',
             'node-exporter': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
                              'prometheus/prometheus-node-exporter:1.1.2',
+            'haproxy': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                       'ceph/haproxy:2.0.14',
+            'keepalived': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/'
+                          'keepalived:2.0.19',
         },
         'octopus': {
             'ceph': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph'
