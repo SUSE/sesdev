@@ -44,7 +44,7 @@ class Constant():
             'grafana': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
                        'ceph/grafana:7.5.12',
             'prometheus': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
-                          'prometheus/prometheus-server:2.27.1',
+                          'prometheus/prometheus-server:2.32.1',
             'alertmanager': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
                             'prometheus/prometheus-alertmanager:0.21.0',
             'node-exporter': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'

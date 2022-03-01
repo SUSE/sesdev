@@ -160,6 +160,11 @@ SETTINGS = {
         'help': 'Container image path for HAProxy daemons',
         'default': '',
     },
+    'snmp_gateway_image_path': {
+        'type': str,
+        'help': 'Container image path for SNMP-Gateway daemons',
+        'default': '',
+    },
     'image_paths_devel': {
         'type': dict,
         'help': 'Paths to devel container images',
