@@ -377,3 +377,7 @@ ceph orch apply -i {{ service_spec_gw }}
 {% endif %}{# storage_nodes > 0 #}
 
 ceph config set mon auth_allow_insecure_global_id_reclaim false || true
+
+{% if version in ['pacific', 'ses7p'] %}
+ceph config-key set 'mgr/dashboard/cluster/status' 'POST_INSTALLED' || true
+{% endif %}
