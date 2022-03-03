@@ -39,6 +39,11 @@ zypper --non-interactive removerepo repo-source-non-oss || true
 zypper addrepo --refresh {{ os_repo_url }} {{ os_repo_name }}
 {% endfor %}
 
+# Ignore Podman 2.2.1 due to bug: https://github.com/SUSE/sesdev/issues/633
+{% if version == 'octopus' %}
+zypper addlock "podman == 2.2.1"
+{% endif %}
+
 # ses6 deepsea install from source requires:
 # - SES6 Internal Media repo
 # - SLE-15-SP1 Developer Tools Module repos
