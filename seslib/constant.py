@@ -44,11 +44,11 @@ class Constant():
             'grafana': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
                        'ceph/grafana:7.5.12',
             'prometheus': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
-                          'prometheus/prometheus-server:2.32.1',
+                          'ceph/prometheus-server:2.32.1',
             'alertmanager': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
-                            'prometheus/prometheus-alertmanager:0.21.0',
+                            'ceph/prometheus-alertmanager:0.21.0',
             'node-exporter': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
-                             'prometheus/prometheus-node-exporter:1.1.2',
+                             'ceph/prometheus-node-exporter:1.1.2',
             'haproxy': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
                        'ceph/haproxy:2.0.14',
             'keepalived': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/'
