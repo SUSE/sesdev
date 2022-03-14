@@ -43,9 +43,15 @@ class Node():
     def has_exclusive_role(self, role):
         Log.debug("Node {}: has_exclusive_role: self.roles: {}"
                   .format(self.fqdn, self.roles))
-        if role not in Constant.ROLES_KNOWN:
-            raise RoleNotKnown(role)
-        return self.roles == [role]
+        self.has_exactly_roles([role])
+
+    def has_exactly_roles(self, exact_roles: list):
+        Log.debug("Node {}: has_exactly_roles: self.roles: {}"
+                  .format(self.fqdn, self.roles))
+        for role in exact_roles:
+            if role not in Constant.ROLES_KNOWN:
+                raise RoleNotKnown(role)
+        return self.roles == exact_roles
 
     def has_address(self, address):
         return address in \
