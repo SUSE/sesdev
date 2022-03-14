@@ -62,7 +62,7 @@ class Constant():
         'ses7p': {
             'ses7-internal-media': (
                 'http://download.suse.de/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
-                'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/'
+                'SUSE-Enterprise-Storage-7.1-POOL-Internal-x86_64-Media/'
             ),
         },
     }
@@ -421,7 +421,7 @@ class Constant():
         'ses7p': {
             'sles-15-sp3': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
-                'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/'
+                'SUSE-Enterprise-Storage-7.1-POOL-x86_64-Media1/'
             ],
         },
         'caasp4': {
@@ -463,9 +463,9 @@ class Constant():
             ],
             'sles-15-sp3': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
-                'SUSE-Enterprise-Storage-7-POOL-x86_64-Media1/',
+                'SUSE-Enterprise-Storage-7.1-POOL-x86_64-Media1/',
                 '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
-                'SUSE-Enterprise-Storage-7-POOL-Internal-x86_64-Media/',
+                'SUSE-Enterprise-Storage-7.1-POOL-Internal-x86_64-Media/',
             ],
             'leap-15.2': [],
             'leap-15.3': [],
