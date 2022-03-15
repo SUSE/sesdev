@@ -1282,7 +1282,7 @@ def show(deployment_id, **kwargs):
 @cli.command()
 @click.argument('deployment_id')
 @click.argument('node', required=False)
-@click.argument('command', required=False, nargs=-1)
+@click.argument('command', required=False, nargs=-1, type=click.Path())
 def ssh(deployment_id, node=None, command=None):
     """
     Opens an SSH shell to, or runs optional COMMAND on, node NODE in deployment
@@ -1295,9 +1295,14 @@ def ssh(deployment_id, node=None, command=None):
     """
     dep = Deployment.load(deployment_id)
     node_name = 'master' if node is None else node
-    if command:
-        Log.info("Running SSH command on {}: {}".format(node_name, command))
-    retval = dep.ssh(node_name, command)
+
+    cmd = ' '.join(['\"' + s + '\"' if " " in s else s for s in list(command)])
+    if cmd:
+        Log.info("Running SSH command on {}: {}".format(node_name, cmd))
+        retval = dep.ssh(node_name, [cmd], interactive=False)
+    else:
+        retval = dep.ssh(node_name, [cmd], interactive=True)
+
     assert isinstance(retval, int), "ssh method returned non-integer"
     if retval != 0:
         raise SSHCommandReturnedNonZero(retval)
