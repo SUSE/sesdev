@@ -15,6 +15,7 @@ class Node():
             public_address=None,
             cluster_address=None,
             storage_disks=None,
+            storage_nvmes=None,
             ram=None,
             cpus=None):
         self.name = name
@@ -25,7 +26,10 @@ class Node():
         self.cluster_address = cluster_address
         if storage_disks is None:
             storage_disks = []
+        if storage_nvmes is None:
+            storage_nvmes = []
         self.storage_disks = storage_disks
+        self.storage_nvmes = storage_nvmes
         self.ram = ram
         self.cpus = cpus
         self.status = None

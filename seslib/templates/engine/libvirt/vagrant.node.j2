@@ -2,10 +2,47 @@
 
     node.vm.hostname = "{{ node.fqdn }}"
 
+{% macro nvme_image_str(deploy_id, node_name, nvme_idx) -%}
+  ENV['HOME'] + "/.sesdev/{{deploy_id}}/{{ deploy_id }}_{{ node_name }}_nvme{{ nvme_idx }}.img"
+{%- endmacro%}
+
+    # Create NVMe drives manually since vagrant-libvirt has no support for them
+    node.trigger.before :up do |trigger|
+      trigger.ruby do |env,machine|
+{% for nvme in node.storage_nvmes %}
+          path = {{ nvme_image_str(dep_id, node.name, nvme.idx) }}
+          unless File.file?(path)
+            system("qemu-img create -f raw #{path} {{ nvme.size }}G")
+            system("chown #{ENV['USERNAME']}:qemu #{path}")
+            system("chmod 664 #{path}")
+          end
+{% endfor %}
+      end
+    end
+
+    # Cleanup-Hook for NVMe images
+    node.trigger.after :destroy do |trigger|
+      trigger.ruby do |env,machine|
+{% for nvme in node.storage_nvmes %}
+          path = {{ nvme_image_str(dep_id, node.name, nvme.idx) }}
+          if File.file?(path)
+            File.delete(path)
+          end
+{% endfor %}
+      end
+    end
+
     node.vm.provider "libvirt" do |lv|
       lv.memory = {{ node.ram }}
       lv.cpus = {{ node.cpus }}
 {% for disk in node.storage_disks %}
       lv.storage :file, size: "{{ disk.size }}G", type: 'qcow2', serial: "{{ range(1, 1000000) | random }}"
+{% endfor %}
+
+{% for nvme in node.storage_nvmes %}
+      lv.qemuargs :value => "-drive"
+      lv.qemuargs :value => "format=raw,file=" + {{ nvme_image_str(dep_id, node.name, nvme.idx) }} + ",if=none,id=NVME-{{ node.name }}-{{ nvme.idx }}"
+      lv.qemuargs :value => "-device"
+      lv.qemuargs :value => "nvme,drive=NVME-{{ node.name }}-{{ nvme.idx }},serial=nvme-{{ node.name }}-{{ nvme.idx }}"
 {% endfor %}
     end

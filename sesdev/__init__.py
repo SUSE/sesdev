@@ -154,8 +154,12 @@ def common_create_options(func):
                      help='Amount of RAM for each VM in gigabytes'),
         click.option('--disk-size', default=None, type=int,
                      help='Size in gigabytes of storage disks (used by OSDs)'),
+        click.option('--nvme-size', default=None, type=int,
+                     help='Size in gigabytes of storage nvmes (used by OSDs)'),
         click.option('--num-disks', default=None, type=int,
                      help='Number of storage disks in OSD nodes'),
+        click.option('--num-nvmes', default=None, type=int,
+                     help='Number of storage nvmes in OSD nodes'),
         click.option('--single-node/--no-single-node', default=False,
                      help='Deploy a single node cluster. Overrides --roles'),
         click.option('--repo', multiple=True, default=None,
@@ -383,6 +387,7 @@ def _gen_settings_dict(
         deploy_ses=None,
         devel=None,
         disk_size=None,
+        nvme_size=None,
         dry_run=None,
         domain=None,
         encrypted_osds=None,
@@ -405,6 +410,7 @@ def _gen_settings_dict(
         libvirt_user=None,
         non_interactive=None,
         num_disks=None,
+        num_nvmes=None,
         os=None,
         provision=None,
         qa_test_opt=None,
@@ -483,8 +489,17 @@ def _gen_settings_dict(
     else:
         settings_dict['explicit_num_disks'] = False
 
+    if num_nvmes is not None:
+        settings_dict['num_nvmes'] = num_nvmes
+        settings_dict['explicit_num_nvmes'] = True
+    else:
+        settings_dict['explicit_num_nvmes'] = False
+
     if disk_size is not None:
         settings_dict['disk_size'] = disk_size
+
+    if nvme_size is not None:
+        settings_dict['nvme_size'] = nvme_size
 
     if bluestore is not None:
         if bluestore:

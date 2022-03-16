@@ -80,6 +80,11 @@ SETTINGS = {
         'help': 'Storage disk size in gigabytes',
         'default': 8,
     },
+    'nvme_size': {
+        'type': int,
+        'help': 'Storage nvme size in gigabytes',
+        'default': 8,
+    },
     'domain': {
         'type': str,
         'help': 'The domain name for nodes',
@@ -103,6 +108,11 @@ SETTINGS = {
     'explicit_num_disks': {
         'type': bool,
         'help': 'Whether --num-disks was given on the command line',
+        'default': False,
+    },
+    'explicit_num_nvmes': {
+        'type': bool,
+        'help': 'Whether --num-nvmes was given on the command line',
         'default': False,
     },
     'explicit_ram': {
@@ -257,6 +267,11 @@ SETTINGS = {
     'num_disks': {
         'type': int,
         'help': 'Number of additional disks in storage nodes',
+        'default': 2,
+    },
+    'num_nvmes': {
+        'type': int,
+        'help': 'Number of additional nvmes in storage nodes',
         'default': 2,
     },
     'os': {
