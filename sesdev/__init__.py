@@ -1630,3 +1630,15 @@ def upgrade(deployment_id, node, devel_repos, to_version):
 def user_provision(deployment_id, node):
     dep = Deployment.load(deployment_id)
     dep.user_provision(node)
+
+
+@cli.command()
+@click.argument('shell', type=click.Choice(['bash', 'zsh', 'fish']), required=True)
+def shell_completion(shell):
+    """
+    Generate shell completion code
+    """
+    environ['_SESDEV_COMPLETE'] = shell + '_source'
+    completion = tools.run_sync('sesdev')
+    print(completion)
+    environ['_SESDEV_COMPLETE'] = ''
