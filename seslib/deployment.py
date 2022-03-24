@@ -384,7 +384,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                                                              200 + node_id)
                     for _ in range(self.settings.num_disks):
                         node.storage_disks.append(Disk(self.settings.disk_size))
-                elif self.settings.explicit_num_disks and not node.has_exclusive_role('master'):
+                elif self.settings.explicit_num_disks \
+                        and not node.has_exactly_roles(['master', 'admin']):
                     for _ in range(self.settings.num_disks):
                         node.storage_disks.append(Disk(self.settings.disk_size))
 
