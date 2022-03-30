@@ -6,6 +6,10 @@ import string
 import subprocess
 import sys
 import time
+from urllib.parse import urlparse
+from typing import Tuple
+
+import requests
 
 from .exceptions import CmdException
 from .log import Log
@@ -79,3 +83,16 @@ def gen_random_string(length):
     letters = string.ascii_letters
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str.lower()
+
+
+def image_manifest_exists(image_url: str) -> Tuple[bool, requests.Response]:
+    def container_path_to_manifest_url(container_path: str) -> str:
+        tag = "latest"
+        if re.search(r":(\w+)$", container_path):
+            container_path, tag = container_path.rsplit(":", 1)
+        url = urlparse(f"https://{container_path}")
+        return f"{url.scheme}://{url.netloc}/v2{url.path}/manifests/{tag}"
+
+    url = container_path_to_manifest_url(image_url)
+    resp = requests.head(url, verify=False)
+    return resp.status_code == 200, resp
