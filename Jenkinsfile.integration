@@ -10,7 +10,8 @@ def jcs_venv="${compute_workspace}/jcs/venv"
 
 // images
 def testbed_image = [
-    'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64'
+    'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64',
+    'openSUSE-Leap-15.3': 'minimal-opensuse-15.3-x86_64'
 ]
 
 // repositories
@@ -19,6 +20,11 @@ def repos = [
         'http://download.opensuse.org/distribution/leap/15.2/repo/oss/',
         'http://download.opensuse.org/update/leap/15.2/oss/',
         'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Leap_15.2'
+    ],
+    'openSUSE-Leap-15.3': [
+        'http://download.opensuse.org/distribution/leap/15.3/repo/oss/',
+        'http://download.opensuse.org/update/leap/15.3/oss/',
+        'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Leap_15.3'
     ]
 ]
 
@@ -33,6 +39,12 @@ def sesdev_deps = [
     'python3-virtualenv',
     'vagrant',
     'vagrant-libvirt',
+]
+
+// packages creating conflicts. These will be removed from the agent.
+def conflict_deps = [
+  'openSUSE-Leap-15.2': [],
+  'openSUSE-Leap-15.3': ['ruby2.5', 'ruby2.5-rubygem-gem2rpm', 'SUSEConnect']
 ]
 
 // parameters depending on the selected cloud
@@ -80,7 +92,8 @@ pipeline {
     parameters {
         /* first value in the list is the default */
         choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
-        choice(name: 'OS', choices: ['openSUSE-Leap-15.2'], description: 'Operating system to use')
+        choice(name: 'OS', choices: ['openSUSE-Leap-15.3', 'openSUSE-Leap-15.2'],
+               description: 'Operating system to use')
         string(name: 'CEPH_SALT_GIT_REPO', defaultValue: 'https://github.com/ceph/ceph-salt.git',
                description: 'ceph-salt git repository to use for installation. If empty, the RPM package is used')
         string(name: 'CEPH_SALT_GIT_BRANCH', defaultValue: 'master',
@@ -130,6 +143,13 @@ pipeline {
                         --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} \
                         --jenkins-credential storage-automation-for-root-user \
                         ${testbed_image[params.OS]} ${testbed_node}"""
+            }
+        }
+
+        stage('zypper remove conflicts') {
+            agent { label "${testbed_node}" }
+            steps {
+                sh 'zypper -n remove ' + conflict_deps[params.OS].join(' ')
             }
         }
 
