@@ -122,17 +122,57 @@ SETTINGS = {
     },
     'image_path': {
         'type': str,
+        'help': 'Deprecated container image path for Ceph daemons.',
+        'default': '',
+    },
+    'ceph_image_path': {
+        'type': str,
         'help': 'Container image path for Ceph daemons',
+        'default': '',
+    },
+    'grafana_image_path': {
+        'type': str,
+        'help': 'Container image path for Grafana daemons',
+        'default': '',
+    },
+    'prometheus_image_path': {
+        'type': str,
+        'help': 'Container image path for Prometheus daemons',
+        'default': '',
+    },
+    'node_exporter_image_path': {
+        'type': str,
+        'help': 'Container image path for Node-Exporter daemons',
+        'default': '',
+    },
+    'alertmanager_image_path': {
+        'type': str,
+        'help': 'Container image path for Alertmanager daemons',
+        'default': '',
+    },
+    'keepalived_image_path': {
+        'type': str,
+        'help': 'Container image path for Keepalived daemons',
+        'default': '',
+    },
+    'haproxy_image_path': {
+        'type': str,
+        'help': 'Container image path for HAProxy daemons',
+        'default': '',
+    },
+    'snmp_gateway_image_path': {
+        'type': str,
+        'help': 'Container image path for SNMP-Gateway daemons',
         'default': '',
     },
     'image_paths_devel': {
         'type': dict,
-        'help': 'paths to devel container images',
+        'help': 'Paths to devel container images',
         'default': Constant.IMAGE_PATHS_DEVEL,
     },
     'image_paths_product': {
         'type': dict,
-        'help': 'paths to product container images',
+        'help': 'Paths to product container images',
         'default': Constant.IMAGE_PATHS_PRODUCT,
     },
     'internal_media_repos': {

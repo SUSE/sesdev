@@ -167,6 +167,7 @@ fi
 {% include "salt/provision.sh.j2" %}
 {% if node == master %}
 {% include "salt/ceph-salt/deployment_day_1.sh.j2" %}
+
 {% include "cephadm/deployment_day_2.sh.j2" %}
 {% include "salt/qa_test.j2" %}
 {% endif %}{# node == master #}

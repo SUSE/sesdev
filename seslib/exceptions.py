@@ -83,6 +83,13 @@ class DeploymentDoesNotExists(SesDevException):
         )
 
 
+class DeploymentIncompatible(SesDevException):
+    def __init__(self, dep_id):
+        super().__init__(
+            f"Deployment {dep_id} is incompatible"
+        )
+
+
 class DuplicateRolesNotSupported(SesDevException):
     def __init__(self, role):
         super().__init__(

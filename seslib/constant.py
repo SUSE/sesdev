@@ -36,14 +36,65 @@ class Constant():
     }
 
     IMAGE_PATHS_DEVEL = {
-        'ses7': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
-        'ses7p': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph',
-        'octopus': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
-        'pacific': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
+        'ses7': {
+            'ceph': 'registry.suse.de/devel/storage/7.0/containers/ses/7/ceph/ceph',
+            'grafana': 'registry.suse.de/devel/storage/7.0/containers/ses/7/'
+                       'ceph/grafana:latest',
+            'prometheus': 'registry.suse.de/devel/storage/7.0/containers/ses/7/'
+                          'ceph/prometheus-server:latest',
+            'alertmanager': 'registry.suse.de/devel/storage/7.0/containers/ses/7/'
+                            'ceph/prometheus-alertmanager:latest',
+            'node-exporter': 'registry.suse.de/devel/storage/7.0/containers/ses/7/'
+                             'ceph/prometheus-node-exporter:latest',
+        },
+        'ses7p': {
+            'ceph': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/ceph',
+            'grafana': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                       'ceph/grafana:latest',
+            'prometheus': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                          'ceph/prometheus-server:latest',
+            'alertmanager': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                            'ceph/prometheus-alertmanager:latest',
+            'node-exporter': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                             'ceph/prometheus-node-exporter:latest',
+            'haproxy': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/'
+                       'ceph/haproxy:latest',
+            'keepalived': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/'
+                          'keepalived:latest',
+            'snmp-gateway': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/'
+                            'prometheus-snmp_notifier:latest',
+        },
+        'octopus': {
+            'ceph': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
+            'grafana': 'registry.opensuse.org/filesystems/ceph/octopus/images/'
+                       'ceph/grafana:latest',
+            'prometheus': 'registry.opensuse.org/filesystems/ceph/octopus/images/'
+                          'ceph/prometheus-server:latest',
+            'alertmanager': 'registry.opensuse.org/filesystems/ceph/octopus/images/'
+                            'ceph/prometheus-alertmanager:latest',
+            'node-exporter': 'registry.opensuse.org/filesystems/ceph/octopus/images/'
+                             'ceph/prometheus-node-exporter:latest',
+        },
+        'pacific': {
+            'ceph': 'registry.opensuse.org/filesystems/ceph/pacific/images/ceph/ceph',
+            'grafana': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                       'ceph/grafana:latest',
+            'prometheus': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                          'ceph/prometheus-server:latest',
+            'alertmanager': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                            'ceph/prometheus-alertmanager:latest',
+            'node-exporter': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                             'ceph/prometheus-node-exporter:latest',
+        },
     }
 
     IMAGE_PATHS_PRODUCT = {
-        'ses7': 'registry.suse.com/ses/7/ceph/ceph',
+        'ses7': {
+            'ceph': 'registry.suse.com/ses/7/ceph/ceph',
+        },
+        'ses7p': {
+            'ceph': 'registry.suse.com/ses/7.1/ceph/ceph',
+        }
     }
 
     INTERNAL_MEDIA_REPOS = {

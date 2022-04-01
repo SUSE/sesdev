@@ -1,3 +1,24 @@
+{% if prometheus_image_path %}
+ceph config set mgr mgr/cephadm/container_image_prometheus {{prometheus_image_path}}
+{% endif %}
+{% if grafana_image_path %}
+ceph config set mgr mgr/cephadm/container_image_grafana {{grafana_image_path}}
+{% endif %}
+{% if alertmanager_image_path %}
+ceph config set mgr mgr/cephadm/container_image_alertmanager {{alertmanager_image_path}}
+{% endif %}
+{% if node_exporter_image_path %}
+ceph config set mgr mgr/cephadm/container_image_node_exporter {{node_exporter_image_path}}
+{% endif %}
+{% if keepalived_image_path %}
+ceph config set mgr mgr/cephadm/container_image_keepalived {{keepalived_image_path}}
+{% endif %}
+{% if haproxy_image_path %}
+ceph config set mgr mgr/cephadm/container_image_haproxy {{haproxy_image_path}}
+{% endif %}
+{% if snmp_gateway_image_path %}
+ceph config set mgr mgr/cephadm/container_image_snmp_gateway {{snmp_gateway_image_path}}
+{% endif %}
 
 {% set service_spec_core = "/root/service_spec_core.yml" %}
 rm -f {{ service_spec_core }}
