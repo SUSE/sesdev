@@ -85,6 +85,12 @@ class Constant():
                             'ceph/prometheus-alertmanager:latest',
             'node-exporter': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
                              'ceph/prometheus-node-exporter:latest',
+            'haproxy': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                       'ceph/haproxy:latest',
+            'keepalived': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                          'ceph/keepalived:latest',
+            'snmp-gateway': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
+                            'ceph/prometheus-snmp_notifier:latest',
         },
     }
 
