@@ -337,9 +337,9 @@ class Constant():
                            'SLE-Module-Server-Applications/15-SP3/x86_64/product/',
             'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                   'SLE-Module-Server-Applications/15-SP3/x86_64/update/',
-            # 'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/7/x86_64/product/',
-            # 'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7/x86_64/'
-            #                   'update/',
+            'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/7.1/x86_64/product/',
+            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7.1/x86_64/'
+                              'update/',
         },
     }
 
