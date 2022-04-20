@@ -14,7 +14,13 @@ class Constant():
 
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
 
-    CORE_VERSIONS = ['nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific']
+    CORE_VERSIONS = [
+        'ses5',
+        'ses6', 'nautilus',
+        'ses7', 'octopus',
+        'ses7p', 'pacific',
+        'ses7q', 'quincy'
+    ]
 
     DEBUG = False
 
@@ -33,6 +39,18 @@ class Constant():
             'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
                                 'SLE-Module-Development-Tools/15-SP2/x86_64/update/',
         },
+        'sles-15-sp3': {
+            'dev-tools': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP3/x86_64/product/',
+            'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                'SLE-Module-Development-Tools/15-SP3/x86_64/update/',
+        },
+        # 'sles-15-sp4': {
+        #     'dev-tools': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+        #                  'SLE-Module-Development-Tools/15-SP4/x86_64/product/',
+        #     'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+        #                         'SLE-Module-Development-Tools/15-SP4/x86_64/update/',
+        # },
     }
 
     IMAGE_PATHS_DEVEL = {
@@ -64,6 +82,23 @@ class Constant():
             'snmp-gateway': 'registry.suse.de/devel/storage/7.0/pacific/containers/ses/7.1/ceph/'
                             'prometheus-snmp_notifier:latest',
         },
+        'ses7q': {
+            'ceph': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/ceph/ceph',
+            'grafana': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/'
+                       'ceph/grafana:latest',
+            'prometheus': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/'
+                          'ceph/prometheus-server:latest',
+            'alertmanager': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/'
+                            'ceph/prometheus-alertmanager:latest',
+            'node-exporter': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/'
+                             'ceph/prometheus-node-exporter:latest',
+            'haproxy': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/'
+                       'ceph/haproxy:latest',
+            'keepalived': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/ceph/'
+                          'keepalived:latest',
+            'snmp-gateway': 'registry.suse.de/devel/storage/7.0/quincy/containers/ses/7.2/ceph/'
+                            'prometheus-snmp_notifier:latest',
+        },
         'octopus': {
             'ceph': 'registry.opensuse.org/filesystems/ceph/octopus/images/ceph/ceph',
             'grafana': 'registry.opensuse.org/filesystems/ceph/octopus/images/'
@@ -92,6 +127,23 @@ class Constant():
             'snmp-gateway': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
                             'ceph/prometheus-snmp_notifier:latest',
         },
+        'quincy': {
+            'ceph': 'registry.opensuse.org/filesystems/ceph/quincy/images/ceph/ceph',
+            'grafana': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                       'ceph/grafana:latest',
+            'prometheus': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                          'ceph/prometheus-server:latest',
+            'alertmanager': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                            'ceph/prometheus-alertmanager:latest',
+            'node-exporter': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                             'ceph/prometheus-node-exporter:latest',
+            'haproxy': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                       'ceph/haproxy:latest',
+            'keepalived': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                          'ceph/keepalived:latest',
+            'snmp-gateway': 'registry.opensuse.org/filesystems/ceph/quincy/images/'
+                            'ceph/prometheus-snmp_notifier:latest',
+        },
     }
 
     IMAGE_PATHS_PRODUCT = {
@@ -100,6 +152,9 @@ class Constant():
         },
         'ses7p': {
             'ceph': 'registry.suse.com/ses/7.1/ceph/ceph',
+        },
+        'ses7q': {
+            'ceph': 'registry.suse.com/ses/7.2/ceph/ceph',
         }
     }
 
@@ -116,6 +171,12 @@ class Constant():
             'ses7-internal-media': (
                 'http://download.suse.de/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
                 'SUSE-Enterprise-Storage-7.1-POOL-Internal-x86_64-Media/'
+            ),
+        },
+        'ses7q': {
+            'ses7-internal-media': (
+                'http://download.suse.de/ibs/Devel:/Storage:/7.0:/Quincy/images/repo/'
+                'SUSE-Enterprise-Storage-7.2-POOL-Internal-x86_64-Media/'
             ),
         },
     }
@@ -168,6 +229,10 @@ class Constant():
             'repo': 'https://github.com/SUSE/ceph',
             'branch': 'ses7p',
         },
+        'sles-15-sp4': {
+            'repo': 'https://github.com/SUSE/ceph',
+            'branch': 'ses7q',
+        },
         'leap-15.1': {
             'repo': 'https://github.com/ceph/ceph',
             'branch': 'nautilus',
@@ -182,7 +247,7 @@ class Constant():
         },
         'leap-15.4': {
             'repo': 'https://github.com/ceph/ceph',
-            'branch': 'main',
+            'branch': 'quincy',
         },
         'tumbleweed': {
             'repo': 'https://github.com/ceph/ceph',
@@ -205,11 +270,16 @@ class Constant():
             'repo-oss': 'http://download.opensuse.org/distribution/leap/15.3/repo/oss/',
             'repo-update': 'http://download.opensuse.org/update/leap/15.3/oss/',
         },
+        'leap-15.4': {
+            'repo-oss': 'http://download.opensuse.org/distribution/leap/15.4/repo/oss/',
+            'repo-update': 'http://download.opensuse.org/update/leap/15.4/oss/',
+        },
     }
 
     OS_ALIASED_BOXES = {
         'opensuse/Leap-15.2.x86_64': 'leap-15.2',
         'opensuse/Leap-15.3.x86_64': 'leap-15.3',
+        'opensuse/Leap-15.4.x86_64': 'leap-15.4',
         'opensuse/Tumbleweed.x86_64': 'tumbleweed',
         'generic/ubuntu1804': 'ubuntu-bionic',
     }
@@ -229,12 +299,29 @@ class Constant():
         'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.2/images/'
                      'Leap-15.2.x86_64-libvirt.box',
+        'leap-15.3': 'https://download.opensuse.org/repositories/Virtualization:/'
+                     'Appliances:/Images:/openSUSE-Leap-15.3/images/'
+                     'Leap-15.3.x86_64-libvirt.box',
+        'leap-15.4': 'https://download.opensuse.org/repositories/Virtualization:/'
+                     'Appliances:/Images:/openSUSE-Leap-15.4/images/'
+                     'Leap-15.4.x86_64-libvirt.box',
+        'tumbleweed': 'https://download.opensuse.org/repositories/Virtualization:/'
+                      'Appliances:/Images:/openSUSE-Tumbleweed/openSUSE_Tumbleweed/'
+                      'Tumbleweed.x86_64-libvirt.box',
         'opensuse/Leap-15.2.x86_64': 'opensuse/Leap-15.2.x86_64',
         'opensuse/Leap-15.3.x86_64': 'opensuse/Leap-15.3.x86_64',
+        'opensuse/Leap-15.4.x86_64': 'opensuse/Leap-15.4.x86_64',
+        'opensuse/Tumbleweed.x86_64': 'opensuse/Tumbleweed.x86_64',
+        'sles-12-sp3': 'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/vagrant/'
+                       'sle12sp3.x86_64.box',
+        'sles-15-sp1': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP1/'
+                       'images/SLES15-SP1-Vagrant.x86_64-libvirt.box',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP2/'
                        'images/SLES15-SP2-Vagrant.x86_64-libvirt.box',
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP3/'
                        'images/SLES15-SP3-Vagrant.x86_64-libvirt.box',
+        'sles-15-sp4': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP4/'
+                       'images/SLES15-SP4-Vagrant.x86_64-libvirt.box',
         'generic/ubuntu1804': 'generic/ubuntu1804',
         'leap-15.4': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.4/images/'
@@ -284,12 +371,27 @@ class Constant():
             'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
                                   '15-SP3/x86_64/update/',
         },
+        'sles-15-sp4': {
+            'desktop-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                            'SLE-Module-Desktop-Applications/15-SP4/x86_64/product/',
+            'desktop-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                   'SLE-Module-Desktop-Applications/15-SP4/x86_64/update/',
+            'dev-tools': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                         'SLE-Module-Development-Tools/15-SP4/x86_64/product/',
+            'dev-tools-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                'SLE-Module-Development-Tools/15-SP4/x86_64/update/',
+            'workstation': 'http://download.nue.suse.com/ibs/SUSE:/SLE-15-SP4:/GA:/TEST/images/'
+                           'repo/SLE-15-SP4-Product-WE-POOL-x86_64-Media1/',
+            'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
+                                  '15-SP4/x86_64/update/',
+        },
     }
 
     OS_PACKAGE_MANAGER_MAPPING = {
         'sles-15-sp1': 'zypper',
         'sles-15-sp2': 'zypper',
         'sles-15-sp3': 'zypper',
+        'sles-15-sp4': 'zypper',
         'leap-15.1': 'zypper',
         'leap-15.2': 'zypper',
         'leap-15.3': 'zypper',
@@ -302,6 +404,7 @@ class Constant():
         'sles-15-sp1': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo',
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP3/SUSE:CA.repo',
+        'sles-15-sp4': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP4/SUSE:CA.repo',
     }
 
     OS_REPOS = {
@@ -356,6 +459,23 @@ class Constant():
             'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7.1/x86_64/'
                               'update/',
         },
+        'sles-15-sp4': {
+            'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP4/x86_64/'
+                       'product/',
+            'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP4/'
+                              'x86_64/update/',
+            'base': 'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP4/'
+                    'x86_64/product/',
+            'update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP4/'
+                      'x86_64/update/',
+            'server-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                           'SLE-Module-Server-Applications/15-SP4/x86_64/product/',
+            'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                  'SLE-Module-Server-Applications/15-SP4/x86_64/update/',
+            # 'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/7/x86_64/product/',
+            # 'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7/x86_64/'
+            #                   'update/',
+        },
     }
 
     REASONABLE_TIMEOUT_IN_SECONDS = 3200
@@ -388,6 +508,7 @@ class Constant():
         'ses6': ROLES_DEFAULT["nautilus"],
         'ses7': ROLES_DEFAULT["ses7"],
         'ses7p': ROLES_DEFAULT["ses7"],
+        'ses7q': ROLES_DEFAULT["ses7"],
     }
 
     ROLES_KNOWN = [
@@ -471,6 +592,24 @@ class Constant():
                 'openSUSE_Tumbleweed'
             ],
         },
+        'quincy': {
+            'leap-15.2': [
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/quincy/'
+                'openSUSE_Leap_15.2'
+            ],
+            'leap-15.3': [
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/quincy/'
+                'openSUSE_Leap_15.3'
+            ],
+            'leap-15.4': [
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/quincy/'
+                'openSUSE_Leap_15.4'
+            ],
+            'tumbleweed': [
+                'https://download.opensuse.org/repositories/filesystems:/ceph:/quincy/'
+                'openSUSE_Tumbleweed'
+            ],
+        },
         'ses7': {
             'sles-15-sp2': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0/images/repo/'
@@ -481,6 +620,12 @@ class Constant():
             'sles-15-sp3': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
                 'SUSE-Enterprise-Storage-7.1-POOL-x86_64-Media1/'
+            ],
+        },
+        'ses7q': {
+            'sles-15-sp3': [
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Quincy/images/repo/'
+                'SUSE-Enterprise-Storage-7.2-POOL-x86_64-Media1/'
             ],
         },
         'caasp4': {
@@ -520,6 +665,12 @@ class Constant():
                 '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
                 'SUSE-Enterprise-Storage-7.1-POOL-Internal-x86_64-Media/',
             ],
+            'sles-15-sp4': [
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Quincy/images/repo/'
+                'SUSE-Enterprise-Storage-7.2-POOL-x86_64-Media1/',
+                '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Quincy/images/repo/'
+                'SUSE-Enterprise-Storage-7.2-POOL-Internal-x86_64-Media/',
+            ],
             'leap-15.2': [],
             'leap-15.3': [],
             'leap-15.4': [],
@@ -531,9 +682,11 @@ class Constant():
         'ses6': 'deepsea',
         'ses7': 'cephadm',
         'ses7p': 'cephadm',
+        'ses7q': 'cephadm',
         'nautilus': 'deepsea',
         'octopus': 'cephadm',
         'pacific': 'cephadm',
+        'quincy': 'cephadm',
         'caasp4': None,
         'makecheck': None,
     }
@@ -542,9 +695,11 @@ class Constant():
         'ses6': 'sles-15-sp1',
         'ses7': 'sles-15-sp2',
         'ses7p': 'sles-15-sp3',
+        'ses7q': 'sles-15-sp3',
         'nautilus': 'leap-15.1',
         'octopus': 'leap-15.2',
         'pacific': 'leap-15.3',
+        'quincy': 'leap-15.4',
         'caasp4': 'sles-15-sp2',
         'makecheck': 'tumbleweed',
     }
