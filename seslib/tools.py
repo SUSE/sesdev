@@ -29,7 +29,11 @@ def run_sync(command, cwd=None):
     Log.info("Running sync command in directory {}: {}"
              .format(cwd if cwd else ".", command)
             )
-    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd) as proc:
+    with subprocess.Popen(command,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          cwd=cwd,
+                          shell=False) as proc:
         (stdout, stderr) = proc.communicate()
         if proc.returncode != 0:
             raise CmdException(command, proc.returncode, stderr)

@@ -797,7 +797,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             raise NodeDoesNotExist(node, self.dep_id)
         log_handler("=> running 'reboot' via SSH on node '{}'\n".format(node))
         ssh_cmd = ("bash -x -c 'reboot'",)
-        retval = self.ssh(node, ssh_cmd)
+        retval = self.ssh(node, ssh_cmd, False)
         log_handler("=> interactive SSH command returned {}\n".format(retval))
         seconds_to_wait = 600
         log_handler("=> waiting up to {} seconds for node '{}' to come back from reboot\n"
@@ -806,7 +806,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         interval_seconds = 15
         while True:
             ssh_cmd = ("bash -x -c 'echo I am back'",)
-            retval = self.ssh(node, ssh_cmd)
+            retval = self.ssh(node, ssh_cmd, False)
             if retval == 0:
                 break
             log_handler("=> interactive SSH command returned {}\n".format(retval))
@@ -825,7 +825,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                    )
         while True:
             ssh_cmd = ("bash -x -c 'systemctl is-system-running'",)
-            retval = self.ssh(node, ssh_cmd)
+            retval = self.ssh(node, ssh_cmd, False)
             if retval == 0:
                 break
             log_handler("=> interactive SSH command returned {}\n".format(retval))
@@ -1253,8 +1253,18 @@ deployment might not be completely destroyed.
         Log.info("_ssh_cmd: {}".format(_cmd))
         return _cmd
 
-    def ssh(self, name, command):
-        return tools.run_interactive(self._ssh_cmd(name, command))
+    def ssh(self, name, command, interactive):
+        if interactive:
+            return tools.run_interactive(self._ssh_cmd(name, command))
+
+        try:
+            out = tools.run_sync(self._ssh_cmd(name, command))
+            print("{}".format(out))
+            return_code = 0
+        except CmdException as excp:
+            Log.info("Command {} not successful".format(command))
+            return_code = excp.retcode
+        return return_code
 
     def sync_ssh(self, name, command):
         # type: (str, Iterable[str]) -> str
@@ -1334,12 +1344,12 @@ deployment might not be completely destroyed.
             self.settings.os
         ))
         ssh_cmd = ('timeout', '1h', 'supportconfig',)
-        self.ssh(name, ssh_cmd)
+        self.ssh(name, ssh_cmd, False)
         log_handler("=> Grabbing the resulting tarball from the cluster node\n")
         ssh_cmd = ('ls', '/var/log/scc*')
-        scc_exists = self.ssh(name, ssh_cmd)
+        scc_exists = self.ssh(name, ssh_cmd, False)
         ssh_cmd = ('ls', 'var/log/nts*')
-        nts_exists = self.ssh(name, ssh_cmd)
+        nts_exists = self.ssh(name, ssh_cmd, False)
         glob_to_get = None
         if scc_exists == 0:
             log_handler("Found /var/log/scc* (supportconfig) files on {}\n".format(name))
@@ -1352,7 +1362,7 @@ deployment might not be completely destroyed.
         self.scp('{n}:/var/log/{g}'.format(n=name, g=glob_to_get), '.')
         log_handler("=> Deleting the tarball from the cluster node\n")
         ssh_cmd = ('rm', '/var/log/{}'.format(glob_to_get),)
-        self.ssh(name, ssh_cmd)
+        self.ssh(name, ssh_cmd, False)
 
     def user_provision(self, node=None):
         custom_provision_dir = os.path.join(Constant.A_WORKING_DIR, '.user_provision')
@@ -1442,7 +1452,8 @@ deployment might not be completely destroyed.
                     (
                         "zypper --non-interactive addrepo --no-gpgcheck --refresh {}{} {}"
                         .format(priority_opt, custom_repo.url, custom_repo.name)
-                    ).split()
+                    ).split(),
+                    False
                 )
         else:  # no repo given explicitly: use "devel" repo
             provision_target = "add-devel-repo-and-update" if update else "add-devel-repo"
