@@ -96,6 +96,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.nodes_with_role = {}
         self.public_network_segment = "{}0/24".format(self.settings.public_network) \
             if self.settings.public_network else None
+        self.cluster_network_segment = "{}0/24".format(self.settings.cluster_network) \
+            if self.settings.cluster_network else None
         self.roles_of_nodes = {}
         for role in Constant.ROLES_KNOWN:
             self.node_counts[role] = 0
