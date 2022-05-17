@@ -414,6 +414,12 @@ SETTINGS = {
         'help': 'Prioritise secure mode over "crc" in the ms_*_mode options.',
         'default': False,
     },
+    'ssh_extra_auth_keys': {
+        'type': list,
+        'help': ('Additional public keys to provision into '
+                 '/root/.ssh/authorized_keys'),
+        'default': []
+    },
 }
 
 

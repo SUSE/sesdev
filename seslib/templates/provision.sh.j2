@@ -58,12 +58,21 @@ grep -E '^127\.[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' /etc/hosts
 
 # distribute SSH keys
 cat /home/vagrant/.ssh/{{ ssh_key_name }}.pub >> /home/vagrant/.ssh/authorized_keys
+{% for _id in ssh_extra_key_ids %}
+cat "/home/vagrant/.ssh/id_{{ _id }}.pub" >> /home/vagrant/.ssh/authorized_keys
+{% endfor %}
 [ ! -e "/root/.ssh" ] && mkdir /root/.ssh
 chmod 600 /home/vagrant/.ssh/{{ ssh_key_name }}
 cp /home/vagrant/.ssh/{{ ssh_key_name }}* /root/.ssh/
+{% for _id in ssh_extra_key_ids %}
+cp "/home/vagrant/.ssh/id_{{ _id }}.pub" /root/.ssh/
+{% endfor %}
 ln -s /root/.ssh/{{ ssh_key_name }} /root/.ssh/id_rsa
 ln -s /root/.ssh/{{ ssh_key_name }}.pub /root/.ssh/id_rsa.pub
 cat /root/.ssh/{{ ssh_key_name }}.pub >> /root/.ssh/authorized_keys
+{% for _id in ssh_extra_key_ids %}
+cat "/root/.ssh/id_{{ _id }}.pub" >> /root/.ssh/authorized_keys
+{% endfor %}
 
 # disable host checking when SSHing within the cluster
 cat >> /root/.ssh/config << 'EOF'
