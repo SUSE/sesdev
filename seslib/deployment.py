@@ -1535,7 +1535,7 @@ deployment might not be completely destroyed.
                 service_url = 'https://{}:{}'.format(local_address, local_port)
             elif service == 'prometheus':
                 node = self._find_service_node(service)
-                if self.settings.version in ['octopus', 'ses6', 'pacific']:
+                if self.settings.version in ['octopus', 'ses6', 'ses7p', 'pacific']:
                     remote_port = 9095
                     local_port = 9095
                 else:
