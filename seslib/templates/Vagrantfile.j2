@@ -18,6 +18,11 @@ Vagrant.configure("2") do |config|
                               destination:".ssh/{{ ssh_key_name }}"
     node.vm.provision "file", source: "keys/{{ ssh_key_name }}.pub",
                               destination:".ssh/{{ ssh_key_name }}.pub"
+{% for _id in ssh_extra_key_ids %}
+    node.vm.provision "file", source: "keys/id_{{ _id }}.pub",
+                              destination: ".ssh/id_{{ _id }}.pub"
+{% endfor %}
+
 {% if node == master %}
 
     node.vm.provision "file", source: "bin/", destination: "/home/vagrant/"

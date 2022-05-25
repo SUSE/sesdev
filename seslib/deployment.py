@@ -132,6 +132,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.__maybe_tweak_roles()
         self.__maybe_adjust_num_disks()
         self.__generate_nodes()
+        self.__get_extra_ssh_keys()
         self.node_list = ','.join(self.nodes.keys())
 
     def __populate_roles(self):
@@ -209,6 +210,25 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 self.settings.keepalived_image_path = image_paths.get('keepalived')
             if self.settings.snmp_gateway_image_path == '':
                 self.settings.snmp_gateway_image_path = image_paths.get('snmp-gateway')
+
+    def __get_extra_ssh_keys(self):
+        Log.debug('__get_extra_ssh_keys')
+        self._extra_ssh_keys = []
+
+        try:
+            keylines = tools.run_sync(['ssh-add', '-L']).splitlines()
+        except CmdException as _e:
+            Log.info('Could not fetch keys from ssh agent: {}'.format(_e.stderr))
+            keylines = []
+
+        for line in keylines:
+            _, _, _keyid = line.split()
+            if _keyid in self.settings.ssh_extra_auth_keys:
+                Log.info('found extra key {}'.format(_keyid))
+                self._extra_ssh_keys.append({
+                    'keyid': _keyid,
+                    'keyline': line,
+                    })
 
     def __set_up_make_check(self):
         self.settings.override('single_node', True)
@@ -562,6 +582,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
 
         context = {
             'ssh_key_name': Constant.SSH_KEY_NAME,
+            'ssh_extra_key_ids': [key['keyid'] for key in self._extra_ssh_keys],
             'sesdev_path_to_qa': Constant.PATH_TO_QA,
             'dep_id': self.dep_id,
             'os': self.settings.os,
@@ -729,6 +750,13 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         with open(pub_key, 'wb') as file:
             file.write(public_key + b" sesdev\n")
         os.chmod(pub_key, 0o600)
+
+        for key in self._extra_ssh_keys:
+            path = os.path.join(keys_dir, "id_{}.pub".format(key['keyid']))
+            with open(path, 'w', encoding='utf-8') as file:
+                file.write(key['keyline'])
+            os.chmod(path, 0o600)
+
         #
         # create bin dir for helper scripts
         bin_dir = os.path.join(self._dep_dir, 'bin')
