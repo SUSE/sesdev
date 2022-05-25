@@ -234,7 +234,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         self.settings.override('single_node', True)
         self.settings.override('roles', Constant.ROLES_DEFAULT_BY_VERSION['makecheck'])
         if not self.settings.explicit_num_disks:
-            self.settings.override('num_disks', 0)
+            self.settings.override('num_disks', [0])
             self.settings.override('explicit_num_disks', True)
         if not self.settings.explicit_ram:
             self.settings.override('ram', Constant.MAKECHECK_DEFAULT_RAM)
@@ -283,7 +283,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             if self.settings.ssd and new_num_disks:
                 new_num_disks += 1
             if new_num_disks:
-                self.settings.override('num_disks', new_num_disks)
+                self.settings.override('num_disks', [new_num_disks])
 
     @property
     def _dep_dir(self):
@@ -423,8 +423,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                         node.ram = 2 * 2**10
                 if self.settings.caasp_deploy_ses or self.settings.explicit_num_disks:
                     if 'worker' in node_roles or single_node:
-                        for _ in range(self.settings.num_disks):
-                            node.storage_disks.append(Disk(self.settings.disk_size))
+                        self.__append_disks_to_node(node)
 
             if self.settings.version in Constant.CORE_VERSIONS:
                 if 'suma' in node_roles:
@@ -433,12 +432,10 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                     if self.settings.cluster_network:
                         node.cluster_address = '{}{}'.format(self.settings.cluster_network,
                                                              200 + node_id)
-                    for _ in range(self.settings.num_disks):
-                        node.storage_disks.append(Disk(self.settings.disk_size))
+                    self.__append_disks_to_node(node)
                 elif self.settings.explicit_num_disks \
                         and not node.has_exactly_roles(['master', 'admin']):
-                    for _ in range(self.settings.num_disks):
-                        node.storage_disks.append(Disk(self.settings.disk_size))
+                    self.__append_disks_to_node(node)
 
             if self.has_suma():  # if suma is deployed, we need to add client-tools to all nodes
                 node.add_custom_repo(ZypperRepo(
@@ -468,6 +465,14 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                 node.add_custom_repo(repo_obj)
 
             self.nodes[node.name] = node
+
+    def __append_disks_to_node(self, node):
+        for _i, _n in enumerate(self.settings.num_disks):
+            for _ in range(_n):
+                if len(self.settings.disk_size) > _i:
+                    node.storage_disks.append(Disk(self.settings.disk_size[_i]))
+                else:
+                    node.storate.disks.append(Disk(Constant.DEFAULT_DISK_SIZE))
 
     def __set_version_devel_repos(self):
         try:
@@ -651,7 +656,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
                                          or self.node_counts["mds"] or self.node_counts["rgw"]
                                          or self.node_counts["openattic"]),
-            'total_osds': self.settings.num_disks * self.node_counts["storage"],
+            'total_osds': sum(self.settings.num_disks) * self.node_counts["storage"],
             'encrypted_osds': self.settings.encrypted_osds,
             'filestore_osds': self.settings.filestore_osds,
             'scc_username': self.settings.scc_username,

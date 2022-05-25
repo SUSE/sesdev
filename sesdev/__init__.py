@@ -152,9 +152,9 @@ def common_create_options(func):
                      help='Number of virtual CPUs for the VMs'),
         click.option('--ram', default=None, type=int,
                      help='Amount of RAM for each VM in gigabytes'),
-        click.option('--disk-size', default=None, type=int,
+        click.option('--disk-size', default=None, type=int, multiple=True,
                      help='Size in gigabytes of storage disks (used by OSDs)'),
-        click.option('--num-disks', default=None, type=int,
+        click.option('--num-disks', default=None, type=int, multiple=True,
                      help='Number of storage disks in OSD nodes'),
         click.option('--single-node/--no-single-node', default=False,
                      help='Deploy a single node cluster. Overrides --roles'),
@@ -478,13 +478,13 @@ def _gen_settings_dict(
         settings_dict['explicit_ram'] = False
 
     if num_disks is not None:
-        settings_dict['num_disks'] = num_disks
+        settings_dict['num_disks'] = list(num_disks)
         settings_dict['explicit_num_disks'] = True
     else:
         settings_dict['explicit_num_disks'] = False
 
     if disk_size is not None:
-        settings_dict['disk_size'] = disk_size
+        settings_dict['disk_size'] = list(disk_size)
 
     if bluestore is not None:
         if bluestore:
