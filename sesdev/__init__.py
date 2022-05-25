@@ -1371,7 +1371,8 @@ def status(**kwargs):
         dep = Deployment.load(deployment_id)
         node_found = False
         if format_opt not in ['json']:
-            p_table = PrettyTable(["Node", "Status"])
+            p_table = PrettyTable(["Node", "Status", "Public Address",
+                                   "Cluster Address"])
             p_table.align = "l"
         for (node_name, node_obj) in dep.nodes.items():
             if node_opt:
@@ -1380,15 +1381,21 @@ def status(**kwargs):
                     if format_opt in ['json']:
                         click.echo("\"{}\"".format(node_obj.status))
                         return
-                    p_table.add_row([node_name, node_obj.status])
+                    p_table.add_row([node_name, node_obj.status,
+                                     node_obj.public_address,
+                                     node_obj.cluster_address])
             else:
                 if format_opt in ['json']:
                     node_list.append({
                         "name": node_name,
                         "status": node_obj.status,
+                        "public_address": node_obj.public_address,
+                        "cluster_address": node_obj.cluster_address,
                     })
                 else:
-                    p_table.add_row([node_name, node_obj.status])
+                    p_table.add_row([node_name, node_obj.status,
+                                     node_obj.public_address,
+                                     node_obj.cluster_address])
         if node_opt:
             if node_found:
                 assert format_opt not in ['json'], \
@@ -1455,7 +1462,8 @@ def _show_status_of_all_deployments(**kwargs):
         return status_str
 
     if format_opt not in ['json']:
-        p_table = PrettyTable(["ID", "Version", "Status", "Nodes"])
+        p_table = PrettyTable(["ID", "Version", "Status", "Nodes",
+                               "Public Network", "Cluster Network"])
         p_table.align = "l"
 
     for dep in deps:
@@ -1467,15 +1475,22 @@ def _show_status_of_all_deployments(**kwargs):
         nodes = getattr(dep, 'nodes', None)
         node_names = '(unknown)' if nodes is None else ', '.join(nodes)
         Log.debug("_status: -> node_names: {}".format(node_names))
+        public_network = getattr(dep, 'public_network_segment', None)
+        Log.debug("_status: -> public_network: {}".format(public_network))
+        cluster_network = getattr(dep, 'cluster_network_segment', None)
+        Log.debug("_status: -> public_network: {}".format(public_network))
         if format_opt in ['json']:
             deployments_list.append({
                 "id": dep.dep_id,
                 "version": version,
                 "status": status_str,
                 "nodes": list(nodes),
+                "public_network:": public_network,
+                "cluster_network:": cluster_network,
             })
         else:
-            p_table.add_row([dep.dep_id, version, status_str, node_names])
+            p_table.add_row([dep.dep_id, version, status_str, node_names,
+                             public_network, cluster_network])
     if format_opt in ['json']:
         click.echo(json.dumps(deployments_list, sort_keys=True, indent=4))
     else:
