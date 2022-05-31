@@ -43,6 +43,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
    * [Install sesdev on Debian/Ubuntu](#install-sesdev-on-debianubuntu)
    * [Install sesdev from source](#install-sesdev-from-source)
       * [Running the unit tests](#running-the-unit-tests)
+      * [Install shell autocompletion](#install-shell-autocompletion)
 * [Usage](#usage)
    * [Create/deploy a Ceph cluster](#createdeploy-a-ceph-cluster)
       * [Bare bone cluster](#bare-bone-cluster)
@@ -345,6 +346,24 @@ tox -e lint
 
 If you don't know which testing environment to choose, the command `tox` will
 run _all_ the testing environments.
+
+#### Install Shell Autocompletion
+
+First, generate the autocompletion code for the shell of your choice. This
+example assumes the bash shell, but zsh and fish are supported too and work
+analogous:
+
+```
+sesdev shell-completion bash > ~/.sesdev-completion.sh
+```
+
+Then source it in your shell's rc file, for bash that is `~/.bashrc`:
+
+```
+source ~/.sesdev-completion.sh
+```
+
+
 
 ## Usage
 
