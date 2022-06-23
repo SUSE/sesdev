@@ -11,7 +11,8 @@ def jcs_venv="${compute_workspace}/jcs/venv"
 // images
 def testbed_image = [
     'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64',
-    'openSUSE-Leap-15.3': 'minimal-opensuse-15.3-x86_64'
+    'openSUSE-Leap-15.3': 'minimal-opensuse-15.3-x86_64',
+    'openSUSE-Tumbleweed': 'minimal-opensuse-tumbleweed-x86_64'
 ]
 
 // repositories
@@ -25,6 +26,11 @@ def repos = [
         'http://download.opensuse.org/distribution/leap/15.3/repo/oss/',
         'http://download.opensuse.org/update/leap/15.3/oss/',
         'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Leap_15.3'
+    ],
+    'openSUSE-Tumbleweed': [
+        'http://download.opensuse.org/factory/repo/oss/',
+        'http://download.opensuse.org/update/tumbleweed/',
+        'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Tumbleweed'
     ]
 ]
 
@@ -37,14 +43,15 @@ def sesdev_deps = [
     'patterns-server-kvm_tools',
     'python3-devel',
     'python3-virtualenv',
+    'ruby-devel',
     'vagrant',
-    'vagrant-libvirt',
 ]
 
 // packages creating conflicts. These will be removed from the agent.
 def conflict_deps = [
   'openSUSE-Leap-15.2': [],
-  'openSUSE-Leap-15.3': ['ruby2.5', 'ruby2.5-rubygem-gem2rpm', 'SUSEConnect']
+  'openSUSE-Leap-15.3': ['ruby2.5', 'ruby2.5-rubygem-gem2rpm', 'SUSEConnect'],
+  'openSUSE-Tumbleweed': [],
 ]
 
 // parameters depending on the selected cloud
@@ -92,7 +99,7 @@ pipeline {
     parameters {
         /* first value in the list is the default */
         choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
-        choice(name: 'OS', choices: ['openSUSE-Leap-15.3', 'openSUSE-Leap-15.2'],
+        choice(name: 'OS', choices: ['openSUSE-Leap-15.3', 'openSUSE-Leap-15.2', 'openSUSE-Tumbleweed'],
                description: 'Operating system to use')
         string(name: 'CEPH_SALT_GIT_REPO', defaultValue: 'https://github.com/ceph/ceph-salt.git',
                description: 'ceph-salt git repository to use for installation. If empty, the RPM package is used')
@@ -169,6 +176,7 @@ pipeline {
             agent { label "${testbed_node}" }
             steps {
                 sh 'zypper -n install ' + sesdev_deps.join(' ')
+                sh 'vagrant plugin install vagrant-libvirt'
             }
         }
 
