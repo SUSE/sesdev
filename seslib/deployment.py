@@ -52,7 +52,7 @@ from .exceptions import \
 from .log import Log
 from .node import Node, NodeManager
 from .settings import Settings, SettingsEncoder
-from .zypper import ZypperRepo
+from .zypper import ZypperRepo, ZypperPackage
 
 
 class Disk():
@@ -1826,6 +1826,45 @@ deployment might not be completely destroyed.
             ssh_cmd = self._ssh_cmd(mgr_nodes[0])
             ssh_cmd.append("ceph mgr module enable {}".format(module))
             tools.run_sync(ssh_cmd)
+
+    def list_packages(self, repos=None):
+        """
+        Compile a list of packages installed on each host of the cluster.
+        Return a dictionary by host to the list of packages installed on that
+        host.
+        Optionally takes a list of repos. When that list is non-empty, only
+        packages installed from those repos will be included in the lists.
+        """
+        def _to_package_list(raw):
+            lines = raw.splitlines()
+            package_list = []
+
+            for line in lines:
+                cols = line.split()
+                if len(cols) > 0 and (cols[0] == 'i' or cols[0] == 'i+'):
+                    package_list.append(ZypperPackage(name=cols[2],
+                                                      version=cols[3],
+                                                      arch=cols[4],
+                                                      state=cols[0],
+                                                      repo=cols[1]))
+
+            return package_list
+
+        zypper_cmd = "zypper -t -s 11 pa -N -R -i"
+
+        if repos:
+            for repo in repos:
+                zypper_cmd += f" -r {repo}"
+
+        packages = {}
+        for node in self.nodes:
+            ssh_cmd = self._ssh_cmd(node)
+            ssh_cmd.append(zypper_cmd)
+            raw_package_list = tools.run_sync(ssh_cmd)
+
+            packages[node] = _to_package_list(raw_package_list)
+
+        return packages
 
     # This is the "real" constructor
     @classmethod
