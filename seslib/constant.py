@@ -124,6 +124,35 @@ class Constant():
 
     LOGFILE = None
 
+    # A dict of string templates for repo urls. These templates are used to
+    # generate the repo urls used during maintenance update testing
+    MAINTENANCE_REPO_TEMPLATES = {
+        'ses6': {
+            '{}-update':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15_Update',
+            '{}-update-sp1':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15-SP1_Update',
+            '{}-storage':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_Updates_Storage_6_x86_64'
+        },
+        'ses7': {
+            '{}-update':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15_Update',
+            '{}-update-sp2':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15-SP2_Update',
+            '{}-storage':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_Updates_Storage_7_x86_64'
+        },
+        'ses7p': {
+            '{}-update':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15_Update',
+            '{}-update-sp3':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15-SP3_Update',
+            '{}-storage':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_Updates_Storage_7.1_x86_64'
+        }
+    }
+
     MAKECHECK_DEFAULT_RAM = 8
 
     MAKECHECK_DEFAULT_REPO_BRANCH = {
