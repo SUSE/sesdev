@@ -956,6 +956,8 @@ deployment might not be completely destroyed.
             Log.warning("Node '{}' is not running: current status '{}'"
                         .format(node, self.nodes[node].status))
             return
+        # Ugly hack to let ssh successfully exit before the connection is
+        # dropped during VM shutdown:
         ssh_cmd = self._ssh_cmd(node)
         ssh_cmd.extend(['echo "sleep 2 && shutdown -h now" > /root/shutdown.sh '
                         '&& chmod +x /root/shutdown.sh'])
@@ -963,6 +965,16 @@ deployment might not be completely destroyed.
         ssh_cmd = self._ssh_cmd(node)
         ssh_cmd.extend(['nohup /root/shutdown.sh > /dev/null 2>&1 &'])
         tools.run_sync(ssh_cmd)
+
+        # Wait up to one minute for node to actually shut down:
+        for _ in range(12):
+            self.load_status()
+
+            if self.nodes[node].status == "stopped":
+                Log.info(f"Node {node} successfully stopped.")
+                break
+
+            time.sleep(5)
 
     def stop(self, log_handler, node=None):
         if node and node not in self.nodes:
