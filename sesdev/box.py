@@ -6,10 +6,12 @@ from seslib.log import Log
 from seslib.settings import Settings
 
 
-def _singular_or_plural(an_iterable):
+def _pluralize_msg(an_iterable, singular, plural):
+    if len(an_iterable) == 0:
+        return "nothing"
     if len(an_iterable) == 1:
-        return "Vagrant Box"
-    return "Vagrant Boxes"
+        return singular
+    return plural
 
 
 def box_list_handler(box_name, **kwargs):
@@ -30,56 +32,54 @@ def box_remove_handler(box_name, **kwargs):
     interactive = not settings_dict.get('non_interactive', False)
     settings = Settings(**settings_dict)
     box_obj = Box(settings)
+
     boxes_to_remove = box_obj.maybe_glob_boxes(box_name, simple=True)
-    box_word = None
-    if boxes_to_remove:
-        box_word = _singular_or_plural(boxes_to_remove)
-    else:
+    if not boxes_to_remove:
         return None
+
+    box_word = _pluralize_msg(boxes_to_remove, "Vagrant Box", "Vagrant Boxes")
+
     if interactive:
         if boxes_to_remove:
-            click.echo("You have asked to remove the following {}".format(box_word))
+            click.echo(f"You have asked to remove the following {box_word}")
             click.echo("---------------------------------------" + len(box_word) * '-')
             for box_to_remove in boxes_to_remove:
                 click.echo(box_to_remove)
             click.echo()
-        really_want_to = click.confirm(
-            'Do you really want to remove {} {}'.format(len(boxes_to_remove), box_word),
-            default=True,
-        )
-        if not really_want_to:
-            raise click.Abort()
     #
     # remove the boxes
     deps = Deployment.list(True)
     problems_encountered = False
     boxes_removed_count = 0
     for box_being_removed in boxes_to_remove:
-        Log.info("Attempting to remove Vagrant Box ->{}<- ...".format(box_being_removed))
+        Log.info(f"Attempting to remove Vagrant Box >> {box_being_removed} << ...")
         #
         # existing deployments might be using this box
         existing_deployments = []
         for dep in deps:
             if box_being_removed == dep.settings.os:
                 existing_deployments.append(dep.dep_id)
+
         if existing_deployments:
-            if len(existing_deployments) == 1:
-                Log.warning("The following deployment is already using Vagrant Box ->{}<-:"
-                            .format(box_being_removed)
-                            )
-            else:
-                Log.warning("The following deployments are already using Vagrant Box ->{}<-:"
-                            .format(box_being_removed)
-                            )
+            dep_word = _pluralize_msg(existing_deployments, "deployment is", "deployments are")
+            Log.warning(f"The following {dep_word} already using Vagrant Box "
+                        f">> {box_being_removed} <<:")
+
             for dep_id in existing_deployments:
                 Log.warning("        {}".format(dep_id))
-            click.echo()
-            if len(existing_deployments) == 1:
-                Log.warning("It must be destroyed first!")
-            else:
-                Log.warning("These must be destroyed first!")
+
+            dep_word2 = _pluralize_msg(existing_deployments, "It", "These")
+            Log.warning(f"{dep_word2} must be destroyed first!\n")
             problems_encountered = True
             continue
+
+        really = True
+        if interactive:
+            really = click.confirm(f"Do you really want to remove box "
+                                   f">> {box_being_removed} << ?", default=True)
+        if not really:
+            continue
+
         image_to_remove = box_obj.get_image_by_box(box_being_removed)
         if image_to_remove:
             Log.info("Found related image ->{}<- in libvirt storage pool"
@@ -87,15 +87,13 @@ def box_remove_handler(box_name, **kwargs):
             box_obj.remove_image(image_to_remove)
             Log.info("Libvirt image removed.")
         box_obj.remove_box(box_being_removed)
-        Log.info("Vagrant Box ->{}<- removed.".format(box_being_removed))
+        Log.info(f"Vagrant Box >> {box_being_removed} << removed.")
         boxes_removed_count += 1
     if boxes_removed_count != 1:
-        click.echo("{} Vagrant Boxes were removed".format(boxes_removed_count))
+        click.echo(f"{boxes_removed_count} Vagrant Boxes were removed")
     if problems_encountered:
-        Log.warning("sesdev tried to remove {} Vagrant Box(es), but "
-                    "problems were encountered."
-                    .format(len(boxes_to_remove))
-                    )
+        Log.warning(f"sesdev tried to remove {boxes_to_remove} Vagrant Box(es), but "
+                    "problems were encountered.")
         click.echo("Use \"sesdev box list\" to check current state")
     return None
 
