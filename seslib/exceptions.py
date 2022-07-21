@@ -172,16 +172,6 @@ class NoNodeWithRole(SesDevException):
         )
 
 
-class NoPrometheusGrafanaInSES5(SesDevException):
-    def __init__(self):
-        super().__init__(
-            "The DeepSea version used in SES5 does not recognize 'prometheus' "
-            "or 'grafana' as roles in policy.cfg (instead, it _always_ deploys "
-            "these two services on the Salt Master node. For this reason, sesdev "
-            "does not permit these roles to be used with ses5."
-        )
-
-
 class NoStorageRolesCephadm(SesDevException):
     def __init__(self, offending_role):
         super().__init__(

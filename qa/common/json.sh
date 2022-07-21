@@ -68,8 +68,8 @@ function json_total_mgrs {
     local active_mgrs
     if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         json_ses7_orch_ls mgr
-    elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
-        # SES6, SES5
+    elif [ "$VERSION_ID" = "15.1" ] ; then
+        # SES6
         ceph_status_json="$(ceph status --format json)"
         if [ "$(echo "$ceph_status_json" | jq -r .mgrmap.available)" = "true" ] ; then
             active_mgrs="1"
@@ -94,10 +94,6 @@ function json_total_mons {
         # SES6
         ceph_status_json="$(ceph status --format json)"
         echo "$ceph_status_json" | jq -r ".monmap.num_mons"
-    elif [ "$VERSION_ID" = "12.3" ] ; then
-        # SES5
-        ceph_status_json="$(ceph status --format json)"
-        echo "$ceph_status_json" | jq -r ".monmap.mons | length"
     else
         echo "ERROR"
     fi
@@ -115,8 +111,8 @@ function json_total_mdss {
     local actives
     if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         json_ses7_orch_ls mds
-    elif [ "$VERSION_ID" = "15.1" ] || [ "$VERSION_ID" = "12.3" ] ; then
-        # SES6, SES5
+    elif [ "$VERSION_ID" = "15.1" ] ; then
+        # SES6
         ceph_status_json="$(ceph status --format json)"
         ins="$(echo "$ceph_status_json" | jq -r .fsmap.in)"
         ups="$(echo "$ceph_status_json" | jq -r .fsmap.up)"

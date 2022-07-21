@@ -139,7 +139,6 @@ fi
 aa-status || true
 {% endif %}{# apparmor #}
 
-{% if os != 'sles-12-sp3' %}
 source /etc/os-release
 if [[ "$ID_LIKE" =~ "suse" ]] ; then
     # enable coredump capturing
@@ -154,7 +153,6 @@ EOF
     systemctl enable systemd-coredump.socket
     systemctl start systemd-coredump.socket
 fi
-{% endif %}{# os != 'sles-12-sp3' #}
 
 # deployment state machine
 

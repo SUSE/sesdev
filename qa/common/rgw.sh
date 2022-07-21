@@ -32,7 +32,7 @@ function rgw_curl_test {
     protocol="http"
 
     # If rgw_dns_name is configured, we must use it. Currently this is a problem
-    # with {ses5,nautilus,ses6} only.
+    # with {nautilus,ses6} only.
     rgw_dns_name="$(ceph-conf rgw_dns_name -s "client.rgw.$rgw_node" 2>/dev/null || true)"
     [ -z "$rgw_dns_name" ] && rgw_dns_name="$rgw_node"
 

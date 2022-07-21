@@ -12,9 +12,7 @@ find /etc/zypp/repos.d -type f -exec sed -i -e 's/^autorefresh=.*/autorefresh=1/
 # remove RPMs that are often silently assumed to be present
 # removing such RPMs is desirable because these "implied" dependencies become
 # known, allowing them to be explicitly declared
-{% if version != 'ses5' %}
 zypper --non-interactive remove curl || true
-{% endif %}{# version != 'ses5' #}
 zypper --non-interactive remove which || true
 
 # remove Python 2 so it doesn't pollute the environment
@@ -200,11 +198,6 @@ zypper addrepo --refresh {{ os_ca_repo }}
 zypper --gpg-auto-import-keys refresh
 zypper repos --details
 
-{% if os == "sles-12-sp3" %}
-zypper --non-interactive install --from storage-update --force python-base python-xml
-zypper --non-interactive install --from update --force libncurses5 libncurses6
-{% endif %}{# os == "sles-12-sp3" #}
-
 {% set basic_pkgs_to_install = [
        'vim',
        'git-core',
@@ -220,18 +213,12 @@ zypper --non-interactive install --from update --force libncurses5 libncurses6
        'apparmor-parser',
        'lsof',
    ] %}
-{% if os == 'sles-12-sp3' %}
-zypper --non-interactive install --no-recommends {{ basic_pkgs_to_install | join(' ') }} ntp
-{% else %}
 zypper --non-interactive install --no-recommends {{ basic_pkgs_to_install | join(' ') }} chrony hostname
-{% endif %}{# os == 'sles-12-sp3' #}
 
-{% if os != 'sles-12-sp3' %}
 # install systemd-coredump, ensuring that it has the same exact version as systemd
 # (avoid newer systemd possibly pre-installed by Kiwi in the Vagrant Box)
 zypper --non-interactive install --force systemd systemd-sysvinit udev libudev1
 zypper --non-interactive install systemd-coredump
-{% endif %}{# os != 'sles-12-sp3' #}
 
 {% if os.startswith("sle") %}
 {% set sle_pkgs_to_install = [

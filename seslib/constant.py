@@ -14,7 +14,7 @@ class Constant():
 
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
 
-    CORE_VERSIONS = ['ses5', 'nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific']
+    CORE_VERSIONS = ['nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific']
 
     DEBUG = False
 
@@ -104,10 +104,6 @@ class Constant():
     }
 
     INTERNAL_MEDIA_REPOS = {
-        'ses5': {
-            'ses5-internal-media': 'http://download.suse.de/ibs/Devel:/Storage:/5.0/images/repo/'
-                                   'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
-        },
         'ses6': {
             'ses6-internal-media': 'http://download.suse.de/ibs/Devel:/Storage:/6.0/images/repo/'
                                    'SUSE-Enterprise-Storage-6-POOL-Internal-x86_64-Media/',
@@ -131,10 +127,6 @@ class Constant():
     MAKECHECK_DEFAULT_RAM = 8
 
     MAKECHECK_DEFAULT_REPO_BRANCH = {
-        'sles-12-sp3': {
-            'repo': 'https://github.com/SUSE/ceph',
-            'branch': 'ses5',
-        },
         'sles-15-sp1': {
             'repo': 'https://github.com/SUSE/ceph',
             'branch': 'ses6-downstream-commits',
@@ -201,8 +193,6 @@ class Constant():
         'opensuse/Tumbleweed.x86_64': 'opensuse/Tumbleweed.x86_64',
         'sles-15-sp1': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP1/'
                        'images/SLES15-SP1-Vagrant.x86_64-libvirt.box',
-        'sles-12-sp3': 'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/vagrant/'
-                       'sle12sp3.x86_64.box',
         'leap-15.2': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.2/images/'
                      'Leap-15.2.x86_64-libvirt.box',
@@ -216,10 +206,6 @@ class Constant():
     }
 
     OS_MAKECHECK_REPOS = {
-        'sles-12-sp3': {
-            'sdk': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SDK/12-SP3/x86_64/product/',
-            'sdk-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/12-SP3/x86_64/update/',
-        },
         'sles-15-sp1': {
             'desktop-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
                             'SLE-Module-Desktop-Applications/15-SP1/x86_64/product/',
@@ -265,7 +251,6 @@ class Constant():
     }
 
     OS_PACKAGE_MANAGER_MAPPING = {
-        'sles-12-sp3': 'zypper',
         'sles-15-sp1': 'zypper',
         'sles-15-sp2': 'zypper',
         'sles-15-sp3': 'zypper',
@@ -277,19 +262,12 @@ class Constant():
     }
 
     OS_CA_REPO = {
-        'sles-12-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_12_SP3/SUSE:CA.repo',
         'sles-15-sp1': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo',
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP3/SUSE:CA.repo',
     }
 
     OS_REPOS = {
-        'sles-12-sp3': {
-            'base': 'http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/',
-            'update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/',
-            'storage': 'http://dist.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/',
-            'storage-update': 'http://dist.suse.de/ibs/SUSE/Updates/Storage/5/x86_64/update/'
-        },
         'sles-15-sp1': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP1/x86_64/'
                        'product/',
@@ -347,10 +325,6 @@ class Constant():
 
     ROLES_DEFAULT = {
         "caasp4": [["master"], ["worker"], ["worker"], ["loadbalancer"]],
-        "luminous": [["master", "client", "openattic"],
-                     ["storage", "mon", "mgr", "rgw", "igw"],
-                     ["storage", "mon", "mgr", "mds", "nfs"],
-                     ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
         "makecheck": [["makecheck"]],
         "nautilus": [["master", "client", "prometheus", "grafana"],
                      ["storage", "mon", "mgr", "rgw", "igw"],
@@ -374,7 +348,6 @@ class Constant():
         'nautilus': ROLES_DEFAULT["nautilus"],
         'octopus': ROLES_DEFAULT["octopus"],
         'pacific': ROLES_DEFAULT["octopus"],
-        'ses5': ROLES_DEFAULT["luminous"],
         'ses6': ROLES_DEFAULT["nautilus"],
         'ses7': ROLES_DEFAULT["ses7"],
         'ses7p': ROLES_DEFAULT["ses7"],
@@ -396,7 +369,6 @@ class Constant():
         "mon",
         "nfs",
         "node-exporter",
-        "openattic",
         "prometheus",
         "rgw",
         "storage",
@@ -406,7 +378,6 @@ class Constant():
 
     ROLES_SINGLE_NODE = {
         "caasp4": "[ master ]",
-        "luminous": "[ master, storage, mon, mgr, mds, igw, rgw, nfs, openattic ]",
         "nautilus": "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
                     "nfs ]",
         "octopus": "[ master, admin, bootstrap, storage, mon, mgr, mds, igw, rgw, "
@@ -422,12 +393,6 @@ class Constant():
     VERBOSE = None
 
     VERSION_DEVEL_REPOS = {
-        'ses5': {
-            'sles-12-sp3': [
-                'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/images/repo/'
-                'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/'
-            ],
-        },
         'ses6': {
             'sles-15-sp1': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
@@ -499,12 +464,6 @@ class Constant():
             ],
         },
         'makecheck': {
-            'sles-12-sp3': [
-                'http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/images/repo/'
-                'SUSE-Enterprise-Storage-5-POOL-x86_64-Media1/',
-                '10000!http://download.nue.suse.com/ibs/Devel:/Storage:/5.0/images/repo/'
-                'SUSE-Enterprise-Storage-5-POOL-Internal-x86_64-Media/',
-            ],
             'sles-15-sp1': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
                 'SUSE-Enterprise-Storage-6-POOL-x86_64-Media1/',
@@ -531,7 +490,6 @@ class Constant():
     }
 
     VERSION_PREFERRED_DEPLOYMENT_TOOL = {
-        'ses5': 'deepsea',
         'ses6': 'deepsea',
         'ses7': 'cephadm',
         'ses7p': 'cephadm',
@@ -543,7 +501,6 @@ class Constant():
     }
 
     VERSION_PREFERRED_OS = {
-        'ses5': 'sles-12-sp3',
         'ses6': 'sles-15-sp1',
         'ses7': 'sles-15-sp2',
         'ses7p': 'sles-15-sp3',

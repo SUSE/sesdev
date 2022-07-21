@@ -395,7 +395,7 @@ The following roles can be assigned:
 * `admin` - signifying that the node should get ceph.conf and keyring [1]
 * `bootstrap` - The node where `cephadm bootstrap` will be run
 * `client` - Various Ceph client utilities
-* `nfs` - NFS (Ganesha) gateway [2] [5]
+* `nfs` - NFS (Ganesha) gateway [2] [4]
 * `grafana` - Grafana metrics visualization (requires Prometheus) [3]
 * `igw` - iSCSI target gateway
 * `mds` - CephFS MDS
@@ -403,7 +403,7 @@ The following roles can be assigned:
 * `mon` - Ceph Monitor instance
 * `prometheus` - Prometheus monitoring [3]
 * `rgw` - Ceph Object Gateway
-* `storage` - OSD storage daemon [4]
+* `storage` - OSD storage daemon [3]
 * `suma` - SUSE Manager (octopus only)
 
 [1] CAVEAT: sesdev applies the `admin` role to all nodes, regardless of whether
@@ -413,16 +413,11 @@ or not the user specified it explicitly on the command line or in `config.yaml`.
 deploying a CaaSP cluster. See [Rook and CaaSP based Ceph
 cluster](#rook-and-caasp-based-ceph-cluster) for more information.
 
-[3] CAVEAT: Do not specify `prometheus`/`grafana` roles for ses5 deployments.
-The DeepSea version shipped with SES5 always deploys Prometheus and Grafana
-instances on the master node, but does not recognize `prometheus`/`grafana`
-roles in `policy.cfg`.
-
-[4] Do not use the `storage` role when deploying Rook/Ceph over CaaSP. See
+[3] Do not use the `storage` role when deploying Rook/Ceph over CaaSP. See
 [Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster) for more
 information.
 
-[5] Not currently supported by the `octopus`, `pacific`, or `master` roles.
+[4] Not currently supported by the `octopus`, `pacific`, or `master` roles.
 
 The following example will generate a cluster with four nodes: the master (Salt
 Master) node that is also running a MON daemon; a storage (OSD) node that
@@ -446,7 +441,7 @@ Some caveats apply:
 1. These caveats apply only to core (Ceph) deployment versions. Rook/CaaSP is
    different: see [Rook and CaaSP based Ceph cluster](#rook-and-caasp-based-ceph-cluster)
    for details.
-2. For `ses5`, `nautilus`, and `ses6`, the only role required is `master` and
+2. For `nautilus`, and `ses6`, the only role required is `master` and
    you can use `--stop-before-deepsea-stage` to control how many DeepSea stages
    are run.
 3. For `octopus`, `ses7`, `ses7p`, and `pacific`, the only roles required are
@@ -561,8 +556,8 @@ configured and enabled.
 
 #### Using salt instead of DeepSea/ceph-salt CLI
 
-By default, sesdev will use the DeepSea CLI to run the DeepSea Stages (ses5,
-nautilus, ses6) or the "ceph-salt" command to apply the ceph-salt Salt Formula
+By default, sesdev will use the DeepSea CLI to run the DeepSea Stages (nautilus,
+ses6) or the "ceph-salt" command to apply the ceph-salt Salt Formula
 (ses7, octopus, pacific).
 
 If you would rather use Salt directly, give the `--salt` option on the `sesdev
@@ -585,7 +580,7 @@ create`.
 
 #### Without the devel repo
 
-The "core" deployment targets (ses5, nautilus, ses6, octopus, ses7, ses7p,
+The "core" deployment targets (nautilus, ses6, octopus, ses7, ses7p,
 pacific) all have a concept of a "devel" repo where updates to the
 Ceph/storage-related packages are staged. Since users frequently want to install
 the "latest, greatest" packages, the "devel" repo is added to all nodes by
@@ -935,7 +930,6 @@ running in the cluster. Currently, the following services can be forwarded:
 
 * dashboard - The Ceph Dashboard (nautilus and above)
 * grafana - Grafana metrics dashboard
-* openattic - openATTIC Ceph management UI (ses5 only)
 * suma - SUSE Manager (octopus only)
 
 ```
@@ -977,7 +971,7 @@ command:
 $ sesdev add-repo <deployment_id> <repo_url>
 ```
 
-If the repo URL is omitted, the "devel" repo (as defined for the Ceph version 
+If the repo URL is omitted, the "devel" repo (as defined for the Ceph version
 deployed) will be added.
 
 If you want to also update packages on all nodes to the versions in that repo,
