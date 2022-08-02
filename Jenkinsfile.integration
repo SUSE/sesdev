@@ -11,7 +11,8 @@ def jcs_venv="${compute_workspace}/jcs/venv"
 // images
 def testbed_image = [
     'openSUSE-Leap-15.2': 'minimal-opensuse-15.2-x86_64',
-    'openSUSE-Leap-15.3': 'minimal-opensuse-15.3-x86_64'
+    'openSUSE-Leap-15.3': 'minimal-opensuse-15.3-x86_64',
+    'openSUSE-Leap-15.4': 'minimal-opensuse-15.4-x86_64'
 ]
 
 // repositories
@@ -24,7 +25,10 @@ def repos = [
     'openSUSE-Leap-15.3': [
         'http://download.opensuse.org/distribution/leap/15.3/repo/oss/',
         'http://download.opensuse.org/update/leap/15.3/oss/',
-        'https://download.opensuse.org/repositories/Virtualization:/vagrant/openSUSE_Leap_15.3'
+    ],
+    'openSUSE-Leap-15.4': [
+        'http://download.opensuse.org/distribution/leap/15.4/repo/oss/',
+        'http://download.opensuse.org/update/leap/15.4/oss/',
     ]
 ]
 
@@ -33,7 +37,7 @@ def sesdev_deps = [
     'git-core',
     'libvirt',
     'libvirt-devel',
-    'patterns-openSUSE-kvm_server',
+    'patterns-server-kvm_server',
     'patterns-server-kvm_tools',
     'python3-devel',
     'python3-virtualenv',
@@ -44,7 +48,8 @@ def sesdev_deps = [
 // packages creating conflicts. These will be removed from the agent.
 def conflict_deps = [
   'openSUSE-Leap-15.2': [],
-  'openSUSE-Leap-15.3': ['ruby2.5', 'ruby2.5-rubygem-gem2rpm', 'SUSEConnect']
+  'openSUSE-Leap-15.3': [],
+  'openSUSE-Leap-15.4': [],
 ]
 
 // parameters depending on the selected cloud
@@ -148,6 +153,9 @@ pipeline {
 
         stage('zypper remove conflicts') {
             agent { label "${testbed_node}" }
+            when {
+                expression { return conflict_deps.get(params.OS, []) != [] }
+            }
             steps {
                 sh 'zypper -n remove ' + conflict_deps[params.OS].join(' ')
             }
