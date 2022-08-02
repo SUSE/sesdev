@@ -153,6 +153,9 @@ pipeline {
 
         stage('zypper remove conflicts') {
             agent { label "${testbed_node}" }
+            when {
+                expression { return conflict_deps.get(params.OS, []) != [] }
+            }
             steps {
                 sh 'zypper -n remove ' + conflict_deps[params.OS].join(' ')
             }
