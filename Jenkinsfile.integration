@@ -97,7 +97,11 @@ pipeline {
     parameters {
         /* first value in the list is the default */
         choice(name: 'OS_CLOUD', choices: ['ovh', 'ecp'], description: 'OpenStack Cloud to use')
-        choice(name: 'OS', choices: ['openSUSE-Leap-15.3', 'openSUSE-Leap-15.2'],
+        choice(name: 'OS', choices: [
+                                'openSUSE-Leap-15.4',
+                                'openSUSE-Leap-15.3',
+                                'openSUSE-Leap-15.2',
+                            ],
                description: 'Operating system to use')
         string(name: 'CEPH_SALT_GIT_REPO', defaultValue: 'https://github.com/ceph/ceph-salt.git',
                description: 'ceph-salt git repository to use for installation. If empty, the RPM package is used')
