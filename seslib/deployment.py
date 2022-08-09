@@ -1866,6 +1866,19 @@ deployment might not be completely destroyed.
 
         return packages
 
+    def list_versions(self):
+        """
+        Returns Ceph version information as returned by `ceph versions` in a
+        python dict
+        """
+        cmd = "ceph versions"
+        node = list(self.nodes.keys())[0]
+        ssh_cmd = self._ssh_cmd(node)
+        ssh_cmd.append(cmd)
+        raw_json = tools.run_sync(ssh_cmd)
+        versions = json.loads(raw_json)
+        return versions
+
     # This is the "real" constructor
     @classmethod
     def create(cls, dep_id, log_handler, settings):
