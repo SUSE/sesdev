@@ -554,6 +554,17 @@ class Constant():
         'makecheck': 'tumbleweed',
     }
 
+    # Human readable names corresponding to official products where applicable
+    VERSION_OFFICIAL = {
+        'ses5': 'SES 5',
+        'nautilus': 'Ceph Nautilus',
+        'ses6': 'SES 6',
+        'octopus': 'Ceph Octopus',
+        'ses7': 'SES 7',
+        'pacific': 'Ceph Pacific',
+        'ses7p': 'SES 7.1'
+    }
+
     ZYPPER_PRIO_ELEVATED = 50
 
     @classmethod

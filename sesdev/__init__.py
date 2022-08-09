@@ -1324,6 +1324,53 @@ def show(deployment_id, **kwargs):
 
 @cli.command()
 @click.argument('deployment_id')
+def report(deployment_id):
+    """
+    Compile the relevant information for the maintenance test report. This
+    includes cluster-wide information, individual VM information and package
+    installation statuses.
+    """
+    def _indent(string, spaces=4):
+        return " " * spaces + string
+
+    dep = Deployment.load(deployment_id)
+    ver = Constant.VERSION_OFFICIAL[dep.settings.version]
+    cmd = f"sesdev create {dep.settings.version} --product --repo-priority"
+    for rep in dep.settings.custom_repos:
+        cmd += " --repo {}".format(rep['url'])
+    cmd += f" {deployment_id}"
+    dep.start(_print_log)
+
+    packages = dep.list_packages(repos=[r['url'] for r in dep.settings.custom_repos])
+
+    click.echo("<QAM-SES>")
+    click.echo("")
+    click.echo("* sesdev was used for installation/smoke testing")
+    click.echo("")
+    click.echo(f"* Command for creating a {ver} test cluster:")
+    click.echo(_indent(cmd))
+    click.echo("")
+    click.echo(f"* {ver} cluster characteristics:")
+    for line in dep.configuration_report(show_individual_vms=True).splitlines():
+        click.echo(_indent(line))
+    click.echo("")
+    click.echo("* Packages installed from Maintenance repos:")
+    for node, pkgs in packages.items():
+        click.echo("")
+        click.echo(f" -- {node}:")
+        for pkg in pkgs:
+            click.echo(_indent(f"{pkg.name}  {pkg.version}  (from {pkg.repo})"))
+    click.echo("")
+    click.echo(f"* {ver} cluster status:")
+    click.echo("")
+    dep.ssh('master', ['ceph', 'status'], interactive=False)
+    click.echo("")
+    click.echo("* Workflow QAM-SES: PASSED/FAILED")
+    click.echo("</QAM-SES>")
+
+
+@cli.command()
+@click.argument('deployment_id')
 @click.argument('node', required=False)
 @click.argument('command', required=False, nargs=-1, type=click.Path())
 def ssh(deployment_id, node=None, command=None):
