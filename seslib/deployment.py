@@ -60,6 +60,12 @@ class Disk():
         self.size = size
 
 
+class Nvme():
+    def __init__(self, idx, size):
+        self.idx = idx
+        self.size = size
+
+
 def _vet_dep_id(dep_id):
     # from hostname(7) - Linux manual page
     #
@@ -236,6 +242,9 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         if not self.settings.explicit_num_disks:
             self.settings.override('num_disks', 0)
             self.settings.override('explicit_num_disks', True)
+        if not self.settings.explicit_num_nvmes:
+            self.settings.override('num_nvmes', 0)
+            self.settings.override('explicit_num_nvmes', True)
         if not self.settings.explicit_ram:
             self.settings.override('ram', Constant.MAKECHECK_DEFAULT_RAM)
             self.settings.override('explicit_ram', True)
@@ -274,16 +283,21 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         Log.debug("__maybe_adjust_num_disks: storage_nodes == {}".format(storage_nodes))
         if not self.settings.explicit_num_disks and storage_nodes:
             new_num_disks = None
+            new_num_nvmes = None
             if storage_nodes == 1:
                 new_num_disks = 4
+                new_num_nvmes = 0
             elif storage_nodes == 2:
                 new_num_disks = 3
+                new_num_nvmes = 0
             else:
                 new_num_disks = self.settings.num_disks  # go with the default
+                new_num_nvmes = self.settings.num_nvmes  # go with the default
             if self.settings.ssd and new_num_disks:
                 new_num_disks += 1
             if new_num_disks:
                 self.settings.override('num_disks', new_num_disks)
+                self.settings.override('num_nvmes', new_num_nvmes)
 
     @property
     def _dep_dir(self):
@@ -435,10 +449,18 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                                                              200 + node_id)
                     for _ in range(self.settings.num_disks):
                         node.storage_disks.append(Disk(self.settings.disk_size))
-                elif self.settings.explicit_num_disks \
-                        and not node.has_exactly_roles(['master', 'admin']):
-                    for _ in range(self.settings.num_disks):
-                        node.storage_disks.append(Disk(self.settings.disk_size))
+
+                    for i in range(self.settings.num_nvmes):
+                        node.storage_nvmes.append(Nvme(i, self.settings.nvme_size))
+
+                elif not node.has_exactly_roles(['master', 'admin']):
+                    if self.settings.explicit_num_disks:
+                        for _ in range(self.settings.num_disks):
+                            node.storage_disks.append(Disk(self.settings.disk_size))
+
+                    if self.settings.explicit_num_nvmes:
+                        for i in range(self.settings.num_nvmes):
+                            node.storage_nvmes.append(Nvme(i, self.settings.nvme_size))
 
             if self.has_suma():  # if suma is deployed, we need to add client-tools to all nodes
                 node.add_custom_repo(ZypperRepo(
@@ -651,7 +673,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
                                          or self.node_counts["mds"] or self.node_counts["rgw"]
                                          or self.node_counts["openattic"]),
-            'total_osds': self.settings.num_disks * self.node_counts["storage"],
+            'total_osds':
+                (self.settings.num_disks + self.settings.num_nvmes) * self.node_counts["storage"],
             'encrypted_osds': self.settings.encrypted_osds,
             'filestore_osds': self.settings.filestore_osds,
             'scc_username': self.settings.scc_username,
