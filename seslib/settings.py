@@ -76,9 +76,9 @@ SETTINGS = {
         'default': Constant.DEVELOPER_TOOLS_REPOS,
     },
     'disk_size': {
-        'type': int,
+        'type': list,
         'help': 'Storage disk size in gigabytes',
-        'default': 8,
+        'default': [Constant.DEFAULT_DISK_SIZE],
     },
     'domain': {
         'type': str,
@@ -255,9 +255,9 @@ SETTINGS = {
         'default': False,
     },
     'num_disks': {
-        'type': int,
+        'type': list,
         'help': 'Number of additional disks in storage nodes',
-        'default': 2,
+        'default': [2],
     },
     'os': {
         'type': str,

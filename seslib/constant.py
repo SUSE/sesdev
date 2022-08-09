@@ -567,6 +567,8 @@ class Constant():
 
     ZYPPER_PRIO_ELEVATED = 50
 
+    DEFAULT_DISK_SIZE = 12  # in GiB
+
     @classmethod
     def init_path_to_qa(cls, full_path_to_sesdev_executable):
         if full_path_to_sesdev_executable.startswith('/usr'):
