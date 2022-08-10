@@ -111,6 +111,27 @@ zypper addrepo --no-gpgcheck --refresh
  {{ _repo.url }} {{ _repo.name }}
 {% endfor %}
 
+# if custom repos supply updates to installed packages, apply these updates now
+# this is very useful e.g. for maintenance update testing for zypper salt etc.
+# because these packages don't get reinstalled before trying to install ceph
+# with them
+{% if node.custom_repos|length > 0 %}
+if zypper -t -s 11 pa
+{%- for _repo in node.custom_repos %}
+  --repo {{ _repo.name }}
+{%- endfor %}
+  | grep -q -e "^v" ; then
+
+  packages=$(zypper -t -s 11 packages
+{%- for _repo in node.custom_repos %}
+  --repo {{ _repo.name }}
+{%- endfor %}
+  | grep -e "^v" | awk '{print $3}' | sort -u)
+
+  zypper -n update $packages
+fi
+{% endif %}
+
 # populate upgrade script
 {% set upgrade_script = "/home/vagrant/upgrade.sh" %}
 cat > {{ upgrade_script }} << 'EOF'
