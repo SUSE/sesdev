@@ -261,7 +261,7 @@ SETTINGS = {
     },
     'os': {
         'type': str,
-        'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-12-sp3, or sles-15-sp1)',
+        'help': 'openSUSE OS version (leap-15.1, tumbleweed, sles-15-sp1, ...)',
         'default': '',
     },
     'os_makecheck_repos': {

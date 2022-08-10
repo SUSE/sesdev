@@ -36,9 +36,6 @@ set -x
 exit 0
 {% endif %} {# makecheck_stop_before_git_clone #}
 
-{% if os == "sles-12-sp3" %}
-su {{ makecheck_username }} -c 'git config --global http.sslVerify false'
-{% endif %}
 su {{ makecheck_username }} -c 'git clone --branch {{ makecheck_ceph_branch }} --progress {{ makecheck_ceph_repo }} /home/{{ makecheck_username }}/ceph'
 
 {% if makecheck_stop_before_install_deps %}

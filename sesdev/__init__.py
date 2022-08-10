@@ -140,7 +140,8 @@ def common_create_options(func):
                           '[master, client, prometheus],[storage, mon, mgr]'),
         click.option('--os', type=click.Choice(['leap-15.1', 'leap-15.2', 'leap-15.3',
                                                 'tumbleweed',
-                                                'sles-12-sp3', 'sles-15-sp1', 'sles-15-sp2',
+                                                'sles-15-sp1', 'sles-15-sp2',
+                                                'sles-15-sp3'
                                                 'ubuntu-bionic']),
                      default=None, help='OS (open)SUSE distro'),
         click.option('--provision/--no-provision',
@@ -448,8 +449,6 @@ def _gen_settings_dict(
             roles_string = Constant.ROLES_SINGLE_NODE['octopus']
         elif version in ['ses6', 'nautilus']:
             roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
-        elif version in ['ses5']:
-            roles_string = Constant.ROLES_SINGLE_NODE['luminous']
         elif version == 'caasp4':
             roles_string = Constant.ROLES_SINGLE_NODE['caasp4']
         else:
@@ -759,11 +758,7 @@ def _create_command(deployment_id, settings_dict):
             click.echo()
             click.echo("  $ sesdev ssh {}".format(deployment_id))
             click.echo()
-            if dep.settings.version == 'ses5':
-                click.echo("Or, access openATTIC with:")
-                click.echo()
-                click.echo("  $ sesdev tunnel {} openattic".format(deployment_id))
-            elif dep.settings.version == 'octopus' and dep.has_suma():
+            if dep.settings.version == 'octopus' and dep.has_suma():
                 click.echo("Or, access the SUMA WebUI with:")
                 click.echo()
                 click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
@@ -789,24 +784,6 @@ def _prep_kwargs(kwargs):
         kwargs['force'] = kwargs['non_interactive']
     elif 'force' in kwargs and kwargs['force'] is not None:
         kwargs['non_interactive'] = kwargs['force']
-
-
-@create.command()
-@click.argument('deployment_id', required=False)
-@common_create_options
-@deepsea_options
-@libvirt_options
-def ses5(deployment_id, **kwargs):
-    """
-    Creates a SES5 cluster using SLES-12-SP3
-    """
-    _prep_kwargs(kwargs)
-    if not kwargs['bluestore']:
-        # sesdev does not (yet) support --filestore for ses5 deployments
-        raise OptionNotSupportedInVersion('--filestore', 'ses5')
-    settings_dict = _gen_settings_dict('ses5', **kwargs)
-    deployment_id = _maybe_gen_dep_id('ses5', deployment_id, settings_dict)
-    _create_command(deployment_id, settings_dict)
 
 
 @create.command()
@@ -1613,7 +1590,7 @@ def supportconfig(deployment_id, node):
 
 @cli.command()
 @click.argument('deployment_id')
-@click.argument('service', type=click.Choice(['dashboard', 'grafana', 'openattic', 'suma',
+@click.argument('service', type=click.Choice(['dashboard', 'grafana', 'suma',
                                               'prometheus', 'alertmanager']), required=False)
 @click.option('--node', default='master', type=str, show_default=True,
               help='The node where we want to create the tunnel to')

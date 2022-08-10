@@ -2,7 +2,7 @@
 #
 # deepsea_drive_replace.sh
 #
-# The purpose of this script is to helping to reproduce certain SES5 and SES6 CI
+# The purpose of this script is to helping to reproduce certain SES6 CI
 # failures (i.e., those involving the drive replacement test).
 #
 # Notes on preparing to run the script:

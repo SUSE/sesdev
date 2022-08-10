@@ -6,11 +6,7 @@ cd DeepSea
 git checkout {{ deepsea_git_branch }}
 make install
 {% else %}
-{% if version == 'ses5' %}
-zypper --non-interactive install deepsea
-{% else %}
 zypper --non-interactive install deepsea deepsea-cli
-{% endif %}
 {% endif %}
 deepsea --version
 
@@ -102,7 +98,6 @@ set -x
 exit 0
 {% endif %} {# stop_before_stage == 3 #}
 
-{% if version != 'ses5' %}
 {% set drive_groups_yml = "/srv/salt/ceph/configuration/files/drive_groups.yml" %}
 if [ ! -e "{{ drive_groups_yml }}" ] ; then
     echo "FATAL: {{ drive_groups_yml }} unexpectedly missing!"
@@ -115,7 +110,6 @@ echo "  format: filestore" >> {{ drive_groups_yml }}
 echo "  encryption: True" >> {{ drive_groups_yml }}
 {% endif %}
 cat {{ drive_groups_yml }}
-{% endif %}
 
 echo ""
 echo "***** RUNNING stage.3 *******"
@@ -134,11 +128,9 @@ ceph osd crush rule create-replicated replicated_rule default osd
 {% endif %}
 
 {% if total_osds < 6 %}
-{% if version != 'ses5' %}
 # we need to increase the number of max pg per osd for deepsea to work
 # correctly with this number of OSDs
 ceph config set global mon_max_pg_per_osd 500
-{% endif %}
 {% endif %}
 
 {% include "salt/deepsea/" + version + "_pre_stage_4.sh.j2" ignore missing %}

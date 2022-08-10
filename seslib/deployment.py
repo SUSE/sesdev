@@ -30,7 +30,6 @@ from .exceptions import \
                         NodeDoesNotExist, \
                         NodeMustBeAdminAsWell, \
                         NoGaneshaRolePostNautilus, \
-                        NoPrometheusGrafanaInSES5, \
                         NoSourcePortForPortForwarding, \
                         NoStorageRolesDeepsea, \
                         NoStorageRolesCephadm, \
@@ -649,8 +648,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'storage_node_list': ','.join(self.nodes_with_role["storage"]),
             'worker_nodes': self.node_counts["worker"],
             'deepsea_need_stage_4': bool(self.node_counts["nfs"] or self.node_counts["igw"]
-                                         or self.node_counts["mds"] or self.node_counts["rgw"]
-                                         or self.node_counts["openattic"]),
+                                         or self.node_counts["mds"] or self.node_counts["rgw"]),
             'total_osds': self.settings.num_disks * self.node_counts["storage"],
             'encrypted_osds': self.settings.encrypted_osds,
             'filestore_osds': self.settings.filestore_osds,
@@ -1136,7 +1134,7 @@ deployment might not be completely destroyed.
                         if 'master' in node_roles and 'admin' not in node_roles:
                             raise NodeMustBeAdminAsWell('master')
         # clusters with no OSDs can be deployed only in certain circumstances
-        if self.settings.version in ['ses5', 'nautilus', 'ses6']:
+        if self.settings.version in ['nautilus', 'ses6']:
             if self.node_counts['storage'] == 0:
                 raise NoStorageRolesDeepsea(self.settings.version)
         if self.settings.version in ['octopus', 'ses7', 'pacific']:
@@ -1156,13 +1154,6 @@ deployment might not be completely destroyed.
         # there must not be more than one suma role:
         if self.node_counts['suma'] > 1:
             raise UniqueRoleViolation('suma', self.node_counts['suma'])
-        # openattic role only in ses5
-        if self.node_counts['openattic'] > 0 and self.settings.version != 'ses5':
-            raise RoleNotSupported('openattic', self.settings.version)
-        # ses5 DeepSea does not recognize prometheus and grafana roles
-        if self.settings.version == 'ses5':
-            if self.node_counts['prometheus'] > 0 or self.node_counts['grafana'] > 0:
-                raise NoPrometheusGrafanaInSES5()
         # suma role only in octopus and not together with master
         if self.suma:
             if self.settings.version not in 'octopus':
@@ -1506,8 +1497,6 @@ deployment might not be completely destroyed.
             )
 
     def _find_service_node(self, service):
-        if service in ['prometheus', 'grafana'] and self.settings.version == 'ses5':
-            return 'master'
         nodes = [name for name, node in self.nodes.items() if service in node.roles]
         return nodes[0] if nodes else None
 
@@ -1523,29 +1512,19 @@ deployment might not be completely destroyed.
             local_address = 'localhost'
 
         if service is not None:
-            if service not in ['dashboard', 'grafana', 'openattic', 'suma', 'prometheus',
-                               'alertmanager']:
+            if service not in ['dashboard', 'grafana', 'suma', 'prometheus', 'alertmanager']:
                 raise ServicePortForwardingNotSupported(service)
 
-            if service in ['openattic', 'grafana']:
+            if service == 'grafana':
                 node = self._find_service_node(service)
                 if not node:
                     raise ServiceNotFound(service)
 
-            if service == 'openattic':
-                remote_port = 80
-                local_port = 8080
-                service_url = 'http://{}:{}'.format(local_address, local_port)
             elif service == 'grafana':
                 remote_port = 3000
                 local_port = 3000
-                if self.settings.version == 'ses5':
-                    service_url = 'http://{}:{}'.format(local_address, local_port)
-                else:
-                    service_url = 'https://{}:{}'.format(local_address, local_port)
+                service_url = 'https://{}:{}'.format(local_address, local_port)
             elif service == 'dashboard':
-                if self.settings.version == 'ses5':
-                    raise ServiceNotFound(service)
                 remote_port = 8443
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)

@@ -166,7 +166,6 @@ function support_cop_out_test {
             echo "$supported" ;;
         opensuse*|suse|sles)
             case "$VERSION_ID" in
-                12.3) echo "$supported" ;;
                 15.1) echo "$supported" ;;
                 15.2) echo "$supported" ;;
                 15.3) echo "$supported" ;;
@@ -1267,7 +1266,6 @@ function _monitoring_smoke_test {
     echo "WWWW: ${daemon_type}_smoke_test"
     local run_the_test="yes"
     [ -z "$nodes_list" ]       && run_the_test=""
-    [ "$VERSION_ID" = "12.3" ] && run_the_test=""
     if [ "$daemon_type" = "alertmanager" ] || [ "$daemon_type" = "node-exporter" ] ; then
         [ "$VERSION_ID" = "15.1" ] && run_the_test=""
     fi
