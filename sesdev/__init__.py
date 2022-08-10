@@ -4,6 +4,7 @@ import logging
 from os import environ, path
 import re
 import sys
+import requests
 
 from prettytable import PrettyTable
 
@@ -1666,3 +1667,116 @@ def shell_completion(shell):
     completion = tools.run_sync('sesdev')
     print(completion)
     environ['_SESDEV_COMPLETE'] = ''
+
+
+@cli.command()
+@click.argument('review_request_id')
+@click.argument('version')
+@common_create_options
+@deepsea_options
+@ceph_salt_options
+@libvirt_options
+@ipv6_options
+def maintenance_test(review_request_id, version, **kwargs):
+    """
+    Create a test cluster for installation/smoke testing of package maintenance
+    updates. Takes a review request id of the form 'SUSE:Maintenance:xxxxx:yyyyyy'
+    or 'S:M:xxxxx:yyyyyy' and a SES version and creates a test cluster.
+
+    The difference between the test cluster and a 'normal' sesdev cluster is
+    that the test cluster has exra repositories from which it installs the
+    packages under testing.
+
+    This function basically hard-codes
+
+        sesdev create {version} --product --repo-priority \
+          --repo http://download.suse.de/ibs/SUSE:/Maintenance:/xxxxx/SUSE_SLE-15_Update \
+          --repo \
+          http://download.suse.de/ibs/SUSE:/Maintenance:/xxxxx/SUSE_Updates_Storage_{vnum}_x86_64 \
+          {xxxxx}-{yyyyy}-{version}
+    """
+    def _check_url(url):
+        try:
+            get = requests.get(url)
+
+            if get.status_code == 200:
+                return True
+            return False
+        except requests.exceptions.RequestException:
+            return False
+
+    def _parse_review_request_id(rrid):
+        """
+        Takes a Review Request ID of the form S:M:xxxxx:yyyyyy or
+        SUSE:Maintenance:xxxxx:yyyyyy as a string and returns just the
+        maintenance incident id and the review reuqest number as a pair of
+        strings. If the given argument does not sufficiently conform to the
+        format of a Review Request ID, a ValueError with a descriptive message
+        is raised.
+
+        Example input:
+
+            "SUSE:Maintenance:12345:678901"
+
+        Example output:
+
+            ("12345", "678901")
+        """
+        try:
+            suse, maintenance, maintenance_incident, review_request = rrid.split(':')
+            if suse not in ['SUSE', 'S']:
+                raise ValueError("Not a Review Request ID. Must begin with `SUSE:` or `S:`")
+            if maintenance not in ['Maintenance', 'M']:
+                raise ValueError("Not a Review Request ID. Second part must be"
+                                 " `Maintenance:` or `M:`")
+            if 0 > int(maintenance_incident) or 100000 < int(maintenance_incident):
+                raise ValueError("Not a Review Request ID. The Maintenance"
+                                 " Incident ID must be a positive five digit number.")
+            if 0 > int(review_request) or 1000000 < int(review_request):
+                raise ValueError("Not a Review Request ID. The Review Request Number"
+                                 " must be a positive six digit number.")
+
+            if not _check_url(f"http://qam2.suse.de/reports/SUSE:Maintenance:\
+{maintenance_incident}:{review_request}"):
+                raise ValueError(f"Not a valid Review Request ID. The Review Request ID \
+'SUSE:Maintenance:{maintenance_incident}:{review_request}' \
+does not exist.")
+            return (maintenance_incident, review_request)
+        except ValueError as value_error:
+            click.echo(f"{value_error}")
+            click.echo(f"Review Request ID {rrid} does not conform to pattern S:M:xxxxx:yyyyyy")
+            sys.exit(1)
+
+    maintenance_incident_id, review_request_number = _parse_review_request_id(review_request_id)
+    deployment_id = f"{maintenance_incident_id}-{review_request_number}-{version}"
+
+    repo_urls = {}
+
+    for alias, url in Constant.MAINTENANCE_REPO_TEMPLATES[version].items():
+        if _check_url(url.format(maintenance_incident_id)):
+            repo_urls[alias.format(maintenance_incident_id)] = url.format(maintenance_incident_id)
+
+    if len(repo_urls) == 0:
+        click.echo('Could not find any maintenance repos.')
+        click.echo('Please make sure you are connected to the E&I VPN.')
+        click.echo('\nThe following URLs were probed:')
+        for alias, url in Constant.MAINTENANCE_REPO_TEMPLATES[version].items():
+            click.echo('  - ' + alias.format(maintenance_incident_id) + ': ' +
+                       url.format(maintenance_incident_id))
+        click.echo('Aborting...')
+        sys.exit(1)
+
+    _prep_kwargs(kwargs)
+    settings_dict = _gen_settings_dict(version, **kwargs)
+    settings_dict['devel_repo'] = False
+    settings_dict['repo_priority'] = True
+
+    for repo_name, repo_url in repo_urls.items():
+        settings_dict['custom_repos'].append(
+            {
+                'name': repo_name,
+                'url': _maybe_munge_repo_url(repo_url),
+                'priority': Constant.ZYPPER_PRIO_ELEVATED
+            })
+
+    _create_command(deployment_id, settings_dict)
