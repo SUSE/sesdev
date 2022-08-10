@@ -1806,6 +1806,36 @@ deployment might not be completely destroyed.
             ssh_cmd.append("ceph mgr module enable {}".format(module))
             tools.run_sync(ssh_cmd)
 
+    def list_repos(self):
+        """
+        Compile a list of zypper repos configured on each node of the cluster.
+        Returns a dictionary by node name to the list of repos configured on
+        that node.
+        """
+        def _to_repo_list(raw):
+            lines = raw.splitlines()
+            repo_list = []
+
+            for line in lines:
+                cols = line.split('|')
+                if len(cols) > 1 and cols[0] != '# ':
+                    repo_list.append(ZypperRepo(name=cols[1].strip(),
+                                                url=cols[7].strip(),
+                                                priority=cols[6].strip()))
+            return repo_list
+
+        zypper_cmd = "zypper -t lr -N -U -a -u -p"
+
+        repos = {}
+        for node in self.nodes:
+            ssh_cmd = self._ssh_cmd(node)
+            ssh_cmd.append(zypper_cmd)
+            raw_repo_list = tools.run_sync(ssh_cmd)
+
+            repos[node] = _to_repo_list(raw_repo_list)
+
+        return repos
+
     def list_packages(self, repos=None):
         """
         Compile a list of packages installed on each host of the cluster.
