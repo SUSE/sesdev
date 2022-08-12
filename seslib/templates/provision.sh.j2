@@ -187,10 +187,6 @@ fi
 {% elif version == 'makecheck' %}
 {% include "makecheck/provision.sh.j2" %}
 
-# upstream Ceph on Ubuntu
-{% elif os.startswith('ubuntu') %}
-{% include "ubuntu/provision.sh.j2" %}
-
 {% endif %}{# end of deploy state machine #}
 
 # inform user if reboot is needed (should be the very last thing the provisioner does)
