@@ -1322,6 +1322,7 @@ def report(deployment_id):
     cmd += f" {deployment_id}"
     dep.start(_print_log)
 
+    repos = dep.list_repos()
     packages = dep.list_packages(repos=[r['url'] for r in dep.settings.custom_repos])
 
     click.echo("<QAM-SES>")
@@ -1335,6 +1336,15 @@ def report(deployment_id):
     for line in dep.configuration_report(show_individual_vms=True).splitlines():
         click.echo(_indent(line))
     click.echo("")
+
+    click.echo("* List of repos configured:")
+    for node, repos in repos.items():
+        click.echo("")
+        click.echo(f" -- {node}:")
+        for repo in repos:
+            click.echo(_indent(f"{repo.name:20} {repo.priority:3} {repo.url}"))
+    click.echo("")
+
     click.echo("* Packages installed from Maintenance repos:")
     for node, pkgs in packages.items():
         click.echo("")
