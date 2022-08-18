@@ -142,6 +142,7 @@ def common_create_options(func):
         click.option('--os', type=click.Choice(['leap-15.1',
                                                 'leap-15.2',
                                                 'leap-15.3',
+                                                'leap-15.4',
                                                 'tumbleweed',
                                                 'sles-15-sp1',
                                                 'sles-15-sp2',
