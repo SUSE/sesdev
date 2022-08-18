@@ -22,11 +22,13 @@ passwd -d {{ makecheck_username }}
 cat << 'EOF' > /root/.bashrc
 #!/bin/bash
 CLONE_DIR="/home/{{ makecheck_username }}/ceph"
+if [ "x${SSH_TTY}" != "x" ]; then
 if [ -d "$CLONE_DIR" ] ; then
     echo "ceph source code repo can be found in $CLONE_DIR"
 fi
 echo "Starting a login shell as user {{ makecheck_username }} ..."
 su - {{ makecheck_username }}
+fi
 EOF
 
 {% if makecheck_stop_before_git_clone %}

@@ -180,6 +180,10 @@ class Constant():
             'repo': 'https://github.com/ceph/ceph',
             'branch': 'pacific',
         },
+        'leap-15.4': {
+            'repo': 'https://github.com/ceph/ceph',
+            'branch': 'main',
+        },
         'tumbleweed': {
             'repo': 'https://github.com/ceph/ceph',
             'branch': 'master',
@@ -232,6 +236,9 @@ class Constant():
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP3/'
                        'images/SLES15-SP3-Vagrant.x86_64-libvirt.box',
         'generic/ubuntu1804': 'generic/ubuntu1804',
+        'leap-15.4': 'https://download.opensuse.org/repositories/Virtualization:/'
+                     'Appliances:/Images:/openSUSE-Leap-15.4/images/'
+                     'Leap-15.4.x86_64-libvirt.box',
     }
 
     OS_MAKECHECK_REPOS = {
@@ -286,6 +293,7 @@ class Constant():
         'leap-15.1': 'zypper',
         'leap-15.2': 'zypper',
         'leap-15.3': 'zypper',
+        'leap-15.4': 'zypper',
         'tumbleweed': 'zypper',
         'ubuntu-bionic': 'apt',
     }
@@ -514,6 +522,7 @@ class Constant():
             ],
             'leap-15.2': [],
             'leap-15.3': [],
+            'leap-15.4': [],
             'tumbleweed': [],
         },
     }
@@ -548,7 +557,8 @@ class Constant():
         'octopus': 'Ceph Octopus',
         'ses7': 'SES 7',
         'pacific': 'Ceph Pacific',
-        'ses7p': 'SES 7.1'
+        'ses7p': 'SES 7.1',
+        'makecheck': 'Ceph makecheck',
     }
 
     ZYPPER_PRIO_ELEVATED = 50
