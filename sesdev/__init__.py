@@ -1352,6 +1352,21 @@ def report(deployment_id):
         for pkg in pkgs:
             click.echo(_indent(f"{pkg.name}  {pkg.version}  (from {pkg.repo})"))
     click.echo("")
+
+    click.echo("* Ceph versions:")
+    click.echo("")
+    versions = dep.list_versions()
+    click.echo(_indent("service type | count | version"))
+    for service_name in versions.keys():
+        service_name_is_already_printed = False
+        for service_version, service_count in versions[service_name].items():
+            if service_name_is_already_printed:
+                click.echo(_indent(f"             | {service_count:5} | {service_version}"))
+            else:
+                click.echo(_indent(f"{service_name:12} | {service_count:5} | {service_version}"))
+                service_name_is_already_printed = True
+    click.echo("")
+
     click.echo(f"* {ver} cluster status:")
     click.echo("")
     dep.ssh('master', ['ceph', 'status'], interactive=False)
