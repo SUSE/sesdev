@@ -140,11 +140,11 @@ pipeline {
                 }
                 sh """
                     mkdir -p ${compute_workspace}
-                    git clone https://github.com/toabctl/jcs.git ${jcs_repo}
                     virtualenv ${jcs_venv}
                     source ${jcs_venv}/bin/activate
                     python3 -m pip install --upgrade pip
-                    pip3 --use-feature=2020-resolver install git+https://github.com/toabctl/jcs.git#egg=jcs[openstack,obs,jenkins]
+                    pip3 --use-feature=2020-resolver install \
+                        git+https://github.com/kshtsk/jcs.git@fix-jenkins-version-check#egg=jcs[openstack,obs,jenkins]
                     jcs \
                         --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} \
                         create \
