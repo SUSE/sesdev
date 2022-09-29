@@ -98,5 +98,5 @@ def image_manifest_exists(image_url: str) -> Tuple[bool, requests.Response]:
         return f"{url.scheme}://{url.netloc}/v2{url.path}/manifests/{tag}"
 
     url = container_path_to_manifest_url(image_url)
-    resp = requests.head(url, verify=False)
+    resp = requests.head(url, verify=False, timeout=10)
     return resp.status_code == 200, resp
