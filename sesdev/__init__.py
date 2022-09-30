@@ -1726,7 +1726,7 @@ def maintenance_test(review_request_id, version, **kwargs):
     """
     def _check_url(url):
         try:
-            get = requests.get(url)
+            get = requests.get(url, timeout=10)
 
             if get.status_code == 200:
                 return True
