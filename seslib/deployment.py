@@ -5,6 +5,9 @@ import random
 import re
 import shutil
 import time
+import requests
+import urllib3
+from urllib3.exceptions import InsecureRequestWarning
 
 try:
     from typing import Iterable, List
@@ -1496,8 +1499,18 @@ deployment might not be completely destroyed.
                 self._dep_dir
             )
 
-    def _find_service_node(self, service):
+    def _find_service_nodes(self, service):
+        """
+        Returns a list of nodes that host the service or `None`
+        """
         nodes = [name for name, node in self.nodes.items() if service in node.roles]
+        return nodes if nodes else None
+
+    def _find_service_node(self, service):
+        """
+        Returns the first node that hosts the service or `None`
+        """
+        nodes = self._find_service_nodes(service)
         return nodes[0] if nodes else None
 
     def _find_node_by_address(self, address):
@@ -1874,6 +1887,97 @@ deployment might not be completely destroyed.
             packages[node] = _to_package_list(raw_package_list)
 
         return packages
+
+    def get_grafana_status(self):
+        status = {}
+        status['ok'] = False
+        status['version'] = "None"
+
+        node = self._find_service_node('grafana')
+        if not node:
+            return status
+
+        addr = self.nodes[node].public_address
+
+        urllib3.disable_warnings(category=InsecureRequestWarning)
+
+        try:
+            health = requests.get(f"https://{addr}:3000/healthz", verify=False)
+
+            if health.status_code == 200:
+                status['ok'] = True
+        except requests.exceptions.RequestException:
+            status['ok'] = False
+
+        try:
+            version = requests.get(f"https://{addr}:3000/metrics", verify=False)
+            version.encoding = 'utf-8'
+            for line in version.text.splitlines():
+                if "grafana_build_info" in line:
+                    status['version'] = line
+        except requests.exceptions.RequestException:
+            status['version'] = "None"
+
+        return status
+
+    def get_alertmanager_status(self):
+        status = {}
+        status['ok'] = False
+        status['version'] = "None"
+
+        node = self._find_service_node('alertmanager')
+        if not node:
+            return status
+
+        addr = self.nodes[node].public_address
+
+        try:
+            health = requests.get(f"http://{addr}:9093/-/healthy")
+
+            if health.status_code == 200:
+                status['ok'] = True
+        except requests.exceptions.RequestException:
+            status['ok'] = False
+
+        try:
+            version = requests.get(f"http://{addr}:9093/api/v2/status")
+            status['version'] = version.json()['versionInfo']
+        except requests.exceptions.RequestException:
+            status['version'] = "None"
+
+        return status
+
+    def get_node_exporter_status(self):
+        statuses = {}
+
+        nodes = self._find_service_nodes('node-exporter')
+        if not nodes:
+            return statuses
+
+        for node in nodes:
+            statuses[node] = {}
+            status = {}
+            status['ok'] = False
+            status['version'] = "None"
+
+            addr = self.nodes[node].public_address
+
+            try:
+                health = requests.get(f"http://{addr}:9100/metrics")
+                health.encoding = 'utf-8'
+
+                if health.status_code == 200:
+                    status['ok'] = True
+
+                for line in health.text.splitlines():
+                    if 'node_exporter_build_info' in line:
+                        status['version'] = line
+            except requests.exceptions.RequestException:
+                status['version'] = "None"
+
+            statuses[node] = status
+
+        return statuses
 
     def list_versions(self):
         """

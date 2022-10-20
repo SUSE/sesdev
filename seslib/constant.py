@@ -129,27 +129,45 @@ class Constant():
     MAINTENANCE_REPO_TEMPLATES = {
         'ses6': {
             '{}-update':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15_Update',
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15_Update',
             '{}-update-sp1':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15-SP1_Update',
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15-SP1_Update',
+            '{}-update-product-storage':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15-SP1_Update_Products_SES6_Update',
             '{}-storage':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_Updates_Storage_6_x86_64'
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_Updates_Storage_6_x86_64'
         },
         'ses7': {
             '{}-update':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15_Update',
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15_Update',
             '{}-update-sp2':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15-SP2_Update',
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15-SP2_Update',
+            '{}-update-product-storage':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15-SP2_Update_Products_SES7_Update',
             '{}-storage':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_Updates_Storage_7_x86_64'
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_Updates_Storage_7_x86_64'
         },
         'ses7p': {
             '{}-update':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15_Update',
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15_Update',
             '{}-update-sp3':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_SLE-15-SP3_Update',
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15-SP3_Update',
+            '{}-update-product-storage':
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_SLE-15-SP3_Update_Products_SES7.1_Update',
             '{}-storage':
-                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/SUSE_Updates_Storage_7.1_x86_64'
+                'http://download.suse.de/ibs/SUSE:/Maintenance:/{}/'
+                'SUSE_Updates_Storage_7.1_x86_64'
         }
     }
 
@@ -363,10 +381,10 @@ class Constant():
     ROLES_DEFAULT = {
         "caasp4": [["master"], ["worker"], ["worker"], ["loadbalancer"]],
         "makecheck": [["makecheck"]],
-        "nautilus": [["master", "client", "prometheus", "grafana"],
-                     ["storage", "mon", "mgr", "rgw", "igw"],
-                     ["storage", "mon", "mgr", "mds", "igw", "nfs"],
-                     ["storage", "mon", "mgr", "mds", "rgw", "nfs"]],
+        "nautilus": [["master", "client", "prometheus", "alertmanager", "grafana", "node-exporter"],
+                     ["storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
+                     ["storage", "mon", "mgr", "mds", "igw", "nfs", "node-exporter"],
+                     ["storage", "mon", "mgr", "mds", "rgw", "nfs", "node-exporter"]],
         "octopus": [["admin", "master", "client", "prometheus", "grafana", "alertmanager",
                      "node-exporter"],
                     ["bootstrap", "storage", "mon", "mgr", "rgw", "igw", "node-exporter"],
