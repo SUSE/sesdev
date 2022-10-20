@@ -5,6 +5,7 @@ from os import environ, path
 import re
 import sys
 import requests
+from urllib3.exceptions import InsecureRequestWarning
 
 from prettytable import PrettyTable
 
@@ -1368,6 +1369,26 @@ def report(deployment_id):
                 service_name_is_already_printed = True
     click.echo("")
 
+    grafana_status = dep.get_grafana_status()
+    click.echo("* Grafana Status:")
+    click.echo(_indent(f"Status Ok: {grafana_status['ok']}"))
+    click.echo(_indent(f"Version: {grafana_status['version']}"))
+    click.echo("")
+
+    alertmanager_status = dep.get_alertmanager_status()
+    click.echo("* Alertmanager Status:")
+    click.echo(_indent(f"Status Ok: {alertmanager_status['ok']}"))
+    click.echo(_indent(f"Version: {alertmanager_status['version']}"))
+    click.echo("")
+
+    node_exporter_status = dep.get_node_exporter_status()
+    click.echo("* Node Exporter Status:")
+    for node in node_exporter_status.keys():
+        click.echo(_indent(f"- {node}:"))
+        click.echo(_indent(f"Status Ok: {node_exporter_status[node]['ok']}", 8))
+        click.echo(_indent(f"Version: {node_exporter_status[node]['version']}", 8))
+        click.echo("")
+
     click.echo(f"* {ver} cluster status:")
     click.echo("")
     dep.ssh('master', ['ceph', 'status'], interactive=False)
@@ -1700,13 +1721,12 @@ def shell_completion(shell):
 
 @cli.command()
 @click.argument('review_request_id')
-@click.argument('version')
 @common_create_options
 @deepsea_options
 @ceph_salt_options
 @libvirt_options
 @ipv6_options
-def maintenance_test(review_request_id, version, **kwargs):
+def maintenance_test(review_request_id, **kwargs):
     """
     Create a test cluster for installation/smoke testing of package maintenance
     updates. Takes a review request id of the form 'SUSE:Maintenance:xxxxx:yyyyyy'
@@ -1776,36 +1796,71 @@ does not exist.")
             click.echo(f"Review Request ID {rrid} does not conform to pattern S:M:xxxxx:yyyyyy")
             sys.exit(1)
 
-    maintenance_incident_id, review_request_number = _parse_review_request_id(review_request_id)
-    deployment_id = f"{maintenance_incident_id}-{review_request_number}-{version}"
+    def _platform_to_ses_version(testplatform):
+        if 'addon=ses(major=6,minor=0)' in testplatform:
+            return 'ses6'
+        elif 'addon=ses(major=7,minor=0)' in testplatform:
+            return 'ses7'
+        elif 'addon=ses(major=7,minor=1)' in testplatform:
+            return 'ses7p'
+        else:
+            return None
 
-    repo_urls = {}
+    def _get_maintenance_test_info(incident_id, request_id):
+        url = f"https://qam.suse.de/testreports/SUSE:Maintenance:{incident_id}:{request_id}/metadata.json"
 
-    for alias, url in Constant.MAINTENANCE_REPO_TEMPLATES[version].items():
-        if _check_url(url.format(maintenance_incident_id)):
-            repo_urls[alias.format(maintenance_incident_id)] = url.format(maintenance_incident_id)
+        try:
+            requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+            info = requests.get(url, verify=False)
+            testplatforms = info.json()['testplatform']
+            platforms_to_test = [_platform_to_ses_version(platform)
+                                 for platform in testplatforms
+                                 if _platform_to_ses_version(platform) is not None]
+            print("Testplan:")
+            for p in platforms_to_test:
+                print(f"  - {p}")
+            return platforms_to_test
+        except requests.exceptions.RequestException:
+            print("error getting maintenace test info")
+            return []
 
-    if len(repo_urls) == 0:
-        click.echo('Could not find any maintenance repos.')
-        click.echo('Please make sure you are connected to the E&I VPN.')
-        click.echo('\nThe following URLs were probed:')
+    def _do_test(incident_id, request_id, version):
+        deployment_id = f"{incident_id}-{request_id}-{version}"
+
+        repo_urls = {}
+
         for alias, url in Constant.MAINTENANCE_REPO_TEMPLATES[version].items():
-            click.echo('  - ' + alias.format(maintenance_incident_id) + ': ' +
-                       url.format(maintenance_incident_id))
-        click.echo('Aborting...')
-        sys.exit(1)
+            if _check_url(url.format(incident_id)):
+                repo_urls[alias.format(incident_id)] = url.format(incident_id)
 
-    _prep_kwargs(kwargs)
-    settings_dict = _gen_settings_dict(version, **kwargs)
-    settings_dict['devel_repo'] = False
-    settings_dict['repo_priority'] = True
+        if len(repo_urls) == 0:
+            click.echo('Could not find any maintenance repos.')
+            click.echo('Please make sure you are connected to the E&I VPN.')
+            click.echo('\nThe following URLs were probed:')
+            for alias, url in Constant.MAINTENANCE_REPO_TEMPLATES[version].items():
+                click.echo('  - ' + alias.format(incident_id) + ': ' +
+                           url.format(incident_id))
+            click.echo('Aborting...')
+            sys.exit(1)
 
-    for repo_name, repo_url in repo_urls.items():
-        settings_dict['custom_repos'].append(
-            {
-                'name': repo_name,
-                'url': _maybe_munge_repo_url(repo_url),
-                'priority': Constant.ZYPPER_PRIO_ELEVATED
-            })
+        _prep_kwargs(kwargs)
+        settings_dict = _gen_settings_dict(version, **kwargs)
+        settings_dict['devel_repo'] = False
+        settings_dict['repo_priority'] = True
 
-    _create_command(deployment_id, settings_dict)
+        for repo_name, repo_url in repo_urls.items():
+            settings_dict['custom_repos'].append(
+                {
+                    'name': repo_name,
+                    'url': _maybe_munge_repo_url(repo_url),
+                    'priority': Constant.ZYPPER_PRIO_ELEVATED
+                })
+
+        settings_dict['non_interactive'] = True
+        _create_command(deployment_id, settings_dict)
+
+    maintenance_incident_id, review_request_number = _parse_review_request_id(review_request_id)
+    testplan = _get_maintenance_test_info(maintenance_incident_id, review_request_number)
+
+    for testversion in testplan:
+        _do_test(maintenance_incident_id, review_request_number, testversion)
