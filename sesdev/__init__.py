@@ -5,6 +5,7 @@ from os import environ, path
 import re
 import sys
 import requests
+import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
 from prettytable import PrettyTable
@@ -1383,10 +1384,10 @@ def report(deployment_id):
 
     node_exporter_status = dep.get_node_exporter_status()
     click.echo("* Node Exporter Status:")
-    for node in node_exporter_status.keys():
+    for node, nodestatus in node_exporter_status.items():
         click.echo(_indent(f"- {node}:"))
-        click.echo(_indent(f"Status Ok: {node_exporter_status[node]['ok']}", 8))
-        click.echo(_indent(f"Version: {node_exporter_status[node]['version']}", 8))
+        click.echo(_indent(f"Status Ok: {nodestatus['ok']}", 8))
+        click.echo(_indent(f"Version: {nodestatus['version']}", 8))
         click.echo("")
 
     click.echo(f"* {ver} cluster status:")
@@ -1799,26 +1800,26 @@ does not exist.")
     def _platform_to_ses_version(testplatform):
         if 'addon=ses(major=6,minor=0)' in testplatform:
             return 'ses6'
-        elif 'addon=ses(major=7,minor=0)' in testplatform:
+        if 'addon=ses(major=7,minor=0)' in testplatform:
             return 'ses7'
-        elif 'addon=ses(major=7,minor=1)' in testplatform:
+        if 'addon=ses(major=7,minor=1)' in testplatform:
             return 'ses7p'
-        else:
-            return None
+        return None
 
     def _get_maintenance_test_info(incident_id, request_id):
-        url = f"https://qam.suse.de/testreports/SUSE:Maintenance:{incident_id}:{request_id}/metadata.json"
+        url = f"https://qam.suse.de/testreports/SUSE:Maintenance:\
+{incident_id}:{request_id}/metadata.json"
 
         try:
-            requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+            urllib3.disable_warnings(category=InsecureRequestWarning)
             info = requests.get(url, verify=False)
             testplatforms = info.json()['testplatform']
             platforms_to_test = [_platform_to_ses_version(platform)
                                  for platform in testplatforms
                                  if _platform_to_ses_version(platform) is not None]
             print("Testplan:")
-            for p in platforms_to_test:
-                print(f"  - {p}")
+            for plat in platforms_to_test:
+                print(f"  - {plat}")
             return platforms_to_test
         except requests.exceptions.RequestException:
             print("error getting maintenace test info")

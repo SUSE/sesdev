@@ -6,6 +6,7 @@ import re
 import shutil
 import time
 import requests
+import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
 try:
@@ -1898,7 +1899,7 @@ deployment might not be completely destroyed.
 
         addr = self.nodes[node].public_address
 
-        requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+        urllib3.disable_warnings(category=InsecureRequestWarning)
 
         try:
             health = requests.get(f"https://{addr}:3000/healthz", verify=False)
