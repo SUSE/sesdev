@@ -253,6 +253,8 @@ class Constant():
                        'images/SLES15-SP2-Vagrant.x86_64-libvirt.box',
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP3/'
                        'images/SLES15-SP3-Vagrant.x86_64-libvirt.box',
+        'sles-15-sp3-fips': 'http://download.suse.de/ibs/home:/mrohrich:/Virtualization:/Vagrant:/'
+                            'SLE-15-SP3:/FIPS/images/SLES15-SP3-Vagrant.x86_64-libvirt.box',
         'generic/ubuntu1804': 'generic/ubuntu1804',
         'leap-15.4': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.4/images/'
@@ -308,6 +310,7 @@ class Constant():
         'sles-15-sp1': 'zypper',
         'sles-15-sp2': 'zypper',
         'sles-15-sp3': 'zypper',
+        'sles-15-sp3-fips': 'zypper',
         'leap-15.1': 'zypper',
         'leap-15.2': 'zypper',
         'leap-15.3': 'zypper',
@@ -320,6 +323,7 @@ class Constant():
         'sles-15-sp1': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP1/SUSE:CA.repo',
         'sles-15-sp2': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP2/SUSE:CA.repo',
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP3/SUSE:CA.repo',
+        'sles-15-sp3-fips': 'http://download.nue.suse.com/ibs/SUSE:/CA/SLE_15_SP3/SUSE:CA.repo',
     }
 
     OS_REPOS = {
@@ -358,6 +362,23 @@ class Constant():
                               'update/',
         },
         'sles-15-sp3': {
+            'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP3/x86_64/'
+                       'product/',
+            'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3/'
+                              'x86_64/update/',
+            'base': 'http://download.nue.suse.com/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP3/'
+                    'x86_64/product/',
+            'update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP3/'
+                      'x86_64/update/',
+            'server-apps': 'http://download.nue.suse.com/ibs/SUSE/Products/'
+                           'SLE-Module-Server-Applications/15-SP3/x86_64/product/',
+            'server-apps-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/'
+                                  'SLE-Module-Server-Applications/15-SP3/x86_64/update/',
+            'storage': 'http://download.nue.suse.com/ibs/SUSE/Products/Storage/7.1/x86_64/product/',
+            'storage-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/Storage/7.1/x86_64/'
+                              'update/',
+        },
+        'sles-15-sp3-fips': {
             'product': 'http://dist.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15-SP3/x86_64/'
                        'product/',
             'product-update': 'http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15-SP3/'
@@ -497,6 +518,10 @@ class Constant():
         },
         'ses7p': {
             'sles-15-sp3': [
+                'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
+                'SUSE-Enterprise-Storage-7.1-POOL-x86_64-Media1/'
+            ],
+            'sles-15-sp3-fips': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0:/Pacific/images/repo/'
                 'SUSE-Enterprise-Storage-7.1-POOL-x86_64-Media1/'
             ],
