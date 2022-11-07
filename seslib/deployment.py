@@ -1849,6 +1849,39 @@ deployment might not be completely destroyed.
 
         return repos
 
+    def get_fips_status(self):
+        """
+        Return a dictionary of nodes and their FIPS enablement status.
+        The information is pulled from /proc/sys/crypto/fips_enabled and
+        whether the pattern `patterns-base-fips` is installed.
+        """
+        fips_status = {}
+
+        fips_pkg_name = "patterns-base-fips"
+        if self.settings.version in ['ses6', 'nautilus']:
+            fips_pkg_name = "patterns-server-enterprise-fips"
+
+
+        zypp_cmd = f"zypper info {fips_pkg_name} | grep \"Installed  \""
+        fips_cmd = "cat /proc/sys/crypto/fips_enabled"
+
+        for node in self.nodes:
+            fips_status[node] = {}
+
+            zypp_ssh_cmd = self._ssh_cmd(node)
+            zypp_ssh_cmd.append(zypp_cmd)
+            zypp_status_raw = tools.run_sync(zypp_ssh_cmd)
+
+            fips_status[node]['installed'] = ("Yes" in zypp_status_raw)
+
+            fips_ssh_cmd = self._ssh_cmd(node)
+            fips_ssh_cmd.append(fips_cmd)
+            fips_status_raw = tools.run_sync(fips_ssh_cmd)
+
+            fips_status[node]['enabled'] = ("1" in fips_status_raw)
+
+        return fips_status
+
     def list_packages(self, repos=None):
         """
         Compile a list of packages installed on each host of the cluster.

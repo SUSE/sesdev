@@ -1341,6 +1341,14 @@ def report(deployment_id):
         click.echo(_indent(line))
     click.echo("")
 
+    fips_status = dep.get_fips_status()
+    click.echo("* Cluster FIPS status:")
+    for node, nodestatus in fips_status.items():
+        click.echo(_indent(f"- {node}:"))
+        click.echo(_indent(f"FIPS installed: {nodestatus['installed']}", 8))
+        click.echo(_indent(f"FIPS enabled: {nodestatus['enabled']}", 8))
+    click.echo("")
+
     click.echo("* List of repos configured:")
     for node, repos in repos.items():
         click.echo("")
