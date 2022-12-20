@@ -147,6 +147,7 @@ pipeline {
                         git+https://github.com/kshtsk/jcs.git@fix-jenkins-version-check#egg=jcs[openstack,obs,jenkins]
                     jcs \
                         --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} \
+                        --os-network-fixed fixed \
                         create \
                         --cloud openstack \
                         --instance-type ${cloud_params[params.OS_CLOUD]['cloud_instance_type']} \
