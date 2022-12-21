@@ -218,7 +218,7 @@ function make_salt_master_an_admin_node_test {
     local arbitrary_mon_node
     echo
     echo "WWWW: make_salt_master_an_admin_node_test"
-    _zypper_install_on_master ceph-common
+    rpm -q --quiet ceph-common || _zypper_install_on_master ceph-common
     set -x
     mkdir -p "/etc/ceph"
     if [ -f "$ADMIN_KEYRING" ] || [ -f "$CEPH_CONF" ] ; then
