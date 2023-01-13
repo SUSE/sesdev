@@ -7,23 +7,25 @@ on:
 jobs:
 
   pytest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     strategy:
       matrix:
         include:
         - tox-env: py36
-          py-ver: 3.6
-        - tox-env: py38
-          py-ver: 3.8
+          py-ver: "3.6"
+        - tox-env: py39
+          py-ver: "3.9"
+        - tox-env: py310
+          py-ver: "3.10"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python ${{ matrix.py-ver }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.py-ver }}
+        python-version: '${{ matrix.py-ver }}'
 
     - name: Install dependencies
       run: |
@@ -42,15 +44,15 @@ jobs:
     #   uses: codecov/codecov-action@v1
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - name: Set up Python 3
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
