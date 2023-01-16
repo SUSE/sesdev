@@ -115,6 +115,9 @@ pipeline {
                description: 'If set, a custom job name will be set')
         string(name: 'CUSTOM_JOB_DESC', defaultValue: '',
                description: 'If set, a custom job description will be set')
+        string(name: 'CUSTOM_JCS_REPO',
+               defaultValue: 'https://github.com/kshtsk/jcs.git@fix-jenkins-version-check',
+               description: 'Use customized version of jcs to deploy worker')
     }
 
     environment {
@@ -144,7 +147,7 @@ pipeline {
                     source ${jcs_venv}/bin/activate
                     python3 -m pip install --upgrade pip
                     pip3 --use-feature=2020-resolver install \
-                        git+https://github.com/kshtsk/jcs.git@fix-jenkins-version-check#egg=jcs[openstack,obs,jenkins]
+                        git+${params.CUSTOM_JCS_REPO}#egg=jcs[openstack,obs,jenkins]
                     jcs \
                         --os-network-public ${cloud_params[params.OS_CLOUD]['cloud_network_public']} \
                         create \
