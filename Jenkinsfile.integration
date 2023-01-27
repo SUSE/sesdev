@@ -123,7 +123,7 @@ pipeline {
     environment {
         OS_CLOUD = "${params.OS_CLOUD}"
         VAGRANT_DEFAULT_PROVIDER = 'libvirt'
-        JENKINS_URL = 'http://see.suse.de:8080'
+        JENKINS_URL = 'http://see.prv.suse.net:8080'
         JENKINS_USERNAME = 'storage'
         JENKINS_PASSWORD = credentials('storage-ci-suse-de-jenkins-password')
     }
