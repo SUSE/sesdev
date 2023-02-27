@@ -183,6 +183,10 @@ fi
 {% elif version == 'caasp4' %}
 {% include "caasp/provision.sh.j2" %}
 
+# k3s
+{% elif version == 'k3s' %}
+{% include "k3s/provision.sh.j2" %}
+
 # make check
 {% elif version == 'makecheck' %}
 {% include "makecheck/provision.sh.j2" %}

@@ -436,6 +436,7 @@ def _gen_settings_dict(
         username=None,
         msgr2_secure_mode=None,
         msgr2_prefer_secure=None,
+        k3s_version=None,
 ):
 
     settings_dict = {}
@@ -456,6 +457,8 @@ def _gen_settings_dict(
             roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
         elif version == 'caasp4':
             roles_string = Constant.ROLES_SINGLE_NODE['caasp4']
+        elif version == 'k3s':
+            roles_string = Constant.ROLES_SINGLE_NODE['k3s']
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
@@ -696,6 +699,9 @@ def _gen_settings_dict(
             raise OptionNotSupportedInVersion('--rgw-ssl', version)
         settings_dict['rgw_ssl'] = rgw_ssl
 
+    if k3s_version is not None:
+        settings_dict['k3s_version'] = k3s_version
+
     return settings_dict
 
 
@@ -768,6 +774,10 @@ def _create_command(deployment_id, settings_dict):
                 click.echo()
                 click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
                 click.echo()
+            elif dep.settings.version == 'k3s':
+                # Nothing extra to print
+                # TODO: really?
+                pass
             else:
                 click.echo("Or, access the Ceph Dashboard with:")
                 click.echo()
@@ -910,6 +920,22 @@ def caasp4(deployment_id, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
     deployment_id = _maybe_gen_dep_id('caasp4', deployment_id, settings_dict)
+    _create_command(deployment_id, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id', required=False)
+@common_create_options
+@libvirt_options
+@click.option("--k3s-version", default=None,
+              help='k3s version to install (defaults to latest stable)')
+def k3s(deployment_id, **kwargs):
+    """
+    Creates a k3s cluster using Tumbleweed
+    """
+    _prep_kwargs(kwargs)
+    settings_dict = _gen_settings_dict('k3s', **kwargs)
+    deployment_id = _maybe_gen_dep_id('k3s', deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
 
 

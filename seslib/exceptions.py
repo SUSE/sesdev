@@ -120,8 +120,8 @@ class ExplicitAdminRoleNotAllowed(SesDevException):
 class MultipleRolesPerMachineNotAllowedInCaaSP(SesDevException):
     def __init__(self):
         super().__init__(
-            "Multiple roles per machine detected. This is not allowed in CaaSP "
-            "clusters. For a single-node cluster, use the --single-node option "
+            "Multiple roles per machine detected. This is not allowed in CaaSP or "
+            "k3s clusters. For a single-node cluster, use the --single-node option "
             "or --roles=\"[master]\" (in this special case, the master node "
             "will function also as a worker node)"
         )

@@ -1,0 +1,115 @@
+set -ex
+
+zypper --non-interactive install curl
+
+# need this to pick up kubectl, helm etc. which are installed to /usr/local/bin
+export PATH=$PATH:/usr/local/bin
+
+{% if k3s_version %}
+export INSTALL_K3S_VERSION={{ k3s_version }}
+{% endif %}
+
+{% if node == master %}
+
+# Lifted from seslib/templates/caasp/master.sh.j2
+function wait_for_master_ready {
+    set +ex
+    echo "Waiting for master to be ready"
+    timeout_seconds="900"
+    remaining_seconds="$timeout_seconds"
+    interval_seconds="10"
+    while true ; do
+        set -x
+        ACTUAL_NUMBER_OF_MASTERS="$(kubectl get nodes 2>/dev/null | egrep -c "master\s+Ready")"
+        set +x
+        echo "masters in cluster (actual/expected): $ACTUAL_NUMBER_OF_MASTERS/1 (${remaining_seconds} seconds to timeout)"
+        remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+        [ "$ACTUAL_NUMBER_OF_MASTERS" = "1" ] && break
+        if [ "$remaining_seconds" -le "0" ] ; then
+            echo "It seems unlikely that a master will ever appear. Bailing out!"
+            set -e
+            false
+        fi
+        sleep "$interval_seconds"
+    done
+    set -ex
+}
+
+# Also lifted from seslib/templates/caasp/master.sh.j2, except for the
+# ACTUAL_NUMBER_O_F_WORKERS= line, which checked for "worker[0-9]+\s+Ready",
+# but that won't do because the nodes are named "node[0-9]", not "worker[0-9]"
+function wait_for_workers_ready {
+    set +ex
+    echo "Waiting for {{ worker_nodes }} workers to be ready"
+    timeout_seconds="900"
+    remaining_seconds="$timeout_seconds"
+    interval_seconds="10"
+    while true ; do
+        set -x
+        ACTUAL_NUMBER_OF_WORKERS="$(kubectl get nodes 2>/dev/null | egrep -c "node[0-9]+\s+Ready")"
+        set +x
+        echo "workers in cluster (actual/expected): $ACTUAL_NUMBER_OF_WORKERS/{{ worker_nodes }} (${remaining_seconds} seconds to timeout)"
+        remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+        [ "$ACTUAL_NUMBER_OF_WORKERS" = "{{ worker_nodes }}" ] && break
+        if [ "$remaining_seconds" -le "0" ] ; then
+            echo "It seems unlikely that {{ worker_nodes }} workers will ever appear. Bailing out!"
+            set -e
+            false
+        fi
+        sleep "$interval_seconds"
+    done
+    set -ex
+}
+
+curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" sh -
+
+# Unfortunately we can't use `kubectl wait --for=condition=Ready node/{{ master.name }} --timeout 15m`
+# because this runs before the master node even exists, and so we get
+# 'Error from server (NotFound): nodes "master" not found'
+wait_for_master_ready
+
+wait_for_workers_ready
+
+# Helm seems generally useful, let's install it
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+helm version
+
+# This sets KUBECONFIG for everyone to the global k3s config.
+# Without this, helm will try to talk to http://localhost:8080/version
+# by default, which of course won't work.
+echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /etc/profile.local
+
+{% else %} {# node == master #}
+
+function get_k3s_token {
+    set +ex
+    echo "Waiting for K3S token from master"
+    timeout_seconds="900"
+    remaining_seconds="$timeout_seconds"
+    interval_seconds="30"
+    while true ; do
+        remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+        if scp master:/var/lib/rancher/k3s/server/node-token /tmp/k3s_token 2>/dev/null ; then
+            # Got the node token, probably (when exactly does that token get created
+            # on the master? could we conceivably have a weird race where we get an
+            # empty token file here?)
+            break
+        fi
+        if [ "$remaining_seconds" -le "0" ] ; then
+            echo "It seems unlikely that a master will ever appear. Bailing out!"
+            set -e
+            false
+        fi
+        echo "waiting for k3s token (${remaining_seconds} seconds to timeout)"
+        sleep "$interval_seconds"
+    done
+    set -ex
+}
+
+get_k3s_token
+export K3S_TOKEN=$(cat /tmp/k3s_token)
+rm /tmp/k3s_token
+
+curl -sfL https://get.k3s.io | K3S_URL=https://{{ master.fqdn }}:6443 sh -
+
+{% endif %}

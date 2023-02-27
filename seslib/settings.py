@@ -125,6 +125,11 @@ SETTINGS = {
         'help': 'Deprecated container image path for Ceph daemons.',
         'default': '',
     },
+    'k3s_version': {
+        'type': str,
+        'help': 'k3s version to install (defaults to latest stable)',
+        'default': '',
+    },
     'ceph_image_path': {
         'type': str,
         'help': 'Container image path for Ceph daemons',

@@ -157,7 +157,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
 
     def __populate_deployment_tool(self):
         if not self.settings.deployment_tool \
-                and self.settings.version not in ['caasp4', 'makecheck']:
+                and self.settings.version not in ['caasp4', 'k3s', 'makecheck']:
             self.settings.deployment_tool = \
                 Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
@@ -414,7 +414,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             if 'master' in node_roles:
                 self.master = node
 
-            if self.settings.version == 'caasp4':
+            if self.settings.version in ['caasp4', 'k3s']:
                 single_node = self.settings.single_node or len(self.settings.roles) == 1
                 if 'master' in node_roles or 'worker' in node_roles:
                     node.cpus = max(node.cpus, 2)
@@ -609,8 +609,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
             'provision': self.settings.provision,
-            'deploy_salt': bool(self.settings.version != 'makecheck' and
-                                self.settings.version != 'caasp4' and
+            'deploy_salt': bool(self.settings.version not in ['makecheck', 'caasp4', 'k3s'] and
                                 not self.suma and
                                 not self.settings.os.startswith('ubuntu')),
             'stop_before_stage': self.settings.stop_before_stage,
@@ -695,6 +694,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'rgw_ssl': self.settings.rgw_ssl,
             'internal_media_repo': self.internal_media_repo,
             'developer_tools_repos': self.developer_tools_repos,
+            'k3s_version': self.settings.k3s_version
         }
 
         scripts = {}
@@ -1163,14 +1163,14 @@ deployment might not be completely destroyed.
         # --product makes sense only with SES
         if not self.settings.devel_repo and not self.settings.version.startswith('ses'):
             raise ProductOptionOnlyOnSES(self.settings.version)
-        # caasp4 is special
-        if self.settings.version in ['caasp4']:
+        # caasp4 and k3s are special
+        if self.settings.version in ['caasp4', 'k3s']:
             each_machine_has_one_and_only_one_role = True
             for node_roles in self.settings.roles:
                 if len(node_roles) > 1:
                     each_machine_has_one_and_only_one_role = False
             if each_machine_has_one_and_only_one_role:
-                Log.debug('caasp4 cluster: each machine has one and only one role. Good.')
+                Log.debug(f'{self.settings.version}: each machine has one and only one role. Good.')
             else:
                 raise MultipleRolesPerMachineNotAllowedInCaaSP()
         else:
