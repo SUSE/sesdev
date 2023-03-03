@@ -79,6 +79,37 @@ helm version
 # by default, which of course won't work.
 echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /etc/profile.local
 
+{% if caasp_deploy_ses %}
+
+mkdir -p ~/cluster
+cd ~/cluster
+helm pull oci://registry.suse.com/ses/7.1/charts/rook-ceph
+# Currently rook-ceph-1.10.1.tgz
+# TODO: can we ask helm for the name of the file?  Or just assume it's
+# the only file currently in the directory?
+tar -xzf rook-ceph-*.tgz
+
+kubectl create namespace rook-ceph
+
+# The earlier addition of KUBECONFIG to /etc/profile.local won't help
+# us in this current session, so need to set it explicitly here.
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+helm install -n rook-ceph rook-ceph ./rook-ceph/
+
+echo "Waiting for the rook operator"
+kubectl wait --timeout=5m --namespace rook-ceph --for=condition=Ready pod  -l "app=rook-ceph-operator"
+
+echo "Let rook take all nodes that aren't the master"
+kubectl label node -l 'node-role.kubernetes.io/master!=true' node-role.rook-ceph/cluster=any
+
+echo "Creating ceph cluster..."
+kubectl create -f rook-ceph/examples/cluster.yaml
+
+# The above will take some time (maybe 20 minutes in my testing),
+# so let's not wait for it :-)
+
+{% endif %} {# caasp_deploy_ses #}
+
 {% else %} {# node == master #}
 
 function get_k3s_token {

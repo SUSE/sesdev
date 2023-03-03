@@ -775,9 +775,13 @@ def _create_command(deployment_id, settings_dict):
                 click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
                 click.echo()
             elif dep.settings.version == 'k3s':
-                # Nothing extra to print
-                # TODO: really?
-                pass
+                if dep.settings.caasp_deploy_ses:
+                    click.echo("Rook will be off doing its magic dance now.")
+                    click.echo("After logging into the cluster, try these:")
+                    click.echo("")
+                    click.echo("  # kubectl -n rook-ceph logs -l app=rook-ceph-operator")
+                    click.echo("  # kubectl -n rook-ceph get pods")
+                    click.echo()
             else:
                 click.echo("Or, access the Ceph Dashboard with:")
                 click.echo()
@@ -927,6 +931,8 @@ def caasp4(deployment_id, **kwargs):
 @click.argument('deployment_id', required=False)
 @common_create_options
 @libvirt_options
+@click.option("--deploy-ses", is_flag=True, default=False,
+              help="Deploy SES using rook in k3s")
 @click.option("--k3s-version", default=None,
               help='k3s version to install (defaults to latest stable)')
 def k3s(deployment_id, **kwargs):

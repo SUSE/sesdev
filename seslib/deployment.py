@@ -265,7 +265,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
     def __maybe_adjust_num_disks(self):
         single_node = self.settings.single_node or len(self.settings.roles) == 1
         storage_nodes = self.node_counts["storage"]
-        if self.settings.version in ['caasp4'] and self.settings.caasp_deploy_ses:
+        if self.settings.version in ['caasp4', 'k3s'] and self.settings.caasp_deploy_ses:
             if single_node:
                 storage_nodes = 1
             else:

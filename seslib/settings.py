@@ -15,9 +15,12 @@ SETTINGS = {
         'help': 'Enable/disable AppArmor',
         'default': True,
     },
+    # This should rightly now be named something more generic, e.g:
+    # "kube_deploy_ses", but that will confuse sesdev when it looks
+    # at settings of existing deployments, so it can stay as is.
     'caasp_deploy_ses': {
         'type': bool,
-        'help': 'Deploy SES using rook in CaasP',
+        'help': 'Deploy SES using rook in CaasP or k3s',
         'default': False,
     },
     'ceph_salt_git_repo': {
