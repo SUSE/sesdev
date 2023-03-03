@@ -711,7 +711,7 @@ def _create_command(deployment_id, settings_dict):
     click.echo("=== Creating deployment \"{}\" with the following configuration ==="
                .format(deployment_id)
                )
-    click.echo(dep.configuration_report(show_individual_vms=(not interactive)))
+    click.echo(dep.configuration_report(show_individual_vms=not interactive))
     really_want_to = True
     if interactive:
         not_sure = True
