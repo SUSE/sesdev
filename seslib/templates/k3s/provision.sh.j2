@@ -110,6 +110,9 @@ kubectl create -f rook-ceph/examples/cluster.yaml
 # The above will take some time (maybe 20 minutes in my testing),
 # so let's not wait for it :-)
 
+echo "Creating toolbox container..."
+kubectl create -f rook-ceph/examples/toolbox.yaml
+
 {% endif %} {# caasp_deploy_ses #}
 
 {% else %} {# node == master #}

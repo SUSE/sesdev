@@ -776,11 +776,17 @@ def _create_command(deployment_id, settings_dict):
                 click.echo()
             elif dep.settings.version == 'k3s':
                 if dep.settings.caasp_deploy_ses:
-                    click.echo("Rook will be off doing its magic dance now.")
-                    click.echo("After logging into the cluster, try these:")
-                    click.echo("")
+                    click.echo("Rook will be off doing its magic dance now, which may take")
+                    click.echo("some time.  After logging into the cluster, try these:")
+                    click.echo()
                     click.echo("  # kubectl -n rook-ceph logs -l app=rook-ceph-operator")
                     click.echo("  # kubectl -n rook-ceph get pods")
+                    click.echo()
+                    click.echo("A toolbox pod will also be deployed.  When it's ready, try:")
+                    click.echo()
+                    click.echo("  # kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- bash")
+                    click.echo()
+                    click.echo("Inside the toolbox you can use the ceph CLI (`ceph status` etc.)")
                     click.echo()
             else:
                 click.echo("Or, access the Ceph Dashboard with:")
