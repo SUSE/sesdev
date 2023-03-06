@@ -1,6 +1,8 @@
 set -ex
 
-zypper --non-interactive install curl
+# curl is needed to download the k3s and helm installers
+# the helm installer needs openssl to do checksum verification
+zypper --non-interactive install curl openssl
 
 # need this to pick up kubectl, helm etc. which are installed to /usr/local/bin
 export PATH=$PATH:/usr/local/bin
