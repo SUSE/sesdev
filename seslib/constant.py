@@ -188,10 +188,6 @@ class Constant():
             'repo': 'https://github.com/ceph/ceph',
             'branch': 'master',
         },
-        'ubuntu-bionic': {
-            'repo': 'https://github.com/ceph/ceph',
-            'branch': 'master',
-        },
     }
 
     METADATA_FILENAME = ".metadata"
@@ -211,7 +207,6 @@ class Constant():
         'opensuse/Leap-15.2.x86_64': 'leap-15.2',
         'opensuse/Leap-15.3.x86_64': 'leap-15.3',
         'opensuse/Tumbleweed.x86_64': 'tumbleweed',
-        'generic/ubuntu1804': 'ubuntu-bionic',
     }
 
     OS_BOX_ALIASES = {v: k for k, v in OS_ALIASED_BOXES.items()}
@@ -235,7 +230,6 @@ class Constant():
                        'images/SLES15-SP2-Vagrant.x86_64-libvirt.box',
         'sles-15-sp3': 'http://download.nue.suse.com/ibs/Virtualization:/Vagrant:/SLE-15-SP3/'
                        'images/SLES15-SP3-Vagrant.x86_64-libvirt.box',
-        'generic/ubuntu1804': 'generic/ubuntu1804',
         'leap-15.4': 'https://download.opensuse.org/repositories/Virtualization:/'
                      'Appliances:/Images:/openSUSE-Leap-15.4/images/'
                      'Leap-15.4.x86_64-libvirt.box',
@@ -284,18 +278,6 @@ class Constant():
             'workstation-update': 'http://download.nue.suse.com/ibs/SUSE/Updates/SLE-Product-WE/'
                                   '15-SP3/x86_64/update/',
         },
-    }
-
-    OS_PACKAGE_MANAGER_MAPPING = {
-        'sles-15-sp1': 'zypper',
-        'sles-15-sp2': 'zypper',
-        'sles-15-sp3': 'zypper',
-        'leap-15.1': 'zypper',
-        'leap-15.2': 'zypper',
-        'leap-15.3': 'zypper',
-        'leap-15.4': 'zypper',
-        'tumbleweed': 'zypper',
-        'ubuntu-bionic': 'apt',
     }
 
     OS_CA_REPO = {
@@ -455,7 +437,6 @@ class Constant():
                 'https://download.opensuse.org/repositories/filesystems:/ceph:/octopus:/upstream/'
                 'openSUSE_Tumbleweed'
             ],
-            'ubuntu-bionic': [],
         },
         'pacific': {
             'leap-15.2': [

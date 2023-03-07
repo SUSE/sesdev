@@ -586,7 +586,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'dep_id': self.dep_id,
             'os': self.settings.os,
             'ram': self.settings.ram,
-            'package_manager': Constant.OS_PACKAGE_MANAGER_MAPPING[self.settings.os],
+            'package_manager': 'zypper',
             'vm_engine': self.settings.vm_engine,
             'libvirt_host': self.settings.libvirt_host,
             'libvirt_user': self.settings.libvirt_user,
@@ -611,8 +611,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'provision': self.settings.provision,
             'deploy_salt': bool(self.settings.version != 'makecheck' and
                                 self.settings.version != 'caasp4' and
-                                not self.suma and
-                                not self.settings.os.startswith('ubuntu')),
+                                not self.suma),
             'stop_before_stage': self.settings.stop_before_stage,
             'deployment_tool': self.settings.deployment_tool,
             'version_devel_repos': self.version_devel_repos,
@@ -1179,15 +1178,6 @@ deployment might not be completely destroyed.
                 raise RoleNotSupported('worker', self.settings.version)
             if self.node_counts['loadbalancer'] > 0:
                 raise RoleNotSupported('loadbalancer', self.settings.version)
-        # experimental Ubuntu Bionic
-        if self.settings.os == 'ubuntu-bionic':
-            if self.settings.version in ['octopus']:
-                pass  # we support
-            else:
-                raise VersionOSNotSupported(
-                                            self.settings.os,
-                                            self.settings.version
-                                            )
         # no node may have more than one of any role
         for node in self.settings.roles:
             for role in Constant.ROLES_KNOWN:

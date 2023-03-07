@@ -66,8 +66,6 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [ses7 from Devel:Storage:7.0:Pacific](#ses7p-from-develstorage70pacific)
          * [ses7 from Devel:Storage:7.0:CR](#ses7-from-develstorage70cr)
       * [With wire encryption](#with-wire-encryption)
-      * [Deploying non-SUSE environments](#deploying-non-suse-environments)
-         * [Ubuntu "Bionic Beaver" 18.04](#ubuntu-bionic-beaver-1804)
       * [Introspect existing deployments](#introspect-existing-deployments)
          * [List all existing deployments and their overall status](#list-all-existing-deployments-and-their-overall-status)
          * [Get status of individual nodes in an existing deployment](#get-status-of-individual-nodes-in-an-existing-deployment)
@@ -832,23 +830,6 @@ is prefered over crc.
 
 These only effect msgr2, so anything talking msgr1 (like the RBD and CephFS
 kernel clients) will be unencrypted.
-
-#### Deploying non-SUSE environments
-
-sesdev has limited ability to deploy non-SUSE environments. Read on for details.
-
-##### Ubuntu "Bionic Beaver" 18.04
-
-Ubuntu Bionic is supported with the `octopus` deployment version. For example:
-
-```
-sesdev create octopus --os ubuntu-bionic
-sesdev create octopus --single-node --os ubuntu-bionic
-```
-
-This will create Ubuntu 18.04 VMs and bootstrap a Ceph Octopus cluster on them
-using `cephadm bootstrap`. To stop the deployment before bootstrap, give the
-`--stop-before-cephadm-bootstrap` option.
 
 ### Introspect existing deployments
 
