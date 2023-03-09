@@ -81,7 +81,7 @@ helm version
 # by default, which of course won't work.
 echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /etc/profile.local
 
-{% if caasp_deploy_ses %}
+{% if k3s_deploy_ses %}
 
 mkdir -p ~/cluster
 cd ~/cluster
@@ -113,7 +113,7 @@ kubectl create -f rook-ceph/examples/cluster.yaml
 echo "Creating toolbox container..."
 kubectl create -f rook-ceph/examples/toolbox.yaml
 
-{% endif %} {# caasp_deploy_ses #}
+{% endif %} {# k3s_deploy_ses #}
 
 {% else %} {# node == master #}
 

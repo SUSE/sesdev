@@ -265,7 +265,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
     def __maybe_adjust_num_disks(self):
         single_node = self.settings.single_node or len(self.settings.roles) == 1
         storage_nodes = self.node_counts["storage"]
-        if self.settings.version in ['caasp4', 'k3s'] and self.settings.caasp_deploy_ses:
+        if ((self.settings.version == 'caasp4' and self.settings.caasp_deploy_ses) or
+            (self.settings.version == 'k3s' and self.settings.k3s_deploy_ses)):
             if single_node:
                 storage_nodes = 1
             else:
@@ -420,7 +421,9 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                     node.cpus = max(node.cpus, 2)
                     if self.settings.ram < 2:
                         node.ram = 2 * 2**10
-                if self.settings.caasp_deploy_ses or self.settings.explicit_num_disks:
+                if (self.settings.caasp_deploy_ses or
+                   self.settings.k3s_deploy_ses or
+                   self.settings.explicit_num_disks):
                     if 'worker' in node_roles or single_node:
                         for _ in range(self.settings.num_disks):
                             node.storage_disks.append(Disk(self.settings.disk_size))
@@ -673,6 +676,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
+            'k3s_deploy_ses': self.settings.k3s_deploy_ses,
             'synced_folders': self.settings.synced_folder,
             'makecheck_ceph_repo': self.settings.makecheck_ceph_repo,
             'makecheck_ceph_branch': self.settings.makecheck_ceph_branch,

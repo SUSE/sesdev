@@ -659,8 +659,11 @@ def _gen_settings_dict(
     if stop_before_run_make_check is not None:
         settings_dict['makecheck_stop_before_run_make_check'] = stop_before_run_make_check
 
-    if deploy_ses:
+    if deploy_ses and version == 'caasp4':
         settings_dict['caasp_deploy_ses'] = True
+
+    if deploy_ses and version == 'k3s':
+        settings_dict['k3s_deploy_ses'] = True
 
     for folder in synced_folder:
         try:
@@ -775,7 +778,7 @@ def _create_command(deployment_id, settings_dict):
                 click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
                 click.echo()
             elif dep.settings.version == 'k3s':
-                if dep.settings.caasp_deploy_ses:
+                if dep.settings.k3s_deploy_ses:
                     click.echo("Rook will be off doing its magic dance now, which may take")
                     click.echo("some time.  After logging into the cluster, try these:")
                     click.echo()
