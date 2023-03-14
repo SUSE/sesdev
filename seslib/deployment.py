@@ -157,7 +157,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
 
     def __populate_deployment_tool(self):
         if not self.settings.deployment_tool \
-                and self.settings.version not in ['caasp4', 'makecheck']:
+                and self.settings.version not in ['caasp4', 'k3s', 'makecheck']:
             self.settings.deployment_tool = \
                 Constant.VERSION_PREFERRED_DEPLOYMENT_TOOL[self.settings.version]
 
@@ -265,7 +265,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
     def __maybe_adjust_num_disks(self):
         single_node = self.settings.single_node or len(self.settings.roles) == 1
         storage_nodes = self.node_counts["storage"]
-        if self.settings.version in ['caasp4'] and self.settings.caasp_deploy_ses:
+        if ((self.settings.version == 'caasp4' and self.settings.caasp_deploy_ses) or
+            (self.settings.version == 'k3s' and self.settings.k3s_deploy_ses)):
             if single_node:
                 storage_nodes = 1
             else:
@@ -414,13 +415,15 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             if 'master' in node_roles:
                 self.master = node
 
-            if self.settings.version == 'caasp4':
+            if self.settings.version in ['caasp4', 'k3s']:
                 single_node = self.settings.single_node or len(self.settings.roles) == 1
                 if 'master' in node_roles or 'worker' in node_roles:
                     node.cpus = max(node.cpus, 2)
                     if self.settings.ram < 2:
                         node.ram = 2 * 2**10
-                if self.settings.caasp_deploy_ses or self.settings.explicit_num_disks:
+                if (self.settings.caasp_deploy_ses or
+                   self.settings.k3s_deploy_ses or
+                   self.settings.explicit_num_disks):
                     if 'worker' in node_roles or single_node:
                         for _ in range(self.settings.num_disks):
                             node.storage_disks.append(Disk(self.settings.disk_size))
@@ -609,8 +612,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'deepsea_git_branch': self.settings.deepsea_git_branch,
             'version': self.settings.version,
             'provision': self.settings.provision,
-            'deploy_salt': bool(self.settings.version != 'makecheck' and
-                                self.settings.version != 'caasp4' and
+            'deploy_salt': bool(self.settings.version not in ['makecheck', 'caasp4', 'k3s'] and
                                 not self.suma and
                                 not self.settings.os.startswith('ubuntu')),
             'stop_before_stage': self.settings.stop_before_stage,
@@ -674,6 +676,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'use_salt': self.settings.use_salt,
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
+            'k3s_deploy_ses': self.settings.k3s_deploy_ses,
             'synced_folders': self.settings.synced_folder,
             'makecheck_ceph_repo': self.settings.makecheck_ceph_repo,
             'makecheck_ceph_branch': self.settings.makecheck_ceph_branch,
@@ -695,6 +698,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'rgw_ssl': self.settings.rgw_ssl,
             'internal_media_repo': self.internal_media_repo,
             'developer_tools_repos': self.developer_tools_repos,
+            'k3s_version': self.settings.k3s_version
         }
 
         scripts = {}
@@ -1163,14 +1167,14 @@ deployment might not be completely destroyed.
         # --product makes sense only with SES
         if not self.settings.devel_repo and not self.settings.version.startswith('ses'):
             raise ProductOptionOnlyOnSES(self.settings.version)
-        # caasp4 is special
-        if self.settings.version in ['caasp4']:
+        # caasp4 and k3s are special
+        if self.settings.version in ['caasp4', 'k3s']:
             each_machine_has_one_and_only_one_role = True
             for node_roles in self.settings.roles:
                 if len(node_roles) > 1:
                     each_machine_has_one_and_only_one_role = False
             if each_machine_has_one_and_only_one_role:
-                Log.debug('caasp4 cluster: each machine has one and only one role. Good.')
+                Log.debug(f'{self.settings.version}: each machine has one and only one role. Good.')
             else:
                 raise MultipleRolesPerMachineNotAllowedInCaaSP()
         else:

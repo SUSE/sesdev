@@ -50,4 +50,4 @@ def test_parse_config_yaml(isfile, exists):
         ['mon', 'mgr', 'storage'],
         ['mon', 'mgr', 'storage'],
     ]
-    assert len(settings['other_roles'].keys()) == 8
+    assert len(settings['other_roles'].keys()) == 9

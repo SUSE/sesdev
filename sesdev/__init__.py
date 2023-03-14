@@ -436,6 +436,7 @@ def _gen_settings_dict(
         username=None,
         msgr2_secure_mode=None,
         msgr2_prefer_secure=None,
+        k3s_version=None,
 ):
 
     settings_dict = {}
@@ -456,6 +457,8 @@ def _gen_settings_dict(
             roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
         elif version == 'caasp4':
             roles_string = Constant.ROLES_SINGLE_NODE['caasp4']
+        elif version == 'k3s':
+            roles_string = Constant.ROLES_SINGLE_NODE['k3s']
         else:
             raise VersionNotKnown(version)
         settings_dict['roles'] = _parse_roles(roles_string)
@@ -656,8 +659,11 @@ def _gen_settings_dict(
     if stop_before_run_make_check is not None:
         settings_dict['makecheck_stop_before_run_make_check'] = stop_before_run_make_check
 
-    if deploy_ses:
+    if deploy_ses and version == 'caasp4':
         settings_dict['caasp_deploy_ses'] = True
+
+    if deploy_ses and version == 'k3s':
+        settings_dict['k3s_deploy_ses'] = True
 
     for folder in synced_folder:
         try:
@@ -695,6 +701,9 @@ def _gen_settings_dict(
         if rgw_ssl and version not in ['nautilus', 'ses6']:
             raise OptionNotSupportedInVersion('--rgw-ssl', version)
         settings_dict['rgw_ssl'] = rgw_ssl
+
+    if k3s_version is not None:
+        settings_dict['k3s_version'] = k3s_version
 
     return settings_dict
 
@@ -768,6 +777,20 @@ def _create_command(deployment_id, settings_dict):
                 click.echo()
                 click.echo("  $ sesdev tunnel {} suma".format(deployment_id))
                 click.echo()
+            elif dep.settings.version == 'k3s':
+                if dep.settings.k3s_deploy_ses:
+                    click.echo("Rook will be off doing its magic dance now, which may take")
+                    click.echo("some time.  After logging into the cluster, try these:")
+                    click.echo()
+                    click.echo("  # kubectl -n rook-ceph logs -l app=rook-ceph-operator")
+                    click.echo("  # kubectl -n rook-ceph get pods")
+                    click.echo()
+                    click.echo("A toolbox pod will also be deployed.  When it's ready, try:")
+                    click.echo()
+                    click.echo("  # kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- bash")
+                    click.echo()
+                    click.echo("Inside the toolbox you can use the ceph CLI (`ceph status` etc.)")
+                    click.echo()
             else:
                 click.echo("Or, access the Ceph Dashboard with:")
                 click.echo()
@@ -910,6 +933,24 @@ def caasp4(deployment_id, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('caasp4', **kwargs)
     deployment_id = _maybe_gen_dep_id('caasp4', deployment_id, settings_dict)
+    _create_command(deployment_id, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id', required=False)
+@common_create_options
+@libvirt_options
+@click.option("--deploy-ses", is_flag=True, default=False,
+              help="Deploy SES using rook in k3s")
+@click.option("--k3s-version", default=None,
+              help='k3s version to install (defaults to latest stable)')
+def k3s(deployment_id, **kwargs):
+    """
+    Creates a k3s cluster using Tumbleweed
+    """
+    _prep_kwargs(kwargs)
+    settings_dict = _gen_settings_dict('k3s', **kwargs)
+    deployment_id = _maybe_gen_dep_id('k3s', deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
 
 

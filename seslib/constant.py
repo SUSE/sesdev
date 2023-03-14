@@ -362,6 +362,7 @@ class Constant():
 
     ROLES_DEFAULT = {
         "caasp4": [["master"], ["worker"], ["worker"], ["loadbalancer"]],
+        "k3s": [["master"], ["worker"], ["worker"], ["worker"], ["worker"]],
         "makecheck": [["makecheck"]],
         "nautilus": [["master", "client", "prometheus", "grafana"],
                      ["storage", "mon", "mgr", "rgw", "igw"],
@@ -381,6 +382,7 @@ class Constant():
 
     ROLES_DEFAULT_BY_VERSION = {
         'caasp4': ROLES_DEFAULT["caasp4"],
+        'k3s': ROLES_DEFAULT["k3s"],
         'makecheck': ROLES_DEFAULT["makecheck"],
         'nautilus': ROLES_DEFAULT["nautilus"],
         'octopus': ROLES_DEFAULT["octopus"],
@@ -415,6 +417,7 @@ class Constant():
 
     ROLES_SINGLE_NODE = {
         "caasp4": "[ master ]",
+        "k3s": "[ master ]",
         "nautilus": "[ master, storage, mon, mgr, prometheus, grafana, mds, igw, rgw, "
                     "nfs ]",
         "octopus": "[ master, admin, bootstrap, storage, mon, mgr, mds, igw, rgw, "
@@ -500,6 +503,10 @@ class Constant():
                 'http://download.nue.suse.com/ibs/SUSE/Updates/SUSE-CAASP/4.5/x86_64/update/'
             ],
         },
+        'k3s': {
+            'sles-15-sp3': [],
+            'tumbleweed': [],
+        },
         'makecheck': {
             'sles-15-sp1': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/6.0/images/repo/'
@@ -535,6 +542,7 @@ class Constant():
         'octopus': 'cephadm',
         'pacific': 'cephadm',
         'caasp4': None,
+        'k3s': None,
         'makecheck': None,
     }
 
@@ -546,6 +554,7 @@ class Constant():
         'octopus': 'leap-15.2',
         'pacific': 'leap-15.3',
         'caasp4': 'sles-15-sp2',
+        'k3s': 'tumbleweed',
         'makecheck': 'tumbleweed',
     }
 

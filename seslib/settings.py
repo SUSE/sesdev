@@ -20,6 +20,11 @@ SETTINGS = {
         'help': 'Deploy SES using rook in CaasP',
         'default': False,
     },
+    'k3s_deploy_ses': {
+        'type': bool,
+        'help': 'Deploy SES using rook in k3s',
+        'default': False,
+    },
     'ceph_salt_git_repo': {
         'type': str,
         'help': 'If set, it will install ceph-salt from this git repo',
@@ -123,6 +128,11 @@ SETTINGS = {
     'image_path': {
         'type': str,
         'help': 'Deprecated container image path for Ceph daemons.',
+        'default': '',
+    },
+    'k3s_version': {
+        'type': str,
+        'help': 'k3s version to install (defaults to latest stable)',
         'default': '',
     },
     'ceph_image_path': {

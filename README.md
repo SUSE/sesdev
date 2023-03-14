@@ -51,6 +51,9 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [CaaSP k8s cluster](#caasp-k8s-cluster)
          * [CaaSP with Rook/Ceph/SES](#caasp-with-rookcephses)
          * [CaaSP on just one node](#caasp-on-just-one-node)
+      * [k3s (with or without Rook/Ceph/SES)](#k3s-with-or-without-rookcephses)
+         * [k3s cluster](#k3s-cluster)
+         * [k3s with Rook/Ceph/SES](#k3s-with-rookcephses)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
       * [With a FQDN environment](#with-a-fqdn-environment)
@@ -537,6 +540,34 @@ $ sesdev create caasp4 --single-node --deploy-ses
 Note: since passing `--single-node` without an explicit deployment name causes
 the name to be set to `DEPLOYMENT_VERSION-mini`, the resulting cluster from the
 example above would be called `caasp4-mini`.
+
+#### k3s (with or without Rook/Ceph/SES)
+
+##### k3s cluster
+
+To create a k3s cluster that has 4 `worker` nodes and
+a `master` node:
+
+```
+$ sesdev create k3s
+```
+
+This uses `curl -sfL https://get.k3s.io | -` to install k3s,
+and `curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash` to install helm.
+
+By default it just creates and configures a k3s cluster, and workers don't
+have any disks unless the `--deploy-ses` (see below) or `--num-disks` options
+are given.
+
+##### k3s with Rook/Ceph/SES
+
+To have sesdev deploy Rook on the k3s cluster, give the `--deploy-ses` option.
+The default disk size is 8G, number of worker nodes 4, number of disks per
+worker node 3:
+
+```
+$ sesdev create k3s --deploy-ses
+```
 
 #### On a remote libvirt server via SSH
 
