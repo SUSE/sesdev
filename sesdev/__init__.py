@@ -946,9 +946,12 @@ def caasp4(deployment_id, **kwargs):
               help='k3s version to install (defaults to latest stable)')
 def k3s(deployment_id, **kwargs):
     """
-    Creates a k3s cluster using Tumbleweed
+    Creates a k3s cluster using Tumbleweed by default, or SLE 15 SP3
+    if --deploy-ses is specified.
     """
     _prep_kwargs(kwargs)
+    if kwargs['deploy_ses'] and kwargs['os'] is None:
+        kwargs['os'] = 'sles-15-sp3'
     settings_dict = _gen_settings_dict('k3s', **kwargs)
     deployment_id = _maybe_gen_dep_id('k3s', deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
