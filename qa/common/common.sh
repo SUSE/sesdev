@@ -1094,13 +1094,12 @@ function nfs_maybe_list_objects_in_recovery_pool_test {
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
             # NFS Recovery Pool expected to exist
             skipped=""
-            local nfs_pool=".nfs"
-            if [ "$DEPLOYMENT_VERSION" = "octopus" ] ; then
-                nfs_pool="nfs-ganesha"
+            local nfs_pool="$(rados lspools | grep nfs)"
+            if [ "$nfs_pool" = nfs-ganesha -o "$nfs_pool" = .nfs ] ; then
+                set -x
+                rados --pool "$nfs_pool" --namespace sesdev_nfs ls | tee "$tmpfile"
+                set +x
             fi
-            set -x
-            rados --pool "$nfs_pool" --namespace sesdev_nfs ls | tee "$tmpfile"
-            set +x
             if [ -s "$tmpfile" ] ; then
                 result="OK"
             else
@@ -1130,7 +1129,7 @@ function nfs_maybe_create_export {
         if [ "$NFS_NODE_LIST" ] && [ "$MDS_NODE_LIST" ] ; then
             skipped=""
             set -x
-            if [ "$DEPLOYMENT_VERSION" = "octopus" ] ; then
+            if [[ "$(ceph --version)" < "ceph version 16" ]] ; then
                 ceph nfs export create cephfs sesdev_fs sesdev_nfs "/sesdev_nfs"
             else
                 ceph nfs export create cephfs sesdev_nfs "/sesdev_nfs" sesdev_fs
