@@ -185,5 +185,22 @@ if [ "$ACTUAL_NUMBER_OF_MGRS" -gt "1" ] ; then
 fi
 set -x
 
+set +x
+timeout_seconds="60"
+remaining_seconds="$timeout_seconds"
+interval_seconds="5"
+while true ; do
+    [ -r /etc/ceph/ceph.client.admin.keyring ] && break
+    remaining_seconds="$(( remaining_seconds - interval_seconds ))"
+    if [ "$remaining_seconds" -le "0" ] ; then
+        echo "It seems unlikely that /etc/ceph/ceph.client.admin.keyring will ever appear. Bailing out!"
+        echo "$(ls -l /etc/ceph)"
+        false
+    fi
+    echo "..."
+    sleep "$interval_seconds"
+done
+set -x
+
 ceph status
 echo "\"ceph status\" exit code: $?"
