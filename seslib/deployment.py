@@ -1514,6 +1514,7 @@ deployment might not be completely destroyed.
                               local_address=None):
         if local_address is None:
             local_address = 'localhost'
+        remote_address = None
 
         if service is not None:
             if service not in ['dashboard', 'grafana', 'suma', 'prometheus', 'alertmanager']:
@@ -1533,26 +1534,44 @@ deployment might not be completely destroyed.
                 local_port = 8443
                 service_url = 'https://{}:{}'.format(local_address, local_port)
                 ssh_cmd = self._ssh_cmd('master')
-                ssh_cmd += ["ceph", "mgr", "services"]
-                try:
-                    raw_json = tools.run_sync(ssh_cmd)
-                    raw_json = raw_json.strip()
-                    Log.debug("Got output: {}".format(raw_json))
-                    decoded_json = json.loads(raw_json)
-                    Log.debug("Decoded json: {}".format(decoded_json))
-                    dashboard_url = decoded_json['dashboard']
-                    Log.debug("Dashboard URL: {}".format(dashboard_url))
-                    dashboard_address = re.match(
-                        r"https://([^:]+)", dashboard_url).group(1)
-                    node = self._find_node_by_address(dashboard_address)
-                    if not node and dashboard_address:
-                        node = re.match(r"^([^.]+)", dashboard_address).group(1)
-                    Log.debug("Extracted node: {}".format(node))
-                except (CmdException, AttributeError, KeyError):
-                    node = 'null'
-                if node == 'null':
-                    raise ServiceNotFound(service)
-                print("dashboard is running on node '{}'".format(node))
+                if self.settings.version == 'k3s' and self.settings.k3s_deploy_ses:
+                    ssh_cmd += ["kubectl", "-n", "rook-ceph", "get", "service",
+                                "rook-ceph-mgr-dashboard", "--output", "json"]
+                    try:
+                        raw_json = tools.run_sync(ssh_cmd)
+                        raw_json = raw_json.strip()
+                        Log.debug(f"Got output: {raw_json}")
+                        decoded_json = json.loads(raw_json)
+                        Log.debug(f"Decoded json: {decoded_json}")
+                        remote_address = decoded_json['spec']['clusterIP']
+                        Log.debug(f"remote address: {remote_address}")
+                    except (CmdException, AttributeError, KeyError):
+                        pass
+                    if not remote_address:
+                        raise ServiceNotFound(service)
+                    print(f"dashboard remote address is '{remote_address}'")
+                    node = self.master.name
+                else:
+                    ssh_cmd += ["ceph", "mgr", "services"]
+                    try:
+                        raw_json = tools.run_sync(ssh_cmd)
+                        raw_json = raw_json.strip()
+                        Log.debug(f"Got output: {raw_json}")
+                        decoded_json = json.loads(raw_json)
+                        Log.debug(f"Decoded json: {decoded_json}")
+                        dashboard_url = decoded_json['dashboard']
+                        Log.debug(f"Dashboard URL: {dashboard_url}")
+                        dashboard_address = re.match(
+                            r"https://([^:]+)", dashboard_url).group(1)
+                        node = self._find_node_by_address(dashboard_address)
+                        if not node and dashboard_address:
+                            node = re.match(r"^([^.]+)", dashboard_address).group(1)
+                        Log.debug(f"Extracted node: {node}")
+                    except (CmdException, AttributeError, KeyError):
+                        node = 'null'
+                    if node == 'null':
+                        raise ServiceNotFound(service)
+                    print(f"dashboard is running on node '{node}'")
             elif service == 'suma':
                 node = 'master'
                 remote_port = 443
@@ -1581,9 +1600,11 @@ deployment might not be completely destroyed.
                 local_port = remote_port
             service_url = '{}:{}'.format(local_address, local_port)
 
+        if not remote_address:
+            remote_address = self.nodes[node].fqdn
         ssh_cmd = self._ssh_cmd(node)
         ssh_cmd.extend(["-M", "-S", "{}-admin-socket".format(self.dep_id), "-fNT", "-L",
-                        "{}:{}:{}:{}".format(local_address, local_port, self.nodes[node].fqdn,
+                        "{}:{}:{}:{}".format(local_address, local_port, remote_address,
                                              remote_port)])
         print("You can now access the service in: {}".format(service_url))
         tools.run_sync(ssh_cmd)
