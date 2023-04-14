@@ -223,3 +223,4 @@ prometheus_smoke_test
 grafana_smoke_test
 alertmanager_smoke_test
 node_exporter_smoke_test
+iscsi_test

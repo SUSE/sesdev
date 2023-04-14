@@ -1416,3 +1416,112 @@ function core_dump_test {
         false
     fi
 }
+
+function _iscsi_test {
+    local client gw_name gw_ip gwcli name node rbd_pool rbd_image target used
+    local username password
+
+    set -e
+    set -x
+
+    zypper install -y open-iscsi
+
+    username=myiscsiusername
+    password=myiscsipassword
+
+    sed -i -e "s/^# *node.session.auth.authmethod *=.*/node.session.auth.authmethod = CHAP/;
+               s/^# *node.session.auth.username *=.*/node.session.auth.username = ${username}/;
+               s/^# *node.session.auth.password *=.*/node.session.auth.password = ${password}/" \
+               /etc/iscsi/iscsid.conf
+
+    systemctl enable iscsid
+    systemctl start iscsid
+
+    client=$(sed -ne 's/^InitiatorName=//p' /etc/iscsi/initiatorname.iscsi)
+    target=iqn.2023-01.com.suse.iscsi-gw:iscsi-igw
+    rbd_pool=rbd
+    rbd_image=iscsi_disk_1
+    node=$(ceph orch ls --service-type iscsi --format json-pretty |
+           jq -r '.[].placement.hosts[0]')
+    gw_name=$(getent hosts ${node} | awk '{print $2}')
+    test -n "${gw_name}"
+    gw_ip=$(getent hosts ${node} | awk '{print $1}')
+    test -n "${gw_ip}"
+    name=$(ssh ${node} cephadm ls |
+           jq -r '.[] | select(.name | startswith("iscsi.")) | .name')
+    test -n "${name}"
+
+    ssh ${node} rbd showmapped | grep "${rbd_pool} *${rbd_image}" && false
+    rbd info ${rbd_pool}/${rbd_image} && false
+
+    gwcli="ssh ${node} cephadm enter --name "${name}" gwcli"
+
+    ${gwcli} /iscsi-targets create ${target}
+    ${gwcli} /iscsi-targets/${target}/gateways create ${gw_name} ${gw_ip} skipchecks=true
+    ${gwcli} /disks create pool=${rbd_pool} image=${rbd_image} size=1G
+    ${gwcli} /iscsi-targets/${target}/hosts create ${client}
+    ${gwcli} /iscsi-targets/${target}/hosts/${client} auth username=${username} password=${password}
+    ${gwcli} /iscsi-targets/${target}/hosts/${client} disk add ${rbd_pool}/${rbd_image}
+
+    ssh ${node} rbd showmapped | grep "${rbd_pool} *${rbd_image}"
+
+    iscsiadm -m discovery -t st -p ${node}
+    test $(iscsiadm -m discovery -t st -p node1 | awk '{print $2; exit}') = ${target}
+
+    ! test -e /dev/sda
+
+    iscsiadm -m node -T ${target} -l
+
+    for i in `seq 10`; do
+        test -e /sys/block/sda/device/model && break
+        sleep 1
+    done
+    test -e /dev/sda
+    test -e /sys/block/sda/device/model
+    test $(cat /sys/block/sda/device/model) = RBD
+
+    rbd du ${rbd_pool}/${rbd_image}
+    used=$(rbd du ${rbd_pool}/${rbd_image} --format json |
+           jq -r ".images[0].used_size")
+    test ${used} -eq 0
+
+    dd if=/dev/zero of=/dev/sda bs=4M count=10
+
+    rbd du ${rbd_pool}/${rbd_image}
+    used=$(rbd du ${rbd_pool}/${rbd_image} --format json |
+           jq -r ".images[0].used_size")
+    test ${used} -eq 41943040
+
+    iscsiadm -m node -T ${target} -u
+
+    ${gwcli} /iscsi-targets/${target}/hosts delete ${client}
+    ${gwcli} /iscsi-targets/${target}/disks delete ${rbd_pool}/${rbd_image}
+    ${gwcli} /iscsi-targets/${target}/gateways delete ${gw_name} confirm=true
+    ${gwcli} /iscsi-targets delete ${target}
+    ${gwcli} /disks detach ${rbd_pool}/${rbd_image}
+
+    ssh ${node} rbd showmapped | grep "${rbd_pool} *${rbd_image}" && false
+
+    rbd rm ${rbd_pool}/${rbd_image}
+}
+
+function iscsi_test {
+    echo
+    echo "WWWW: iscsi_test"
+
+    if [ -z "${IGW_NODES}" -o ${IGW_NODES} -eq 0 ] ; then
+        echo "WWWW: iscsi_test: SKIPPED"
+        echo
+        return
+    fi
+
+    (_iscsi_test)
+    if [ $? -eq 0 ]; then
+        echo "WWWW: iscsi_test: OK"
+        echo
+    else
+        echo "WWWW: iscsi_test: FAIL"
+        echo
+        false
+    fi
+}
