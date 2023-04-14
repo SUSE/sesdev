@@ -185,5 +185,19 @@ if [ "$ACTUAL_NUMBER_OF_MGRS" -gt "1" ] ; then
 fi
 set -x
 
-ceph status
-echo "\"ceph status\" exit code: $?"
+set +x
+echo "ceph status"
+if ! ceph status ; then
+    echo "\"ceph status\" failed, dumping contents of /etc/ceph"
+    ls -l /etc/ceph
+    for f in /etc/ceph/* ; do
+        echo -e "\n$f:"
+        cat $f
+    done
+    for f in /var/log/ceph/cephadm* /var/log/ceph-salt.log ; do
+        echo -e "\n$f:"
+        cat $f
+    done
+    false
+fi
+set -x
