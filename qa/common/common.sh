@@ -1466,7 +1466,7 @@ function _iscsi_test {
     ssh ${node} rbd showmapped | grep "${rbd_pool} *${rbd_image}"
 
     iscsiadm -m discovery -t st -p ${node}
-    test $(iscsiadm -m discovery -t st -p node1 | awk '{print $2; exit}') = ${target}
+    test $(iscsiadm -m discovery -t st -p ${node} | awk '{print $2; exit}') = ${target}
 
     ! test -e /dev/sda
 
