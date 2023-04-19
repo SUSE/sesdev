@@ -950,7 +950,10 @@ def k3s(deployment_id, **kwargs):
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('k3s', **kwargs)
-    deployment_id = _maybe_gen_dep_id('k3s', deployment_id, settings_dict)
+    default_dep_id = 'k3s'
+    if kwargs['deploy_ses']:
+        default_dep_id += '-ses'
+    deployment_id = _maybe_gen_dep_id(default_dep_id, deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
 
 
