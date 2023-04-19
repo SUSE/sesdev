@@ -54,6 +54,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [k3s (with or without Rook/Ceph/SES)](#k3s-with-or-without-rookcephses)
          * [k3s cluster](#k3s-cluster)
          * [k3s with Rook/Ceph/SES](#k3s-with-rookcephses)
+         * [k3s with Longhorn](#k3s-with-longhorn)
       * [On a remote libvirt server via SSH](#on-a-remote-libvirt-server-via-ssh)
       * [Using salt instead of DeepSea/ceph-salt CLI](#using-salt-instead-of-deepseaceph-salt-cli)
       * [With a FQDN environment](#with-a-fqdn-environment)
@@ -556,8 +557,8 @@ This uses `curl -sfL https://get.k3s.io | -` to install k3s,
 and `curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash` to install helm.
 
 By default it just creates and configures a k3s cluster, and workers don't
-have any disks unless the `--deploy-ses` (see below) or `--num-disks` options
-are given.
+have any disks unless the `--deploy-ses`, `--deploy-longhorn` (see below)
+or `--num-disks` options are given.
 
 ##### k3s with Rook/Ceph/SES
 
@@ -568,6 +569,29 @@ worker node 3:
 ```
 $ sesdev create k3s --deploy-ses
 ```
+
+##### k3s with Longhorn
+
+To have sesdev deploy [Longhorn](https://longhorn.io) instead of Ceph, give
+the `--deploy-longhorn` option.  By default this will deploy 4 worker nodes
+each with one additional 8G disk, mounted at /var/lib/longhorn, and will
+install the latest stable version of Longhorn:
+
+```
+$ sesdev create k3s --deploy-longhorn
+```
+
+To deploy a specific version of Longorn, use the `--longhorn-version` option
+to specify a tag name from https://github.com/longhorn/longhorn/tags, e.g.:
+
+```
+$ sesdev create k3s --deploy-longhorn --longhorn-version=v1.4.1
+```
+
+Currently Longhorn deployments will only use _one_ disk.  If more are
+specified using the `--num-disks` option, only the first disk will be
+mounted for use by Longhorn.  All other additional disks will remain
+untouched.
 
 #### On a remote libvirt server via SSH
 

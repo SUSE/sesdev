@@ -25,6 +25,11 @@ SETTINGS = {
         'help': 'Deploy SES using rook in k3s',
         'default': False,
     },
+    'k3s_deploy_longhorn': {
+        'type': bool,
+        'help': 'Deploy Longhorn on k3s',
+        'default': False
+    },
     'ceph_salt_git_repo': {
         'type': str,
         'help': 'If set, it will install ceph-salt from this git repo',
@@ -133,6 +138,11 @@ SETTINGS = {
     'k3s_version': {
         'type': str,
         'help': 'k3s version to install (defaults to latest stable)',
+        'default': '',
+    },
+    'longhorn_version': {
+        'type': str,
+        'help': 'Longhorn version to install (defaults to latest stable)',
         'default': '',
     },
     'ceph_image_path': {
