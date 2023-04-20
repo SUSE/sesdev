@@ -87,6 +87,10 @@ helm version
 # by default, which of course won't work.
 echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /etc/profile.local
 
+# The earlier addition of KUBECONFIG to /etc/profile.local won't help
+# us in this current session, so also need to set it explicitly here.
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
 {% if k3s_deploy_ses %}
 
 mkdir -p ~/cluster
@@ -99,9 +103,6 @@ tar -xzf rook-ceph-*.tgz
 
 kubectl create namespace rook-ceph
 
-# The earlier addition of KUBECONFIG to /etc/profile.local won't help
-# us in this current session, so need to set it explicitly here.
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 helm install -n rook-ceph rook-ceph ./rook-ceph/
 
 echo "Waiting for the rook operator"
@@ -123,30 +124,15 @@ kubectl create -f rook-ceph/examples/toolbox.yaml
 
 {% if k3s_deploy_longhorn %}
 
-{% if longhorn_version %}
-longhorn_version={{ longhorn_version }}
-{% else %}
-longhorn_version=$(
-    curl -sL \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version:2022-11-28" \
-        https://api.github.com/repos/longhorn/longhorn/releases | \
-    jq -r '.[].tag_name' | \
-    grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | \
-    sort --version-sort --reverse | \
-    head -n 1
-)
-{% endif %}
-
-curl -sSfL https://raw.githubusercontent.com/longhorn/longhorn/${longhorn_version}/scripts/environment_check.sh | bash
-
-curl -sSLO https://raw.githubusercontent.com/longhorn/longhorn/${longhorn_version}/deploy/longhorn.yaml
-
 # Make longhorn create default disks on all nodes that aren't the master
-sed -i '/default-setting\.yaml: |-/a \ \ \ \ create-default-disk-labeled-nodes: true' longhorn.yaml
 kubectl label node -l 'node-role.kubernetes.io/master!=true' node.longhorn.io/create-default-disk=true
 
-kubectl apply -f longhorn.yaml
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn \
+    --namespace longhorn-system \
+    --create-namespace {{ "--version {}".format(longhorn_version) if longhorn_version }} \
+    --set defaultSettings.createDefaultDiskLabeledNodes=true
 
 # On k3s this just gives a traefik ingress for the UI with no authentication
 echo "

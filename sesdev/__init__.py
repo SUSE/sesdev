@@ -964,7 +964,7 @@ def caasp4(deployment_id, **kwargs):
 @click.option("--deploy-longhorn", is_flag=True, default=False,
               help="Deploy Longhorn on k3s")
 @click.option("--longhorn-version", default=None,
-              help='Longhorn version to install, e.g. "v1.4.1" (defaults to latest stable)')
+              help='Longhorn version to install, e.g. "1.4.1" (defaults to latest stable)')
 @click.option("--k3s-version", default=None,
               help='k3s version to install (defaults to latest stable)')
 def k3s(deployment_id, **kwargs):

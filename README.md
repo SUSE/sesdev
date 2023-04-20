@@ -581,11 +581,10 @@ install the latest stable version of Longhorn:
 $ sesdev create k3s --deploy-longhorn
 ```
 
-To deploy a specific version of Longorn, use the `--longhorn-version` option
-to specify a tag name from https://github.com/longhorn/longhorn/tags, e.g.:
+To deploy a specific version of Longorn, use the `--longhorn-version` option:
 
 ```
-$ sesdev create k3s --deploy-longhorn --longhorn-version=v1.4.1
+$ sesdev create k3s --deploy-longhorn --longhorn-version=1.4.1
 ```
 
 Currently Longhorn deployments will only use _one_ disk.  If more are
