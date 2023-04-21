@@ -147,6 +147,8 @@ def common_create_options(func):
                                                 'sles-15-sp1',
                                                 'sles-15-sp2',
                                                 'sles-15-sp3',
+                                                'sles-15-sp4',
+                                                'sles-15-sp5',
                                                 'ubuntu-bionic']),
                      default=None, help='OS (open)SUSE distro'),
         click.option('--provision/--no-provision',
