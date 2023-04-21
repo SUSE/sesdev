@@ -387,6 +387,7 @@ def _gen_settings_dict(
         deepsea_branch=None,
         deepsea_repo=None,
         deploy_ses=None,
+        deploy_longhorn=None,
         devel=None,
         disk_size=None,
         dry_run=None,
@@ -437,6 +438,7 @@ def _gen_settings_dict(
         msgr2_secure_mode=None,
         msgr2_prefer_secure=None,
         k3s_version=None,
+        longhorn_version=None,
 ):
 
     settings_dict = {}
@@ -665,6 +667,9 @@ def _gen_settings_dict(
     if deploy_ses and version == 'k3s':
         settings_dict['k3s_deploy_ses'] = True
 
+    if deploy_longhorn and version == 'k3s':
+        settings_dict['k3s_deploy_longhorn'] = True
+
     for folder in synced_folder:
         try:
             src, dst = folder.split(':')
@@ -704,6 +709,9 @@ def _gen_settings_dict(
 
     if k3s_version is not None:
         settings_dict['k3s_version'] = k3s_version
+
+    if longhorn_version is not None:
+        settings_dict['longhorn_version'] = longhorn_version
 
     return settings_dict
 
@@ -790,6 +798,17 @@ def _create_command(deployment_id, settings_dict):
                     click.echo("  # kubectl -n rook-ceph exec -it deploy/rook-ceph-tools -- bash")
                     click.echo()
                     click.echo("Inside the toolbox you can use the ceph CLI (`ceph status` etc.)")
+                    click.echo()
+                if dep.settings.k3s_deploy_longhorn:
+                    click.echo("Longhorn will now be deploying, which may take some time.")
+                    click.echo("After logging into the cluster, try these:")
+                    click.echo()
+                    click.echo("  # kubectl get pods -n longhorn-system --watch")
+                    click.echo("  # kubectl get pods -n longhorn-system")
+                    click.echo()
+                    click.echo("The Longhorn UI will be accessible via any cluster IP address")
+                    click.echo("(see the `kubectl -n longhorn-system get ingress` output above).")
+                    click.echo("Note that no authentication is required.")
                     click.echo()
             else:
                 click.echo("Or, access the Ceph Dashboard with:")
@@ -942,6 +961,10 @@ def caasp4(deployment_id, **kwargs):
 @libvirt_options
 @click.option("--deploy-ses", is_flag=True, default=False,
               help="Deploy SES using rook in k3s")
+@click.option("--deploy-longhorn", is_flag=True, default=False,
+              help="Deploy Longhorn on k3s")
+@click.option("--longhorn-version", default=None,
+              help='Longhorn version to install, e.g. "1.4.1" (defaults to latest stable)')
 @click.option("--k3s-version", default=None,
               help='k3s version to install (defaults to latest stable)')
 def k3s(deployment_id, **kwargs):
@@ -950,7 +973,12 @@ def k3s(deployment_id, **kwargs):
     """
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('k3s', **kwargs)
-    deployment_id = _maybe_gen_dep_id('k3s', deployment_id, settings_dict)
+    default_dep_id = 'k3s'
+    if kwargs['deploy_ses']:
+        default_dep_id += '-ses'
+    if kwargs['deploy_longhorn']:
+        default_dep_id += '-longhorn'
+    deployment_id = _maybe_gen_dep_id(default_dep_id, deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
 
 

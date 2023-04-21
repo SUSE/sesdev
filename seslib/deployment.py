@@ -265,8 +265,10 @@ class Deployment():  # use Deployment.create() to create a Deployment object
     def __maybe_adjust_num_disks(self):
         single_node = self.settings.single_node or len(self.settings.roles) == 1
         storage_nodes = self.node_counts["storage"]
+        # pylint: disable=too-many-boolean-expressions
         if ((self.settings.version == 'caasp4' and self.settings.caasp_deploy_ses) or
-            (self.settings.version == 'k3s' and self.settings.k3s_deploy_ses)):
+            (self.settings.version == 'k3s' and self.settings.k3s_deploy_ses) or
+            (self.settings.version == 'k3s' and self.settings.k3s_deploy_longhorn)):
             if single_node:
                 storage_nodes = 1
             else:
@@ -274,7 +276,9 @@ class Deployment():  # use Deployment.create() to create a Deployment object
         Log.debug("__maybe_adjust_num_disks: storage_nodes == {}".format(storage_nodes))
         if not self.settings.explicit_num_disks and storage_nodes:
             new_num_disks = None
-            if storage_nodes == 1:
+            if self.settings.k3s_deploy_longhorn:
+                new_num_disks = 1
+            elif storage_nodes == 1:
                 new_num_disks = 4
             elif storage_nodes == 2:
                 new_num_disks = 3
@@ -423,6 +427,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
                         node.ram = 2 * 2**10
                 if (self.settings.caasp_deploy_ses or
                    self.settings.k3s_deploy_ses or
+                   self.settings.k3s_deploy_longhorn or
                    self.settings.explicit_num_disks):
                     if 'worker' in node_roles or single_node:
                         for _ in range(self.settings.num_disks):
@@ -677,6 +682,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'node_manager': NodeManager(list(self.nodes.values())),
             'caasp_deploy_ses': self.settings.caasp_deploy_ses,
             'k3s_deploy_ses': self.settings.k3s_deploy_ses,
+            'k3s_deploy_longhorn': self.settings.k3s_deploy_longhorn,
             'synced_folders': self.settings.synced_folder,
             'makecheck_ceph_repo': self.settings.makecheck_ceph_repo,
             'makecheck_ceph_branch': self.settings.makecheck_ceph_branch,
@@ -698,7 +704,8 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             'rgw_ssl': self.settings.rgw_ssl,
             'internal_media_repo': self.internal_media_repo,
             'developer_tools_repos': self.developer_tools_repos,
-            'k3s_version': self.settings.k3s_version
+            'k3s_version': self.settings.k3s_version,
+            'longhorn_version': self.settings.longhorn_version,
         }
 
         scripts = {}

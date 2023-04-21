@@ -7,6 +7,12 @@ zypper --non-interactive install curl openssl
 # need this to pick up kubectl, helm etc. which are installed to /usr/local/bin
 export PATH=$PATH:/usr/local/bin
 
+{% if k3s_deploy_longhorn %}
+zypper --non-interactive install nfs-client open-iscsi e2fsprogs
+systemctl enable iscsid
+systemctl start iscsid
+{% endif %} {# k3s_deploy_longhorn #}
+
 {% if k3s_version %}
 export INSTALL_K3S_VERSION={{ k3s_version }}
 {% endif %}
@@ -81,6 +87,10 @@ helm version
 # by default, which of course won't work.
 echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> /etc/profile.local
 
+# The earlier addition of KUBECONFIG to /etc/profile.local won't help
+# us in this current session, so also need to set it explicitly here.
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
 {% if k3s_deploy_ses %}
 
 mkdir -p ~/cluster
@@ -93,9 +103,6 @@ tar -xzf rook-ceph-*.tgz
 
 kubectl create namespace rook-ceph
 
-# The earlier addition of KUBECONFIG to /etc/profile.local won't help
-# us in this current session, so need to set it explicitly here.
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 helm install -n rook-ceph rook-ceph ./rook-ceph/
 
 echo "Waiting for the rook operator"
@@ -114,6 +121,42 @@ echo "Creating toolbox container..."
 kubectl create -f rook-ceph/examples/toolbox.yaml
 
 {% endif %} {# k3s_deploy_ses #}
+
+{% if k3s_deploy_longhorn %}
+
+# Make longhorn create default disks on all nodes that aren't the master
+kubectl label node -l 'node-role.kubernetes.io/master!=true' node.longhorn.io/create-default-disk=true
+
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn \
+    --namespace longhorn-system \
+    --create-namespace {{ "--version {}".format(longhorn_version) if longhorn_version }} \
+    --set defaultSettings.createDefaultDiskLabeledNodes=true
+
+# On k3s this just gives a traefik ingress for the UI with no authentication
+echo "
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: longhorn-ingress
+  namespace: longhorn-system
+spec:
+  rules:
+  - http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: longhorn-frontend
+            port:
+              number: 80
+" | kubectl -n longhorn-system create -f -
+
+kubectl -n longhorn-system get ingress
+
+{% endif %} {# k3s_deploy_longhorn #}
 
 {% else %} {# node == master #}
 
@@ -147,5 +190,16 @@ export K3S_TOKEN=$(cat /tmp/k3s_token)
 rm /tmp/k3s_token
 
 curl -sfL https://get.k3s.io | K3S_URL=https://{{ master.fqdn }}:6443 sh -
+
+{% if k3s_deploy_longhorn %}
+if [ ! -b /dev/vdb ]; then
+    echo "ERROR: Longhorn deployments require one additional disk"
+    false
+fi
+mkfs.ext4 /dev/vdb
+mkdir /var/lib/longhorn
+echo "/dev/vdb /var/lib/longhorn ext4 defaults 0 2" >> /etc/fstab
+mount /var/lib/longhorn
+{% endif %} {# k3s_deploy_longhorn #}
 
 {% endif %}
