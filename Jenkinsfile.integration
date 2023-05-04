@@ -244,6 +244,17 @@ pipeline {
             }
         }
         cleanup {
+            node("${testbed_node}") {
+                sh """
+                    source venv/bin/activate
+                    mkdir artifacts
+                    sesdev scp -r mini master:/var/log/ceph artifacts/ || true
+                    sesdev scp -r mini master:/var/log/salt artifacts/ || true
+                    sesdev scp mini master:/var/log/ceph-salt.log artifacts/ || true
+
+                """
+                archiveArtifacts artifacts: 'artifacts/**/*', allowEmptyArchive: true
+            }
             node("${compute_node}") {
                 retry(10) {
                     sh """
