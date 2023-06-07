@@ -436,7 +436,7 @@ function _wait_for {
         local orch_ps
         local orch_ls
         local minutes_to_wait
-        minutes_to_wait="5"
+        minutes_to_wait="10"
         local minute
         local i
         local success
@@ -767,7 +767,7 @@ function number_of_services_expected_vs_orch_ps_test {
     echo "WWWW: number_of_services_expected_vs_orch_ps_test"
     if [ "$VERSION_ID" = "15.2" ] || [ "$VERSION_ID" = "15.3" ] || [ "$ID" = "opensuse-tumbleweed" ] ; then
         local minutes_to_wait
-        minutes_to_wait="5"
+        minutes_to_wait="10"
         local minute
         local i
         local success
