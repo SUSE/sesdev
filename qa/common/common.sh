@@ -1484,7 +1484,11 @@ function _iscsi_test {
            jq -r ".images[0].used_size")
     test ${used} -eq 0
 
-    dd if=/dev/zero of=/dev/sda bs=4M count=10
+    dd if=/dev/urandom of=/tmp/test.dat bs=4M count=10
+    dd if=/tmp/test.dat of=/dev/sda bs=4M count=10
+
+    test "$(dd if=/tmp/test.dat bs=4M count=10 | md5sum)" = \
+	 "$(dd if=/dev/sda bs=4M count=10 | md5sum)"
 
     rbd du ${rbd_pool}/${rbd_image}
     used=$(rbd du ${rbd_pool}/${rbd_image} --format json |
