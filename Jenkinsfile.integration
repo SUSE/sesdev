@@ -251,6 +251,8 @@ pipeline {
                     sesdev scp -r mini master:/var/log/ceph artifacts/ || true
                     sesdev scp -r mini master:/var/log/salt artifacts/ || true
                     sesdev scp mini master:/var/log/ceph-salt.log artifacts/ || true
+                    sesdev ssh mini master -- ps auxww --forest > artifacts/ps || true
+                    sesdev ssh mini master journalctl > artifacts/journalctl || true
 
                 """
                 archiveArtifacts artifacts: 'artifacts/**/*', allowEmptyArchive: true
