@@ -68,7 +68,7 @@ def cloud_params = [
 ]
 
 def sesdev_create_cmd(ceph_salt_git_repo, ceph_salt_git_branch, extra_repo_urls) {
-    cmd = "sesdev create pacific --non-interactive"
+    cmd = "sesdev create pacific --salt --non-interactive"
     if (!ceph_salt_git_repo.isEmpty()) {
         if (ceph_salt_git_branch.isEmpty()) {
             error('ceph-salt git repo set, but no ceph-salt git branch given')
