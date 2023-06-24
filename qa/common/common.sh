@@ -1418,7 +1418,7 @@ function core_dump_test {
 
 function _iscsi_test {
     local client gw_name gw_ip gwcli name node rbd_pool rbd_image target used
-    local backstore i username password
+    local supported_backstores backstore i username password
 
     set -e
     set -x
@@ -1449,7 +1449,13 @@ function _iscsi_test {
            jq -r '.[] | select(.name | startswith("iscsi.")) | .name')
     test -n "${name}"
 
-    for backstore in rbd user:rbd; do
+    if [ ${ID} = sles ]; then
+	supported_backstores='rbd user:rbd'
+    else
+	supported_backstores='rbd'
+    fi
+
+    for backstore in ${supported_backstores}; do
         rbd_image=iscsi_disk_${backstore%:*}
         ssh ${node} rbd showmapped | grep "${rbd_pool} *${rbd_image}" && false
         rbd info ${rbd_pool}/${rbd_image} && false
