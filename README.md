@@ -36,12 +36,12 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
          * [Install Vagrant on openSUSE Leap 15.2, SLE-15-SP2 or Tumbleweed](#install-vagrant-on-opensuse-leap-152-sle-15-sp2-or-tumbleweed)
          * [Install Vagrant on openSUSE Leap 15.1, SLE-15-SP1](#install-vagrant-on-opensuse-leap-151-sle-15-sp1)
          * [Vagrant RPM from Hashicorp website](#vagrant-rpm-from-hashicorp-website)
-      * [Install sesdev from package](#install-sesdev-from-package)
+      * [Install sesdev from source](#install-sesdev-from-source)
    * [Install sesdev on Fedora Linux](#install-sesdev-on-fedora-linux)
       * [Install KVM/QEMU and Libvirt](#install-kvmqemu-and-libvirt-1)
-      * [Install sesdev from package](#install-sesdev-from-package-1)
+      * [Install sesdev from source](#install-sesdev-from-source-1)
    * [Install sesdev on Debian/Ubuntu](#install-sesdev-on-debianubuntu)
-   * [Install sesdev from source](#install-sesdev-from-source)
+   * [Install sesdev from source](#install-sesdev-from-source-2)
       * [Running the unit tests](#running-the-unit-tests)
       * [Install shell autocompletion](#install-shell-autocompletion)
 * [Usage](#usage)
@@ -111,10 +111,6 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
 First, you should have both [QEMU](https://www.qemu.org/) and
 [Libvirt](https://libvirt.org/) installed in some machine to host the VMs
 created by sesdev (using Vagrant behind the scenes).
-
-Installable packages for various Linux distributions like Fedora or openSUSE can
-be found on the [openSUSE Build Service](https://software.opensuse.org//download.html?project=filesystems%3Aceph&package=sesdev)
-(OBS).
 
 ### Install sesdev on openSUSE or SUSE Linux Enterprise
 
@@ -198,26 +194,10 @@ Finally, run the following command as the user you run sesdev with:
 
     vagrant plugin install vagrant-libvirt
 
-#### Install sesdev from package
+#### Install sesdev from source
 
-sesdev itself can be installed either from package or from source. If you
-prefer to install from package, follow the instructions in this section. If you
-prefer to install from source, skip down to the "Install sesdev from source"
-section.
-
-Run the following commands as root:
-
-```
-# zypper ar https://download.opensuse.org/repositories/filesystems:/ceph/<repo> filesystems_ceph
-# zypper ref
-# zypper install sesdev
-```
-
-Where `<repo>` can be any of the openSUSE build targets currently enabled for
-the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/package/show/filesystems:ceph/sesdev).
-
-At this point, sesdev should be installed and ready to use: refer to the
-[Usage](#usage) chapter, below, for further information.
+Proceed to [Install sesdev from source](#install-sesdev-from-source-2),
+then refer to the [Usage](#usage) chapter, below, for further information.
 
 ### Install sesdev on Fedora Linux
 
@@ -232,34 +212,17 @@ libvirt-daemon libvirt-daemon-driver-qemu vagrant-libvirt
 # systemctl restart libvirtd
 ```
 
-#### Install sesdev from package
+#### Install sesdev from source
 
-Run the following commands as root:
-
-```
-# dnf config-manager --add-repo \
-https://download.opensuse.org/repositories/filesystems:/ceph/<distro>/filesystems:ceph.repo
-# dnf install sesdev
-```
-
-Where `<distro>` can be any of the Fedora build targets currently enabled for
-the [sesdev package in the openSUSE Build Service](https://build.opensuse.org/package/show/filesystems:ceph/sesdev).
-
-At this point, sesdev should be installed and ready to use: refer to the
-[Usage](#usage) chapter, below, for further information.
+Proceed to [Install sesdev from source](#install-sesdev-from-source-2),
+then refer to the [Usage](#usage) chapter, below, for further information.
 
 ### Install sesdev on Debian/Ubuntu
 
-sesdev is known to work on recent Ubuntu versions, but there is no package
-for it: you have to install from source. Follow the instructions given in
-[Install sesdev from source](#install-sesdev-from-source).
+sesdev is known to work on recent Ubuntu versions.  Follow the instructions given in
+[Install sesdev from source](#install-sesdev-from-source-2).
 
 ### Install sesdev from source
-
-sesdev itself can be installed either from package or from source. If you
-prefer to install from source, follow the instructions in this section. If you
-prefer to install from package, scroll up to the "Install sesdev from package"
-section for your operating system.
 
 sesdev uses the libvirt API Python bindings, and these cannot be installed via
 pip unless the RPM packages "gcc", "python3-devel", and "libvirt-devel" are
