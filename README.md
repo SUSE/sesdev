@@ -182,13 +182,13 @@ from OBS, it is possible to install vagrant from the official RPMs published on
 [the Hashicorp website](https://www.vagrantup.com/downloads.html).
 
 To install vagrant and its libvirt plugin from Hashicorp, the following
-procedure has been known to work (run the commands as root):
+procedure has been known to work with vagrant 2.4.0 (run the commands as root):
 
 1. download vagrant RPM from https://releases.hashicorp.com/vagrant/
-2. install make (``zypper install make``)
+2. install make and libvirt-devel (``zypper install make libvirt-devel``)
 3. install vagrant (``rpm -i <the RPM you just downloaded>``)
 4. delete file that causes libvirt plugin compilation to fail
-   (``rm /opt/vagrant/embedded/lib/libreadline.so.7``)
+   (``rm /opt/vagrant/embedded/lib/libreadline.so.8``)
 
 Finally, run the following command as the user you run sesdev with:
 
