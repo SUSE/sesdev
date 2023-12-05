@@ -8,7 +8,7 @@ zypper --non-interactive install curl openssl
 export PATH=$PATH:/usr/local/bin
 
 {% if k3s_deploy_longhorn %}
-zypper --non-interactive install nfs-client open-iscsi e2fsprogs
+zypper --non-interactive install nfs-client open-iscsi e2fsprogs lvm2
 systemctl enable iscsid
 systemctl start iscsid
 {% endif %} {# k3s_deploy_longhorn #}
@@ -193,12 +193,16 @@ curl -sfL https://get.k3s.io | K3S_URL=https://{{ master.fqdn }}:6443 sh -
 
 {% if k3s_deploy_longhorn %}
 if [ ! -b /dev/vdb ]; then
-    echo "ERROR: Longhorn deployments require one additional disk"
+    echo "ERROR: Longhorn deployments require at least one additional disk"
     false
 fi
-mkfs.ext4 /dev/vdb
+
+# This won't handle more than 25 disks.  Tim is pretty sure that's fine.
+vgcreate longhorn /dev/vd[b-z]
+lvcreate --name longhorn-data -l 100%VG longhorn
+mkfs.ext4 /dev/longhorn/longhorn-data
 mkdir /var/lib/longhorn
-echo "/dev/vdb /var/lib/longhorn ext4 defaults 0 2" >> /etc/fstab
+echo "/dev/longhorn/longhorn-data /var/lib/longhorn ext4 defaults 0 2" >> /etc/fstab
 mount /var/lib/longhorn
 {% endif %} {# k3s_deploy_longhorn #}
 
