@@ -185,7 +185,7 @@ To install vagrant and its libvirt plugin from Hashicorp, the following
 procedure has been known to work with vagrant 2.4.0 (run the commands as root):
 
 1. download vagrant RPM from https://releases.hashicorp.com/vagrant/
-2. install make and libvirt-devel (``zypper install make libvirt-devel``)
+2. install gcc, make and libvirt-devel (``zypper install gcc make libvirt-devel``)
 3. install vagrant (``rpm -i <the RPM you just downloaded>``)
 4. delete file that causes libvirt plugin compilation to fail
    (``rm /opt/vagrant/embedded/lib/libreadline.so.8``)
