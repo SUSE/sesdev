@@ -14,7 +14,7 @@ class Constant():
 
     CONFIG_FILE = os.path.join(A_WORKING_DIR, 'config.yaml')
 
-    CORE_VERSIONS = ['nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific']
+    CORE_VERSIONS = ['nautilus', 'ses6', 'octopus', 'ses7', 'ses7p', 'pacific', 'quincy', 'reef']
 
     DEBUG = False
 
@@ -91,6 +91,12 @@ class Constant():
                           'ceph/keepalived:latest',
             'snmp-gateway': 'registry.opensuse.org/filesystems/ceph/pacific/images/'
                             'ceph/prometheus-snmp_notifier:latest',
+        },
+        'quincy': {
+            'ceph': 'quay.io/ceph/ceph:v17',
+        },
+        'reef': {
+            'ceph': 'quay.io/ceph/ceph:v18',
         },
     }
 
@@ -429,6 +435,8 @@ class Constant():
         'nautilus': ROLES_DEFAULT["nautilus"],
         'octopus': ROLES_DEFAULT["octopus"],
         'pacific': ROLES_DEFAULT["octopus"],
+        'quincy': ROLES_DEFAULT["octopus"],
+        'reef': ROLES_DEFAULT["octopus"],
         'ses6': ROLES_DEFAULT["nautilus"],
         'ses7': ROLES_DEFAULT["ses7"],
         'ses7p': ROLES_DEFAULT["ses7"],
@@ -518,6 +526,18 @@ class Constant():
             ],
             'ubuntu-focal': [],
         },
+        'quincy': {
+            'leap-15.2': [],
+            'leap-15.3': [],
+            'tumbleweed': [],
+            'ubuntu-focal': [],
+        },
+        'reef': {
+            'leap-15.2': [],
+            'leap-15.3': [],
+            'tumbleweed': [],
+            'ubuntu-focal': [],
+        },
         'ses7': {
             'sles-15-sp2': [
                 'http://download.nue.suse.com/ibs/Devel:/Storage:/7.0/images/repo/'
@@ -587,6 +607,8 @@ class Constant():
         'nautilus': 'deepsea',
         'octopus': 'cephadm',
         'pacific': 'cephadm',
+        'quincy': 'cephadm',
+        'reef': 'cephadm',
         'caasp4': None,
         'k3s': None,
         'makecheck': None,
@@ -599,6 +621,8 @@ class Constant():
         'nautilus': 'leap-15.1',
         'octopus': 'leap-15.2',
         'pacific': 'leap-15.3',
+        'quincy': 'ubuntu-focal',
+        'reef': 'ubuntu-focal',
         'caasp4': 'sles-15-sp2',
         'k3s': 'tumbleweed',
         'makecheck': 'tumbleweed',
@@ -612,6 +636,8 @@ class Constant():
         'octopus': 'Ceph Octopus',
         'ses7': 'SES 7',
         'pacific': 'Ceph Pacific',
+        'quincy': 'Ceph Quincy',
+        'reef': 'Ceph Reef',
         'ses7p': 'SES 7.1',
         'makecheck': 'Ceph makecheck',
     }
