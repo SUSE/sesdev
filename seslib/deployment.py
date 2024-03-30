@@ -1199,6 +1199,15 @@ deployment might not be completely destroyed.
                                             self.settings.os,
                                             self.settings.version
                                             )
+        # experimental Ubuntu Focal
+        if self.settings.os in ['ubuntu-focal']:
+            if self.settings.version in ['octopus', 'pacific', 'quincy', 'reef']:
+                pass  # we support
+            else:
+                raise VersionOSNotSupported(
+                                            self.settings.os,
+                                            self.settings.version
+                                            )
         # no node may have more than one of any role
         for node in self.settings.roles:
             for role in Constant.ROLES_KNOWN:

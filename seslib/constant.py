@@ -192,6 +192,10 @@ class Constant():
             'repo': 'https://github.com/ceph/ceph',
             'branch': 'master',
         },
+        'ubuntu-focal': {
+            'repo': 'https://github.com/ceph/ceph',
+            'branch': 'main',
+        },
     }
 
     METADATA_FILENAME = ".metadata"
@@ -212,6 +216,7 @@ class Constant():
         'opensuse/Leap-15.3.x86_64': 'leap-15.3',
         'opensuse/Tumbleweed.x86_64': 'tumbleweed',
         'generic/ubuntu1804': 'ubuntu-bionic',
+        'generic/ubuntu2004': 'ubuntu-focal',
     }
 
     OS_BOX_ALIASES = {v: k for k, v in OS_ALIASED_BOXES.items()}
@@ -302,6 +307,7 @@ class Constant():
         'leap-15.4': 'zypper',
         'tumbleweed': 'zypper',
         'ubuntu-bionic': 'apt',
+        'ubuntu-focal': 'apt',
     }
 
     OS_CA_REPO = {
@@ -495,6 +501,7 @@ class Constant():
                 'openSUSE_Tumbleweed'
             ],
             'ubuntu-bionic': [],
+            'ubuntu-focal': [],
         },
         'pacific': {
             'leap-15.2': [
@@ -509,6 +516,7 @@ class Constant():
                 'https://download.opensuse.org/repositories/filesystems:/ceph:/pacific/'
                 'openSUSE_Tumbleweed'
             ],
+            'ubuntu-focal': [],
         },
         'ses7': {
             'sles-15-sp2': [
