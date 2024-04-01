@@ -194,8 +194,13 @@ fi
 # upstream Ceph on Ubuntu
 {% elif os.startswith('ubuntu') %}
 {% include "ubuntu/provision.sh.j2" %}
+{% if node.name == cephadm_bootstrap_node.name %}
+{% include "cephadm/deployment_day_2.sh.j2" %}
+{% endif %}{# node == master #}
 
 {% endif %}{# end of deploy state machine #}
 
 # inform user if reboot is needed (should be the very last thing the provisioner does)
+{% if package_manager == 'zypper' %}
 zypper ps -s || true
+{% endif %}
