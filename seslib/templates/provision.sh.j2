@@ -87,11 +87,11 @@ hostnamectl set-hostname {{ node.fqdn }}
 hostnamectl set-hostname {{ node.name }}
 {% endif %}
 
-{% if version in ['octopus', 'ses7', 'pacific'] %}
+{% if version in ['octopus', 'ses7', 'pacific', 'quincy', 'reef'] %}
 # persist the journal
 sed -i -e 's/#Storage=auto/Storage=persistent/' /etc/systemd/journald.conf
 systemctl restart systemd-journald
-{% endif %}{# version in ['octopus', 'ses7', 'pacific'] #}
+{% endif %}{# version in ['octopus', 'ses7', 'pacific', 'quincy', 'reef'] #}
 
 # if --ssd option was given, set rotational flag on first additional disk
 {% if ssd %}
@@ -194,8 +194,13 @@ fi
 # upstream Ceph on Ubuntu
 {% elif os.startswith('ubuntu') %}
 {% include "ubuntu/provision.sh.j2" %}
+{% if node.name == cephadm_bootstrap_node.name %}
+{% include "cephadm/deployment_day_2.sh.j2" %}
+{% endif %}{# node == master #}
 
 {% endif %}{# end of deploy state machine #}
 
 # inform user if reboot is needed (should be the very last thing the provisioner does)
+{% if package_manager == 'zypper' %}
 zypper ps -s || true
+{% endif %}

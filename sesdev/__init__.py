@@ -149,7 +149,8 @@ def common_create_options(func):
                                                 'sles-15-sp3',
                                                 'sles-15-sp4',
                                                 'sles-15-sp5',
-                                                'ubuntu-bionic']),
+                                                'ubuntu-bionic',
+                                                'ubuntu-focal']),
                      default=None, help='OS (open)SUSE distro'),
         click.option('--provision/--no-provision',
                      default=True,
@@ -455,7 +456,7 @@ def _gen_settings_dict(
         roles_string = ""
         if version in ['ses7', 'ses7p']:
             roles_string = Constant.ROLES_SINGLE_NODE['ses7']
-        elif version in ['octopus', 'pacific']:
+        elif version in ['octopus', 'pacific', 'quincy', 'reef']:
             roles_string = Constant.ROLES_SINGLE_NODE['octopus']
         elif version in ['ses6', 'nautilus']:
             roles_string = Constant.ROLES_SINGLE_NODE['nautilus']
@@ -938,6 +939,40 @@ def pacific(deployment_id, **kwargs):
     _prep_kwargs(kwargs)
     settings_dict = _gen_settings_dict('pacific', **kwargs)
     deployment_id = _maybe_gen_dep_id('pacific', deployment_id, settings_dict)
+    _create_command(deployment_id, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id', required=False)
+@common_create_options
+@deepsea_options
+@ceph_salt_options
+@libvirt_options
+@ipv6_options
+def quincy(deployment_id, **kwargs):
+    """
+    Creates a Ceph Quincy cluster
+    """
+    _prep_kwargs(kwargs)
+    settings_dict = _gen_settings_dict('quincy', **kwargs)
+    deployment_id = _maybe_gen_dep_id('quincy', deployment_id, settings_dict)
+    _create_command(deployment_id, settings_dict)
+
+
+@create.command()
+@click.argument('deployment_id', required=False)
+@common_create_options
+@deepsea_options
+@ceph_salt_options
+@libvirt_options
+@ipv6_options
+def reef(deployment_id, **kwargs):
+    """
+    Creates a Ceph Reef cluster
+    """
+    _prep_kwargs(kwargs)
+    settings_dict = _gen_settings_dict('reef', **kwargs)
+    deployment_id = _maybe_gen_dep_id('reef', deployment_id, settings_dict)
     _create_command(deployment_id, settings_dict)
 
 

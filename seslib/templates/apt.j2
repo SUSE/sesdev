@@ -8,6 +8,8 @@ wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -
 # https://tracker.ceph.com/issues/45009 is fixed)
 {% if os == 'ubuntu-bionic' %}
 {% set codename = 'bionic' %}
+{% elif os == 'ubuntu-focal' %}
+{% set codename = 'focal' %}
 {% else %}
 echo "BADNESS: UNSUPPORTED OS {os}. Bailing out!"
 exit 0
@@ -30,8 +32,15 @@ curl --silent -L https://download.opensuse.org/repositories/devel:/kubic:/libcon
 apt-get update
 apt-cache policy
 
+# XXX: A hack to get some free space on /boot. Otherwise insalling podman
+# below may fail when updating initramfs due to not enough space.
+rm -f `realpath /boot/*.old`
+
 # install podman
 apt-get -y install podman
+
+# install jq
+apt-get -y install jq
 
 # install cephadm DEB package
 ./cephadm install

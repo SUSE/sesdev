@@ -72,6 +72,7 @@ The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
       * [With wire encryption](#with-wire-encryption)
       * [Deploying non-SUSE environments](#deploying-non-suse-environments)
          * [Ubuntu "Bionic Beaver" 18.04](#ubuntu-bionic-beaver-1804)
+         * [Ubuntu "Focal Fossa" 20.04](#ubuntu-focal-fossa-2004)
       * [Introspect existing deployments](#introspect-existing-deployments)
          * [List all existing deployments and their overall status](#list-all-existing-deployments-and-their-overall-status)
          * [Get status of individual nodes in an existing deployment](#get-status-of-individual-nodes-in-an-existing-deployment)
@@ -866,6 +867,28 @@ sesdev create octopus --single-node --os ubuntu-bionic
 This will create Ubuntu 18.04 VMs and bootstrap a Ceph Octopus cluster on them
 using `cephadm bootstrap`. To stop the deployment before bootstrap, give the
 `--stop-before-cephadm-bootstrap` option.
+
+##### Ubuntu "Focal Fossa" 20.04
+
+Ubuntu Focal is supported with the `octopus`, `pacific`, `quincy`, `reef`
+deployment versions, and this os is the default for `quincy` and `reef`.
+For example:
+
+```
+sesdev create pacific --os ubuntu-focal
+sesdev create pacific --single-node --os ubuntu-focal
+```
+
+This will create Ubuntu 20.04 VMs and bootstrap a Ceph Pacific cluster on them
+using `cephadm bootstrap`. To stop the deployment before bootstrap, give the
+`--stop-before-cephadm-bootstrap` option.
+
+When deploying Ceph Quincy there is no need to specify `--os` option:
+
+```
+sesdev create quincy
+sesdev create quincy --single-node
+```
 
 ### Introspect existing deployments
 

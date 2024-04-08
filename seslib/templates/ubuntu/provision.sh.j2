@@ -6,7 +6,23 @@ echo "Stopping the deployment before \"cephadm bootstrap\" because --stop-before
 exit 0
 {% endif %} {# stop_before_cephadm_bootstrap #}
 
-{% if node == master %}
+{% if node.name == cephadm_bootstrap_node.name %}
+
+{% set extra_options = "" %}
+
+{% if storage_nodes < 3 %}
+{% set extra_options = extra_options + " --single-host-defaults" %}
+{% endif %}
+
 mkdir -p /etc/ceph
-cephadm bootstrap --mon-ip {{ bootstrap_mon_ip }}
-{% endif %} {# node == master #}
+cephadm bootstrap --mon-ip {{ bootstrap_mon_ip }} {{ extra_options }} \
+    --ssh-private-key /root/.ssh/id_rsa --ssh-public-key /root/.ssh/id_rsa.pub
+
+{% for _node in nodes %}
+{% if _node.name != node.name %}
+ceph orch host add {{ _node.name }}
+scp -r /etc/ceph {{ _node.name }}:/etc
+{% endif %}
+{% endfor %}
+
+{% endif %} {# node.name == cephadm_bootstrap_node.name #}

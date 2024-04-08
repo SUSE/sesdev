@@ -254,7 +254,7 @@ class Deployment():  # use Deployment.create() to create a Deployment object
             if self.node_counts['master'] == 0:
                 self.settings.roles[0].append('master')
                 self.node_counts['master'] = 1
-        if self.settings.version in ['ses7', 'octopus', 'pacific']:
+        if self.settings.version in ['ses7', 'octopus', 'pacific', 'quincy', 'reef']:
             if self.node_counts['bootstrap'] == 0:
                 for node_roles in self.settings.roles:
                     if 'mon' in node_roles and 'mgr' in node_roles:
@@ -1105,7 +1105,7 @@ deployment might not be completely destroyed.
                         "Yes" if self.settings.encrypted_osds else "No")
                     result += "     - OSD objectstore:  {}\n".format(
                         "FileStore" if self.settings.filestore_osds else "BlueStore")
-                if self.settings.version in ["octopus", "ses7", "pacific"]:
+                if self.settings.version in ["octopus", "ses7", "pacific", "quincy", "reef"]:
                     if 'admin' not in v.roles and v.roles != [] and v.roles != ['client']:
                         result += (
                             "                         (CAVEAT: the 'admin' role is assumed"
@@ -1132,7 +1132,7 @@ deployment might not be completely destroyed.
         # octopus and beyond require one, and only one, bootstrap role
         # and bootstrap must have admin role as well (unless this is
         # merely a partial deployment - then we don't care)
-        if self.settings.version in ['ses7', 'octopus', 'pacific']:
+        if self.settings.version in ['ses7', 'octopus', 'pacific', 'quincy', 'reef']:
             if (not self.settings.stop_before_ceph_salt_config and
                 not self.settings.stop_before_ceph_salt_apply
             ):
@@ -1148,7 +1148,7 @@ deployment might not be completely destroyed.
         if self.settings.version in ['nautilus', 'ses6']:
             if self.node_counts['storage'] == 0:
                 raise NoStorageRolesDeepsea(self.settings.version)
-        if self.settings.version in ['octopus', 'ses7', 'pacific']:
+        if self.settings.version in ['octopus', 'ses7', 'pacific', 'quincy', 'reef']:
             if self.node_counts['storage'] == 0:
                 if self.node_counts['rgw'] > 0:
                     raise NoStorageRolesCephadm('rgw')
@@ -1159,7 +1159,7 @@ deployment might not be completely destroyed.
                 if self.node_counts['mds'] > 0:
                     raise NoStorageRolesCephadm('mds')
         # ganesha role only allowed pre-octopus
-        if self.settings.version in ['octopus', 'ses7', 'pacific']:
+        if self.settings.version in ['octopus', 'ses7', 'pacific', 'quincy', 'reef']:
             if self.node_counts["ganesha"] > 0:
                 raise NoGaneshaRolePostNautilus()
         # there must not be more than one suma role:
@@ -1193,6 +1193,15 @@ deployment might not be completely destroyed.
         # experimental Ubuntu Bionic
         if self.settings.os == 'ubuntu-bionic':
             if self.settings.version in ['octopus']:
+                pass  # we support
+            else:
+                raise VersionOSNotSupported(
+                                            self.settings.os,
+                                            self.settings.version
+                                            )
+        # experimental Ubuntu Focal
+        if self.settings.os in ['ubuntu-focal']:
+            if self.settings.version in ['octopus', 'pacific', 'quincy', 'reef']:
                 pass  # we support
             else:
                 raise VersionOSNotSupported(
