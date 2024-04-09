@@ -8,20 +8,6 @@ the VMs and run the deployment scripts.
 
 ## Build Status
 
-### Travis
-
-[![Travis Build Status](https://travis-ci.org/SUSE/sesdev.svg?branch=master)](https://travis-ci.org/SUSE/sesdev)
-
-The Travis CI tests that the Python source code of `sesdev` compiles and has no
-linter issues.
-
-### Jenkins
-
-[![Jenkins Build Status](https://ceph-ci.suse.de/job/sesdev-integration/job/master/badge/icon)](https://ceph-ci.suse.de/job/sesdev-integration/job/master/)
-
-The Jenkins CI tests that `sesdev` can be used to deploy a single-node Ceph
-15.2.x ("Octopus") cluster in an openSUSE Leap 15.2 environment.
-
 ## Table of Contents
 
 [//]: # (To generate a new TOC, first install https://github.com/ekalinin/github-markdown-toc)
