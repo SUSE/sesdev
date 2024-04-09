@@ -537,10 +537,9 @@ To deploy a specific version of Longorn, use the `--longhorn-version` option:
 $ sesdev create k3s --deploy-longhorn --longhorn-version=1.4.1
 ```
 
-Currently Longhorn deployments will only use _one_ disk.  If more are
-specified using the `--num-disks` option, only the first disk will be
-mounted for use by Longhorn.  All other additional disks will remain
-untouched.
+The `--num-disks` option can be used if you want more than one storage disk.
+All storage disks will be made part of a single linear LVM volume mounted for
+use by Longhorn.
 
 #### On a remote libvirt server via SSH
 
